@@ -1,0 +1,94 @@
+#	Runtime parameters for the Emery wind tunnel + step problem.
+
+#	Parameters for initial model
+
+#	Ambient pressure and density and inflow velocity.
+
+sim_pAmbient	= 1.0
+sim_rhoAmbient	= 1.0
+sim_windVel     = 0.0
+
+#	Jet properties
+sim_pJet		= 1.0
+sim_rhoJet		= 0.01
+sim_velJet		= 40.0
+sim_gammaJet	= 1.4
+
+#	Nozzle Geometry
+sim_nozzleRadius = 0.02
+sim_nozzleLength = 0.05
+sim_nozzlePosX = 0.0
+sim_nozzlePosY = 0.0
+sim_nozzlePosZ = 0.0
+sim_nozzleVecX	= 0.0
+sim_nozzleVecY	= 0.0
+sim_nozzleVecZ	= 1.0
+
+
+
+# Gas ratio of specific heats of the ISM
+
+sim_gamma           = 1.4
+
+#	Computational volume parameters
+
+#		Grid geometry
+
+geometry = "cartesian"
+
+#		Size of computational volume
+
+Nblockx		= 4
+Nblocky		= 4 
+Nblockz		= 8
+xmin		= -1.
+xmax		= 1.
+ymin		= -1.
+ymax		= 1.
+zmin		= -2.
+zmax		= 2.
+
+#		Boundary conditions
+
+xl_boundary_type = "outflow"
+xr_boundary_type = "outflow"
+
+yl_boundary_type = "outflow"
+yr_boundary_type = "outflow"
+
+
+#   Gravity acceleration
+accx = 0.0
+accy = 0.0
+
+
+#	Simulation (grid, time, I/O) parameters
+
+cfl		= 0.8
+lrefine_max     = 6
+refine_var_1 = "dens"
+refine_var_2 = "pres"
+basenm          = "Jet3D_"
+restart         = .false.
+checkpointFileIntervalTime          = 0.01
+nend            = 100000
+tmax            = 0.1
+eintSwitch     = 1.e-4
+ 
+## -------------------------------------------------------------##
+##  SWITCHES SPECIFIC TO THE UNSPLIT HYDRO SOLVER               ##
+#	I. INTERPOLATION SCHEME:
+order		= 2      # Interpolation order (First/Second order)
+slopeLimiter    = "mc"   # Slope limiters (minmod, mc, vanLeer, hybrid, limited)
+LimitedSlopeBeta= 1.     # Slope parameter for the "limited" slope by Toro
+charLimiting	= .true. # Characteristic limiting vs. Primitive limiting
+
+
+#	II. RIEMANN SOLVERS:
+RiemannSolver	= "Roe"       # LLF, HLL, HLLC, hybrid, Marquina, Roe
+shockInstabilityFix = .false. # Carbuncle instability fix for the Roe solver
+
+
+#	III. STRONG SHOCK HANDELING SCHEME:
+shockDetect	= .false.     # Shock Detect for numerical stability
+## -------------------------------------------------------------##
