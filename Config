@@ -3,10 +3,9 @@
 #		Colella, P., 1984, JCP, 54, 115)
 
 #REQUIRES Grid/GridBoundaryConditions/OneRow
-REQUIRES physics/Hydro
+REQUIRES physics/Hydro/
 REQUIRES physics/Eos/EosMain/Multigamma
 REQUIRES Multispecies
-#REQUIRES physics/sourceTerms/Heat
 
 
 D   pAmbient        Initial ambient pressure
@@ -16,23 +15,26 @@ D	windVel			Inflow velocity (parallel to x-axis)
 PARAMETER sim_pAmbient     REAL    1.0
 PARAMETER sim_rhoAmbient   REAL    1.0
 PARAMETER sim_windVel	   REAL	   3.0
+PARAMETER sim_gammaAmbient REAL	   1.4
+
+# Jet Properties
 PARAMETER sim_pJet	       REAL    1.0
 PARAMETER sim_rhoJet	   REAL    0.01
-PARAMETER sim_velJet	   REAL	   40.
+PARAMETER sim_velJet	   REAL	   40.0
 PARAMETER sim_gammaJet	   REAL	   1.4
-PARAMETER accx			   REAL    0.0
-PARAMETER accy			   REAL    0.0
-PARAMETER sim_gamma 	   REAL	   1.4
+PARAMETER sim_bphiJet	   REAL	   0.0
 
 # Nozzle Geometry
-PARAMETER sim_nozzleRadius REAL		0.05
-PARAMETER sim_nozzleLength REAL		0.1
-PARAMETER sim_nozzlePosX   REAL		0.0
-PARAMETER sim_nozzlePosY   REAL		0.0
-PARAMETER sim_nozzlePosZ   REAL		0.0
-PARAMETER sim_nozzleVecX   REAL		0.0
-PARAMETER sim_nozzleVecY   REAL		0.0
-PARAMETER sim_nozzleVecZ   REAL		1.0
+PARAMETER nozzleRadius REAL		0.05
+PARAMETER nozzleLength REAL		0.1
+PARAMETER nozzlePosX   REAL		0.0
+PARAMETER nozzlePosY   REAL		0.0
+PARAMETER nozzlePosZ   REAL		0.0
+PARAMETER nozzleVecX   REAL		0.0
+PARAMETER nozzleVecY   REAL		0.0
+PARAMETER nozzleVecZ   REAL		1.0
+PARAMETER bfeather_inner   REAL		0.02
+PARAMETER bfeather_outer   REAL		0.02
 
 
 # Enough NBOUNDARIES space for taking 12 blocks out of a 2d problem:

@@ -29,9 +29,6 @@ subroutine Simulation_initSpecies()
 
   real :: sim_gammaJet
 
-  call RuntimeParameters_get('sim_gamma', sim_gamma)
-  call RuntimeParameters_get('sim_gammaJet',sim_gammaJet)
-
   call Multispecies_setProperty(ISM_SPEC, A, 1.)
   call Multispecies_setProperty(ISM_SPEC, Z, 1.)
   call Multispecies_setProperty(ISM_SPEC, GAMMA, sim_gamma)

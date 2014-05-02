@@ -34,9 +34,11 @@ module Simulation_data
 #include "Simulation.h"
 
   TYPE nozzle_struct
-      real, dimension(3) :: pos, vec
+      real, dimension(3) :: pos, jetvec
       real :: radius, length
       real :: pressure, density, velocity, gamma
+      real :: bfeather_inner, bfeather_outer
+      real :: bphi
   end TYPE nozzle_struct
 
   !! *** Runtime Parameters *** !!
@@ -46,7 +48,6 @@ module Simulation_data
   real, save :: sim_pAmbient, sim_rhoAmbient, sim_windVel
   !real, save :: sim_pJet, sim_rhoJet, sim_velJet
   real, save :: sim_gamma, sim_smallP, sim_smallX
-  real, save :: sim_accx, sim_accy
   
 contains
   

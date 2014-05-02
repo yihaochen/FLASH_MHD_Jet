@@ -7,28 +7,30 @@
 sim_pAmbient	= 1.0
 sim_rhoAmbient	= 1.0
 sim_windVel     = 0.0
+sim_gammaAmbient = 1.4
 
 #	Jet properties
 sim_pJet		= 1.0
 sim_rhoJet		= 0.01
 sim_velJet		= 40.0
 sim_gammaJet	= 1.4
+sim_bphiJet		= 0.0
 
 #	Nozzle Geometry
-sim_nozzleRadius = 0.02
-sim_nozzleLength = 0.05
-sim_nozzlePosX = 0.0
-sim_nozzlePosY = 0.0
-sim_nozzlePosZ = 0.0
-sim_nozzleVecX	= 0.0
-sim_nozzleVecY	= 0.0
-sim_nozzleVecZ	= 1.0
+nozzleRadius = 0.2
+nozzleLength = 0.5
+nozzlePosX = 0.0
+nozzlePosY = 0.0
+nozzlePosZ = 0.0
+nozzleVecX	= 0.0
+nozzleVecY	= 0.0
+nozzleVecZ	= 1.0
+
+bfeather_inner = 0.02
+bfeather_outer = 0.02
 
 
 
-# Gas ratio of specific heats of the ISM
-
-sim_gamma           = 1.4
 
 #	Computational volume parameters
 
@@ -57,22 +59,17 @@ yl_boundary_type = "outflow"
 yr_boundary_type = "outflow"
 
 
-#   Gravity acceleration
-accx = 0.0
-accy = 0.0
-
-
 #	Simulation (grid, time, I/O) parameters
 
-cfl		= 0.8
-lrefine_max     = 6
+cfl		= 0.5
+lrefine_max     = 3
 refine_var_1 = "dens"
 refine_var_2 = "pres"
-basenm          = "Jet3D_"
+basenm          = "MHD_Jet_"
 restart         = .false.
-checkpointFileIntervalTime          = 0.01
+checkpointFileIntervalTime          = 1E-4
 nend            = 100000
-tmax            = 0.1
+tmax            = 1E-2
 eintSwitch     = 1.e-4
  
 ## -------------------------------------------------------------##

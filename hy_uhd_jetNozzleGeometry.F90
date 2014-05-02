@@ -14,7 +14,7 @@ Subroutine hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length, &
   real :: norm
 
   ! Jer direction
-  jetvec(:)=sim(nozzle)%vec
+  jetvec(:)=sim(nozzle)%jetvec
 
   ! Vector to cell center
   nozvec(:)=cellvec(:) - sim(nozzle)%pos(:)
