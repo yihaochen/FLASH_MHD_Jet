@@ -27,7 +27,10 @@ subroutine Simulation_initSpecies()
 
   implicit none
 
-  real :: sim_gammaJet
+  integer :: nozzle=1 
+
+  call RuntimeParameters_get('sim_gammaAmbient', sim_gamma)
+  call RuntimeParameters_get('sim_gammaJet', sim(nozzle)%gamma)
 
   call Multispecies_setProperty(ISM_SPEC, A, 1.)
   call Multispecies_setProperty(ISM_SPEC, Z, 1.)
@@ -35,6 +38,6 @@ subroutine Simulation_initSpecies()
 
   call Multispecies_setProperty(JET_SPEC, A, 1.)
   call Multispecies_setProperty(JET_SPEC, Z, 1.)
-  call Multispecies_setProperty(JET_SPEC, GAMMA, sim_gammaJet)
+  call Multispecies_setProperty(JET_SPEC, GAMMA, sim(nozzle)%gamma)
 
 end subroutine Simulation_initSpecies

@@ -44,13 +44,13 @@ subroutine Grid_markRefineDerefine()
                         gr_lrefineMaxRedDoByLogR,&
                         gr_lrefineCenterI,gr_lrefineCenterJ,gr_lrefineCenterK,&
                         gr_eosModeNow
-  use tree, ONLY : newchild, refine, derefine, stay, nodetype
+  !use tree, ONLY : newchild, refine, derefine, stay, nodetype
 !!$  use physicaldata, ONLY : force_consistency
   use Logfile_interface, ONLY : Logfile_stampVarMask
-  use Grid_interface, ONLY : Grid_fillGuardCells
+  !use Grid_interface, ONLY : Grid_fillGuardCells
   use Particles_interface, only: Particles_sinkMarkRefineDerefine
 !<-- YiHao
-  use tree, ONLY : newchild, refine, derefine, stay, lrefine_max
+  use tree, ONLY : newchild, refine, derefine, stay, nodetype, lrefine_max
   use Grid_interface, ONLY : Grid_fillGuardCells, Grid_markRefineSpecialized
   use Simulation_data
 !--> YiHao
@@ -121,7 +121,6 @@ subroutine Grid_markRefineDerefine()
   end do
   
 !<-- YiHao
-  
   call Grid_markRefineSpecialized(INRADIUS, 4, (/ sim(nozzle)%pos(1), &
   sim(nozzle)%pos(2), sim(nozzle)%pos(3), &
   max(sim(nozzle)%radius, sim(nozzle)%length) /), lrefine_max )

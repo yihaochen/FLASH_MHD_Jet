@@ -95,8 +95,7 @@ subroutine Simulation_initBlock(blockID, myPE)
   ! the equation of state.
   ekin_zone = 0.5 * (velx_zone**2 + vely_zone**2 + velz_zone**2)
 
-  eint_zone = pres_zone / (sim_gamma-1.)
-  eint_zone = eint_zone / rho_zone
+  eint_zone = pres_zone / (sim_gamma-1.) / rho_zone
   ener_zone = eint_zone + ekin_zone
   ener_zone = max(ener_zone, sim_smallP)
 
