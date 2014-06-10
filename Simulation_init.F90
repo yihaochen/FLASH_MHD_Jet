@@ -7,7 +7,7 @@
 !!
 !! SYNOPSIS
 !!
-!!  Simulation_init(integer(in) :: myPE)
+!!  Simulation_init()
 !!
 !!
 !! DESCRIPTION
@@ -16,7 +16,6 @@
 !!
 !! ARGUMENTS
 !!
-!!  myPE - the local processor number
 !!
 !! PARAMETERS
 !!
@@ -29,7 +28,7 @@
 !!
 !!***
 
-subroutine Simulation_init(myPE)
+subroutine Simulation_init()
 
   use Simulation_data
   use RuntimeParameters_interface, ONLY : RuntimeParameters_get
@@ -39,7 +38,6 @@ subroutine Simulation_init(myPE)
 #include "Flash.h"
 
   integer :: nozzle = 1
-  integer, intent(in) :: myPE
 
   call RuntimeParameters_get('sim_pAmbient', sim_pAmbient)
   call RuntimeParameters_get('sim_rhoAmbient', sim_rhoAmbient)

@@ -7,8 +7,7 @@
 !!
 !! SYNOPSIS
 !!
-!!  Simulation_initBlock(integer(IN) :: blockID, 
-!!                       integer(IN) :: myPE)
+!!  Simulation_initBlock(integer(IN) :: blockID)
 !!
 !!
 !!
@@ -25,12 +24,11 @@
 !! ARGUMENTS
 !!
 !!  blockID -           the number of the block to update
-!!  myPE -             my processor number
 !!***
 
 !!REORDER(4): solnData
 
-subroutine Simulation_initBlock(blockID, myPE)
+subroutine Simulation_initBlock(blockID)
 
   use Grid_interface, ONLY : Grid_getBlkIndexLimits, &
     Grid_getBlkPtr, Grid_releaseBlkPtr, Grid_getCellCoords
@@ -44,8 +42,10 @@ subroutine Simulation_initBlock(blockID, myPE)
 #include "constants.h"
 #include "Flash.h"
 
-  integer,intent(IN) :: blockID, myPE
-  real,pointer :: solnData(:,:,:,:)
+  integer,intent(IN) :: blockID
+  real,pointer,dimension(:,:,:,:) :: solnData, &
+        solnFaceXData, solnFaceYData, solnFaceZData
+
 
   real :: rho_zone, velx_zone, vely_zone, velz_zone, pres_zone, &
        ener_zone, ekin_zone, eint_zone
@@ -67,13 +67,6 @@ subroutine Simulation_initBlock(blockID, myPE)
 !===============================================================================
 
   if (firstCall) then
-
-     if (myPE == MASTER_PE) then
-
-        call Logfile_stamp(myPE,"initializing for jet ", 'run_init')
-        !write (*,*) "flash:  initializing for jet"
-
-     endif
 
 
   endif
@@ -100,7 +93,11 @@ subroutine Simulation_initBlock(blockID, myPE)
   ener_zone = max(ener_zone, sim_smallP)
 
 
-  call Grid_getBlkPtr(blockID, solnData, CENTER)
+  call Grid_getBlkPtr(blockID,solnData,CENTER)
+  call Grid_getBlkPtr(blockID,solnFaceXData,FACEX)
+  call Grid_getBlkPtr(blockID,solnFaceYData,FACEY)
+  call Grid_getBlkPtr(blockID,solnFaceZData,FACEZ)
+
 #if NSPECIES > 0
   solnData(SPECIES_BEGIN,:,:,:) =  1.0-(NSPECIES-1)*sim_smallX
   solnData(SPECIES_BEGIN+1:SPECIES_END,:,:,:) =     sim_smallX
@@ -121,10 +118,22 @@ subroutine Simulation_initBlock(blockID, myPE)
   solnData(VELY_VAR,:,:,:) = vely_zone
   solnData(VELZ_VAR,:,:,:) = velz_zone
 
+  solndata(MAGX_VAR,:,:,:) = 0.0
+  solndata(MAGY_VAR,:,:,:) = 0.0
+  solndata(MAGZ_VAR,:,:,:) = 0.0
+  solndata(MAGP_VAR,:,:,:) = sim_smallP
+
+  solnFaceXdata(MAG_FACE_VAR,:,:,:) = 0.0
+  solnFaceYdata(MAG_FACE_VAR,:,:,:) = 0.0
+  solnFaceZdata(MAG_FACE_VAR,:,:,:) = 0.0
+
   ! Initialize the nozzle
   call Heat_fillnozzle(blockID, 0.0, dr_simTime)
 
   call Grid_releaseBlkPtr(blockID, solnData, CENTER)
+  call Grid_releaseBlkPtr(blockID,solnFaceXData,FACEX)
+  call Grid_releaseBlkPtr(blockID,solnFaceYData,FACEY)
+  call Grid_releaseBlkPtr(blockID,solnFaceZData,FACEZ)
  
 
   return
