@@ -47,8 +47,8 @@ Subroutine hy_uhd_getBfield(nozzle,simTime,r,z,phi,Br,Bz,Bphi)
   real :: Ar1, Ar2, Az, Aphi, del
 
 
-  Bphi = taper(nozzle, r, sim(nozzle)%bphi, 0.0)
   Br = 0.0
-  Bz = 0.0
+  Bz = taper(nozzle, r, z, sim(nozzle)%bz, sim(nozzle)%bz, sim_bzAmbient)
+  Bphi = taper(nozzle, r, z, 0.0, sim(nozzle)%bphi, 0.0)
 
 End Subroutine hy_uhd_getBfield

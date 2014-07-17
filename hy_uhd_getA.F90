@@ -66,9 +66,9 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
   ! 1) using A_r
     case(1)
       if (r.lt.rjet .and. z.gt.0.0) then
-        Ar = (-z + vjet*simTime)*taper(nozzle, r, sim(nozzle)%bphi, 0.0)
+        Ar = (-z + vjet*simTime)*taperR(nozzle, r, sim(nozzle)%bphi, 0.0)
       else if (r.lt.rjet .and. z.lt.0.0) then
-        Ar = (-z - vjet*simTime)*taper(nozzle, r, sim(nozzle)%bphi, 0.0)
+        Ar = (-z - vjet*simTime)*taperR(nozzle, r, sim(nozzle)%bphi, 0.0)
       else
         Ar = 0.0
       end if

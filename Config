@@ -16,6 +16,7 @@ PARAMETER sim_pAmbient     REAL    1.0
 PARAMETER sim_rhoAmbient   REAL    1.0
 PARAMETER sim_windVel	   REAL	   3.0
 PARAMETER sim_gammaAmbient REAL	   1.4
+PARAMETER sim_bzAmbient	   REAL	   0.0
 
 # Jet Properties
 PARAMETER sim_pJet	       REAL    1.0
@@ -23,10 +24,11 @@ PARAMETER sim_rhoJet	   REAL    0.01
 PARAMETER sim_velJet	   REAL	   40.0
 PARAMETER sim_gammaJet	   REAL	   1.4
 PARAMETER sim_bphiJet	   REAL	   0.0
+PARAMETER sim_bzJet		   REAL	   0.0
 
 # Nozzle Geometry
 PARAMETER nozzleRadius REAL		0.05
-PARAMETER nozzleLength REAL		0.1
+PARAMETER nozzleHalfL  REAL		0.1
 PARAMETER nozzlePosX   REAL		0.0
 PARAMETER nozzlePosY   REAL		0.0
 PARAMETER nozzlePosZ   REAL		0.0
@@ -35,6 +37,7 @@ PARAMETER nozzleVecY   REAL		0.0
 PARAMETER nozzleVecZ   REAL		1.0
 PARAMETER bfeather_inner   REAL		0.02
 PARAMETER bfeather_outer   REAL		0.02
+PARAMETER zfeather		   REAL		0.04
 
 
 # Enough NBOUNDARIES space for taking 12 blocks out of a 2d problem:
