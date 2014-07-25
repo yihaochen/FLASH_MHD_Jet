@@ -25,6 +25,7 @@ PARAMETER sim_velJet	   REAL	   40.0
 PARAMETER sim_gammaJet	   REAL	   1.4
 PARAMETER sim_bphiJet	   REAL	   0.0
 PARAMETER sim_bzJet		   REAL	   0.0
+PARAMETER sim_timeMHDon    REAL	   0.0
 
 # Nozzle Geometry
 PARAMETER nozzleRadius REAL		0.05
@@ -35,6 +36,7 @@ PARAMETER nozzlePosZ   REAL		0.0
 PARAMETER nozzleVecX   REAL		0.0
 PARAMETER nozzleVecY   REAL		0.0
 PARAMETER nozzleVecZ   REAL		1.0
+PARAMETER bPosZ		   REAL		0.05
 PARAMETER bfeather_inner   REAL		0.02
 PARAMETER bfeather_outer   REAL		0.02
 PARAMETER zfeather		   REAL		0.04

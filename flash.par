@@ -5,7 +5,7 @@ sim_pAmbient	= 1.38065E-11	# erg/cm3 for 10^4 K gas
 sim_rhoAmbient	= 1.67E-23		# g/cm3 = 10 particles/cm3
 sim_windVel     = 0.0
 sim_gammaAmbient = 1.6666
-sim_bzAmbient	= 1.8623E-6
+sim_bzAmbient	= 0.0 #1.8623E-6
 
 #	Jet properties
 sim_pJet		= 2.76130E-11
@@ -14,6 +14,7 @@ sim_velJet		= 3.0E9			# 0.1 c
 sim_gammaJet	= 1.6666
 sim_bphiJet     = 1.8623E-6     # 1.8623E-5 for P_mag=1.38E-11
 sim_bzJet		= 1.8623E-6
+sim_timeMHDon	= 1E-3
 
 #	Nozzle Geometry
 nozzleRadius = 1.0E7
@@ -25,6 +26,7 @@ nozzleVecX	 = 0.0
 nozzleVecY	 = 0.0
 nozzleVecZ	 = 1.0
 
+bPosZ		 = 1.0E7
 bfeather_inner = 5.0E6
 bfeather_outer = 1.0E7
 zfeather	   = 1.0E7

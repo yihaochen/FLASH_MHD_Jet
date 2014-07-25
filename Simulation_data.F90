@@ -31,14 +31,16 @@
 module Simulation_data
 
   implicit none
+
+#include "constants.h"
 #include "Simulation.h"
 
   TYPE nozzle_struct
       real, dimension(3) :: pos, jetvec
-      real :: radius, length
+      real :: radius, length, bPosZ
       real :: pressure, density, velocity, gamma
       real :: bfeather_inner, bfeather_outer, zfeather
-      real :: bphi, bz
+      real :: bphi, bz, timeMHDon
   end TYPE nozzle_struct
 
   !! *** Runtime Parameters *** !!
@@ -47,6 +49,13 @@ module Simulation_data
 
   real, save :: sim_pAmbient, sim_rhoAmbient, sim_windVel, sim_bzAmbient
   real, save :: sim_gamma, sim_smallP, sim_smallX
+  real,save,allocatable,dimension(:) :: sim_xcoord
+  real,save,allocatable,dimension(:) :: sim_ycoord
+  real,save,allocatable,dimension(:) :: sim_zcoord
+  real,save,allocatable,dimension(:) :: sim_xcoordf
+  real,save,allocatable,dimension(:) :: sim_ycoordf
+  real,save,allocatable,dimension(:) :: sim_zcoordf
+
 
 contains
 
@@ -95,7 +104,7 @@ contains
     real :: r1, r2, rout, zout, zjet, var_zcen, var_zin
     real :: taper
     r1 = sim(nozzle)%bfeather_inner
-    r2 = sim(nozzle)%radius 
+    r2 = sim(nozzle)%radius
     rout = sim(nozzle)%radius + sim(nozzle)%bfeather_outer
     zjet = sim(nozzle)%length
     zout = zjet + sim(nozzle)%zfeather
@@ -126,8 +135,40 @@ contains
       taper = var_out
     endif
 
-
   end function taper
+
+
+  function coshat(x, halfwidth, feather, max_in)
+  !                _____________________________ 
+  !              /                               \
+  !          /                                       \
+  !      /                                               \
+  ! ---------------------------------------------------------
+  !    |     ^     |               ^             |          |
+  !    ^     |     ^  halfwidth    |
+  !    |  feather  |
+
+    real, INTENT(in) :: x, halfwidth, feather
+    real, INTENT(in), optional :: max_in
+    real :: coshat, hatvalue
+
+    if (present(max_in)) then
+        hatvalue = max_in
+    else
+        hatvalue = 2.0*feather/PI
+    endif
+    
+    if (abs(x).le.halfwidth-0.5*feather) then
+        coshat = hatvalue
+    else if (abs(x).lt.(halfwidth+0.5*feather)) then
+        coshat = hatvalue*0.5*(1.0+cos( PI*((abs(x) - halfwidth)/feather+0.5) ))
+    else
+        coshat = 0.0
+    endif
+
+  end function coshat
+
+
 
 end module Simulation_data
 

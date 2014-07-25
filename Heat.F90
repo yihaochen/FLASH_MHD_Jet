@@ -39,8 +39,8 @@ subroutine Heat (blockCount,blockList,dt,time)
 !
 !==============================================================================
 !
-  use Grid_interface, ONLY : Grid_getBlkIndexLimits, Grid_getBlkPtr, Grid_releaseBlkPtr,&
-    Grid_getCellCoords, Grid_putPointData
+  use Grid_interface, ONLY : Grid_getBlkIndexLimits, Grid_getDeltas
+  use hy_uhd_interface, ONLY : hy_uhd_staggeredDivb
   !use Hydro_data, ONLY: hy_unsplitEosMode
   !use Eos_interface, ONLY : Eos_wrapped
   use Simulation_data
@@ -52,13 +52,21 @@ subroutine Heat (blockCount,blockList,dt,time)
   integer,intent(IN) :: blockCount
   integer,dimension(blockCount),intent(IN)::blockList
   real,intent(IN) :: dt,time
+  real, dimension(MDIM) :: del
+  integer, dimension(LOW:HIGH,MDIM) :: blkLimits,blkLimitsGC
+  logical :: halfTimeAdvance = .false.
 
   integer :: blockID, blkInd
 
 
   do blkInd=1,blockCount
      blockID = blockList(blkInd)
+     call Grid_getDeltas(blockID,del)
+     call Grid_getBlkIndexLimits(blockID,blkLimits,blkLimitsGC)
+
      call Heat_fillnozzle(blockID,dt,time)
+
+     call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
 
   enddo
 

@@ -42,7 +42,7 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
 
   integer, intent(IN) :: nozzle
   real, intent(IN) :: simTime, r, z, phi
-  real :: r1, r2, rjet, vjet
+  real :: r1, r2, rout, vjet
   !real, dimension(3), intent(IN) :: jetvec, rvec, plnvec, phivec 
   real, intent(OUT) :: Ar, Az, Aphi
   !real, dimensiON(3), INTENt(OUT) :: Avec
@@ -51,29 +51,29 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
   !
   ! geometric factors
   !
-  rjet = sim(nozzle)%radius
   r1 = sim(nozzle)%bfeather_inner 
-  r2 = rjet - sim(nozzle)%bfeather_outer
+  r2 = sim(nozzle)%radius
+  rout = sim(nozzle)%radius + sim(nozzle)%bfeather_outer
 
   ! velocity of the jet (in z-direction)
   vjet = sim(nozzle)%velocity
   
   !
-  ! helical field
+  ! toroidal field
   !
   Aopt = 1
   select case(Aopt)
   ! 1) using A_r
     case(1)
-      if (r.lt.rjet .and. z.gt.0.0) then
-        Ar = (-z + vjet*simTime)*taperR(nozzle, r, sim(nozzle)%bphi, 0.0)
-      else if (r.lt.rjet .and. z.lt.0.0) then
-        Ar = (-z - vjet*simTime)*taperR(nozzle, r, sim(nozzle)%bphi, 0.0)
+      if (r.lt.rout) then
+        !Ar = (-z + vjet*simTime)*taperR(nozzle, r, sim(nozzle)%bphi, 0.0)
+        Ar = coshat(z, sim(nozzle)%bPosZ, sim(nozzle)%zfeather)*&
+             taperR(nozzle, r, 1.0, 0.0)*sim(nozzle)%bphi
       else
         Ar = 0.0
       end if
       Az = 0.0
-      Aphi = 0.0
+      Aphi = 0.5*r*sim(nozzle)%bz
 
   ! 2) using A_z (divergenless Coulumb gauge) TODO:Time dependence
     case(2)
@@ -81,8 +81,8 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
         Az = r**4/(2*r1**3) - r**3/r1**2
       else if (r.ge.r1 .and. r.lt.r2) then
         Az = r
-      else if (r.ge.r2 .and. r.lt.rjet) then
-        Az = (rjet-r)**4/(2*(rjet-r1)**3) - (rjet-r)**3/(rjet-r1)**2
+      else if (r.ge.r2 .and. r.lt.rout) then
+        Az = (rout-r)**4/(2*(rout-r1)**3) - (rout-r)**3/(rout-r1)**2
       else
         Az = 0.0
       end if
