@@ -64,8 +64,8 @@ Subroutine Heat_electricNozzle( nozzle,i,j,k,E )
      !
      ! Taper factors - smoothly transition from imposed to FLASH solution
      !
-     LRTaper = coshat(length, sim(nozzle)%bPosZ, sim(nozzle)%zfeather, 1.0)*&
-               taperR(nozzle, radius, 1.0, 0.0)
+     LRTaper = 0.5*(1.0+cos(PI*max(-1.0,(min(1.0,&
+               (abs(length)-sim(nozzle)%bPosZ)/sim(nozzle)%zfeather)))))
      
      ! nozzle face taper factor for toroidal field
      ! 1 means use injection scheme, 
@@ -103,15 +103,16 @@ Subroutine Heat_electricNozzle( nozzle,i,j,k,E )
         !if (i .eq. 8 .and. j.eq.8 .and. k.eq.8) then
         !write(*,*) 'Injet initial field'
         !endif
-        E(xyz) = E(xyz) - (Ar*plnvec(xyz)+Az*jetvec(xyz))/dr_dt-&!*toroidalReplenishLTaper+&
-                 Aphi*phivec(xyz)/dr_dt
+        E(xyz) = E(xyz) - (Ar*plnvec(xyz)+Az*jetvec(xyz))&!/dr_dt&
+                 !*sim(nozzle)%zfeather/sim(nozzle)%velocity &
+                 -Aphi*phivec(xyz)/dr_dt
 
      else if (dr_simTime.ge.sim(nozzle)%timeMHDon+dr_dt) then
         
         ! Toroidal field update: Replace the flux advected away
         !torvec(:)= - Ar(:)*sum(jetvec(:)*sim(nozzle)%velocity)*&
         !     toroidalReplenishLTaper
-        torvec(xyz) = - Ar*plnvec(xyz)/dr_dt!*blockingLTaper
+        torvec(xyz) = - (Ar*plnvec(xyz)+Az*jetvec(xyz))!*blockingLTaper
         
         !call hy_uhd_jetNozzleGeometryOld(edgevec,radius,length, &
         !     distance,cellsig,theta,jetvec,rvec,plnvec,phivec)

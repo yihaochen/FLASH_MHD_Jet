@@ -61,7 +61,7 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
   !
   ! toroidal field
   !
-  Aopt = 1
+  Aopt = 2
   select case(Aopt)
   ! 1) using A_r
     case(1)
@@ -78,16 +78,18 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
   ! 2) using A_z (divergenless Coulumb gauge) TODO:Time dependence
     case(2)
       if (r.ge.0 .and. r.lt.r1) then
-        Az = r**4/(2*r1**3) - r**3/r1**2
-      else if (r.ge.r1 .and. r.lt.r2) then
-        Az = r
-      else if (r.ge.r2 .and. r.lt.rout) then
-        Az = (rout-r)**4/(2*(rout-r1)**3) - (rout-r)**3/(rout-r1)**2
+        Az = r**4/(2*r1**3) - r**3/r1**2 + 0.5*(-r1+rout+r2)
+      else if (r.ge.r1 .and. r.le.r2) then
+        Az = -r + 0.5*(rout+r2)
+      else if (r.gt.r2 .and. r.lt.rout) then
+        Az = -(rout-r)**4/(2*(rout-r2)**3) + (rout-r)**3/(rout-r2)**2
       else
-        Az = 0.0
+        Az = 0
       end if
+      Az = Az*sim(nozzle)%bphi*sim(nozzle)%velocity/sim(nozzle)%zfeather*&
+           0.5*(1.0+cos(PI*max(-1.0,(min(1.0,(abs(z)-sim(nozzle)%bPosZ)/sim(nozzle)%zfeather)))))
       Ar = 0.0
-      Aphi = 0.0
+      Aphi = 0.5*r*sim(nozzle)%bz
     
     case default
         Az = 0.0

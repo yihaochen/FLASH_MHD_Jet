@@ -10,7 +10,7 @@ sim_bzAmbient	= 0.0 #1.8623E-6
 #	Jet properties
 sim_pJet		= 2.76130E-11
 sim_rhoJet		= 1.67E-25
-sim_velJet		= 3.0E9			# 0.1 c
+sim_velJet		= 3.0E9			# 3E9 = 0.1 c
 sim_gammaJet	= 1.6666
 sim_bphiJet     = 1.8623E-6     # 1.8623E-5 for P_mag=1.38E-11
 sim_bzJet		= 1.8623E-6

@@ -92,6 +92,7 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   !call Grid_getBlkPtr(blockID,solnFaceYData,FACEY)
   !call Grid_getBlkPtr(blockID,solnFaceZData,FACEZ)
   call Grid_getBlkPtr(blockID,E,SCRATCH)
+  E(EX_SCRATCH_GRID_VAR:EZ_SCRATCH_GRID_VAR,:,:,:) = 0.0
 
   do k = blkLimitsGC(LOW,KAXIS), blkLimitsGC(HIGH,KAXIS)
    do j = blkLimitsGC(LOW,JAXIS), blkLimitsGC(HIGH,JAXIS)
