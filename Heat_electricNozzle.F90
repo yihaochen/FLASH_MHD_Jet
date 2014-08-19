@@ -132,10 +132,10 @@ Subroutine Heat_electricNozzle( nozzle,i,j,k,E )
              E(xyz)*(1.0 - LRTaper)+&!1.0*blockingRTaper) + &
              advect(xyz) + torvec(xyz)
         
-        if (i .eq. 8 .and. j.eq.8 .and. k.eq.8) then
-           !write(*,*) 'Ar', Ar, torvec(:)
+        !if (i .eq. 8 .and. j.eq.8 .and. k.eq.8) then
+           !write(*,*) '(r, Aphi) = ', radius, Aphi
            !write(*,*)'E',xyz,E(xyz)
-        endif
+        !endif
         
      endif
 

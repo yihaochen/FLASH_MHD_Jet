@@ -71,9 +71,9 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   allocate(sim_xCoord(sizeX),stat=istat)
   allocate(sim_yCoord(sizeY),stat=istat)
   allocate(sim_zCoord(sizeZ),stat=istat)
-  allocate(sim_xCoordf(sizeX+1),stat=istat)
-  allocate(sim_yCoordf(sizeY+1),stat=istat)
-  allocate(sim_zCoordf(sizeZ+1),stat=istat)
+  !allocate(sim_xCoordf(sizeX+1),stat=istat)
+  !allocate(sim_yCoordf(sizeY+1),stat=istat)
+  !allocate(sim_zCoordf(sizeZ+1),stat=istat)
   call Grid_getDeltas(blockID, del)
   dx = del(1)
   dy = del(2)
@@ -83,15 +83,18 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   call Grid_getCellCoords(JAXIS,blockID,CENTER,gcell, sim_yCoord, sizeY)
   call Grid_getCellCoords(KAXIS,blockID,CENTER,gcell, sim_zCoord, sizeZ)
 
-  call Grid_getCellCoords(IAXIS,blockID,FACES,gcell, sim_xcoordf, sizeX+1)
-  call Grid_getCellCoords(JAXIS,blockID,FACES,gcell, sim_ycoordf, sizeX+1)
-  call Grid_getCellCoords(KAXIS,blockID,FACES,gcell, sim_zcoordf, sizeX+1)
+  !call Grid_getCellCoords(IAXIS,blockID,FACES,gcell, sim_xcoordf, sizeX+1)
+  !call Grid_getCellCoords(JAXIS,blockID,FACES,gcell, sim_ycoordf, sizeX+1)
+  !call Grid_getCellCoords(KAXIS,blockID,FACES,gcell, sim_zcoordf, sizeX+1)
   
   call Grid_getBlkPtr(blockID,solnData,CENTER)
   !call Grid_getBlkPtr(blockID,solnFaceXData,FACEX)
   !call Grid_getBlkPtr(blockID,solnFaceYData,FACEY)
   !call Grid_getBlkPtr(blockID,solnFaceZData,FACEZ)
   call Grid_getBlkPtr(blockID,E,SCRATCH)
+
+  ! Set the electric field to 0 to avoid duplicated advection when 
+  ! hy_uhd_staggeredDivB is called again in Heat.F90
   E(EX_SCRATCH_GRID_VAR:EZ_SCRATCH_GRID_VAR,:,:,:) = 0.0
 
   do k = blkLimitsGC(LOW,KAXIS), blkLimitsGC(HIGH,KAXIS)
@@ -156,7 +159,6 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
           !cellB = Br*plnvec + Bz*jetvec + Bphi*phivec
           !solnFaceZData(MAG_FACE_VAR,i,j,k) = cellB(3)
 
-          call Heat_electricNozzle(nozzle,i,j,k,E(:,i,j,k))
           
           !if (i .eq. 8 .and. j.eq.8 .and. k.eq.8) then
           !write(*,*)'EX',E(EX_SCRATCH_GRID_VAR,i,j,k),fac
@@ -165,6 +167,10 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
           !endif
 
        endif ! inside the nozzle
+
+       ! Fill the nozzle with toroidal and poloidal field and close the field
+       ! outside the nozzle
+       call Heat_electricNozzle(nozzle,i,j,k,E(:,i,j,k))
     enddo
    enddo
   enddo
@@ -172,9 +178,9 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   deallocate(sim_xCoord)
   deallocate(sim_yCoord)
   deallocate(sim_zCoord)
-  deallocate(sim_xCoordf)
-  deallocate(sim_yCoordf)
-  deallocate(sim_zCoordf)
+  !deallocate(sim_xCoordf)
+  !deallocate(sim_yCoordf)
+  !deallocate(sim_zCoordf)
 
   !call Eos_wrapped(hy_unsplitEosMode, blkLimits, blockID)
 

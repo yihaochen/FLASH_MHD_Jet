@@ -144,8 +144,8 @@ contains
   !          /                                       \
   !      /                                               \
   ! ---------------------------------------------------------
-  !    |     ^     |               ^             |          |
-  !    ^     |     ^  halfwidth    |
+  !    |          |              |              |          |
+  !          |     halfwidth     |
   !    |  feather  |
 
     real, INTENT(in) :: x, halfwidth, feather
