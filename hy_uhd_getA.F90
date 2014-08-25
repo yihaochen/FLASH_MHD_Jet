@@ -42,21 +42,22 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
 
   integer, intent(IN) :: nozzle
   real, intent(IN) :: simTime, r, z, phi
-  real :: r1, r2, rout, bf, vjet, const
+  real :: r1, r2, rout, rpol, bf, vjet, const
   !real, dimension(3), intent(IN) :: jetvec, rvec, plnvec, phivec 
   real, intent(OUT) :: Ar, Az, Aphi
   !real, dimensiON(3), INTENt(OUT) :: Avec
   INTEGER :: Aopt
 
+  ! for convenience
+  bf = sim(nozzle)%bfeather_outer
   !
   ! geometric factors
   !
   r1 = sim(nozzle)%bfeather_inner 
   r2 = sim(nozzle)%radius
-  rout = sim(nozzle)%radius + sim(nozzle)%bfeather_outer
+  rout = sim(nozzle)%radius + bf
+  rpol = rout + bf
 
-  ! for convenience
-  bf = sim(nozzle)%bfeather_outer
 
   ! velocity of the jet (in z-direction)
   vjet = sim(nozzle)%velocity
@@ -90,14 +91,16 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
       else if (r.gt.r2 .and. r.le.rout) then
         Az = -(rout-r)**4/(2*(rout-r2)**3) + (rout-r)**3/(rout-r2)**2
         !Aphi = 0.5*sim(nozzle)%bz*r2
-        Aphi = 2.0/PI**2*bf*(2*bf/r*sin(PI/2.0/bf*(rout-r))+PI*cos(PI/2.0/bf*(rout-r))) + const/r
-      else if (r.gt.rout .and. r.le.(rout+2*bf)) then
-        Az = 0
+        Aphi = (2.0/PI**2*bf*(2*bf/r*sin(PI/2.0/bf*(rout-r))+PI*cos(PI/2.0/bf*(rout-r))) + const/r)*&
+                0.5*(1.0+cos(PI*(max(rout,min(rpol,r))-rout)/(rpol-rout)))
+      else if (r.gt.rout .and. r.le.rpol) then
+        Az = 0.0
         !Aphi = 0.5*sim(nozzle)%bz*r2
-        Aphi = 2.0/PI**2*bf*(2*bf/r*sin(PI/2.0/bf*(rout-r))+PI*cos(PI/2.0/bf*(rout-r))) + const/r
+        Aphi = (2.0/PI**2*bf*(2*bf/r*sin(PI/2.0/bf*(rout-r))+PI*cos(PI/2.0/bf*(rout-r))) + const/r)*&
+                0.5*(1.0+cos(PI*(max(rout,min(rpol,r))-rout)/(rpol-rout)))
       else
-        Az = 0
-        Aphi = (-2.0/PI*bf*(rout+2*bf)+const)/r
+        Az = 0.0
+        Aphi = 0.0
       end if
 
       Az = Az*sim(nozzle)%bphi*sim(nozzle)%velocity/sim(nozzle)%zfeather*&
@@ -107,6 +110,7 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
 
       Aphi = Aphi*sim(nozzle)%bz*&
            0.5*(1.0+cos(PI*max(0.0,(min(1.0,(abs(z)-sim(nozzle)%bPosZ)/sim(nozzle)%zfeather)))))
+      ! exponential decay of Aphi results in the discontinuity of B_r
       !Aphi = Aphi*exp(-(max(0.0, abs(z)-sim(nozzle)%bPosZ))/sim(nozzle)%zfeather)
     
     case default
