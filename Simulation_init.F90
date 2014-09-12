@@ -32,6 +32,7 @@ subroutine Simulation_init()
 
   use Simulation_data
   use RuntimeParameters_interface, ONLY : RuntimeParameters_get
+  use Driver_data, ONLY : dr_globalMe
 
   implicit none
 #include "constants.h"
@@ -69,6 +70,13 @@ subroutine Simulation_init()
   call RuntimeParameters_get('smallx', sim_smallX)
   call RuntimeParameters_get('smallp', sim_smallP)
 
+  if (sim(nozzle)%bPosZ < sim(nozzle)%length+1.5*sim(nozzle)%zfeather .and.&
+    dr_globalMe==MASTER_PE) then
+    print*, '!!!!!!!!'
+    print*, 'Warning! bPosZ is too small that it overlaps with the nozzle.'
+    print*, 'Toroidal field will be smaller than sim_bphiJet'
+    print*, '!!!!!!!!'
+  endif
 
 
 end subroutine Simulation_init

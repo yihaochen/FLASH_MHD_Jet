@@ -150,10 +150,10 @@ subroutine Simulation_initBlock(blockID)
              solnData(PRES_VAR,i,j,k) = taper(nozzle, 0.5*radius, 0.5*length, sim(nozzle)%pressure,&
                                               sim(nozzle)%pressure, sim_pAmbient)
              if (abs(length).gt.(sim(nozzle)%length)) then
-                 vel = taper(nozzle, 0.5*radius, 0.5*length, sim(nozzle)%velocity,&
+                 vel = taper(nozzle, radius, 0.5*length, sim(nozzle)%velocity,&
                              sim(nozzle)%velocity, 0.0)*sig
              else
-                 vel = taper(nozzle, 0.5*radius, 0.5*length, sim(nozzle)%velocity,&
+                 vel = taper(nozzle, radius, 0.5*length, sim(nozzle)%velocity,&
                              sim(nozzle)%velocity, 0.0)*sin(PI/2.0*length/sim(nozzle)%length)
              endif
              solnData(VELX_VAR,i,j,k) = vel*jetvec(1)

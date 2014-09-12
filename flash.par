@@ -10,15 +10,15 @@ sim_bzAmbient	= 0.0 #1.8623E-6
 #	Jet properties
 sim_pJet		= 2.76130E-11
 sim_rhoJet		= 1.67E-25
-sim_velJet		= 3.0E9			# 3E9 = 0.1 c
+sim_velJet		= 3.0E9			# 3.0E9 = 0.1 c
 sim_gammaJet	= 1.6666
 sim_bphiJet     = 1.8623E-6     # 1.8623E-5 for P_mag=1.38E-11
 sim_bzJet		= 1.8623E-6
-sim_timeMHDon	= 1E-3
+sim_timeMHDon	= 1.0E-11
 
 #	Nozzle Geometry
-nozzleRadius = 1.0E7
-nozzleHalfL  = 2.0E7
+nozzleRadius = 1.5E15	# 1.5E15 cm ~ 100 AU
+nozzleHalfL  = 1.5E15
 nozzlePosX   = 0.0
 nozzlePosY   = 0.0
 nozzlePosZ   = 0.0
@@ -26,10 +26,10 @@ nozzleVecX	 = 0.0
 nozzleVecY	 = 0.0
 nozzleVecZ	 = 1.0
 
-bPosZ		 = 1.0E7
-bfeather_inner = 5.0E6
-bfeather_outer = 1.0E7
-zfeather	   = 1.0E7
+bPosZ		 = 3.75E15	# 3.75E15 cm ~ 250 AU	
+bfeather_inner = 7.0E14
+bfeather_outer = 1.5E15
+zfeather	   = 1.5E15
 
 
 smlrho  = 1E-30
@@ -47,12 +47,12 @@ geometry = "cartesian"
 Nblockx		= 4
 Nblocky		= 4
 Nblockz		= 8
-xmin		= -1.0E8
-xmax		=  1.0E8
-ymin		= -1.0E8
-ymax		=  1.0E8
-zmin		= -2.0E8
-zmax		=  2.0E8
+xmin		= -1.91485E17	# 1.91485E17 cm ~ 128 *100 AU
+xmax		=  1.91485E17
+ymin		= -1.91485E17
+ymax		=  1.91485E17
+zmin		= -3.82970E17
+zmax		=  3.82970E17
 
 #		Boundary conditions
 
@@ -62,25 +62,28 @@ xr_boundary_type = "outflow"
 yl_boundary_type = "outflow"
 yr_boundary_type = "outflow"
 
+zl_boundary_type = "outflow"
+zr_boundary_type = "outflow"
+
 
 #	Simulation (grid, time, I/O) parameters
 cfl				= 0.2
 
-tmax            = 1E0
-nend            = 100000
+tmax            = 5.0E9
+nend            = 1000000
 eintSwitch		= 1.e-4
 
-lrefine_max     = 3
+lrefine_max     = 6
 refine_var_1 = "dens"
 refine_var_2 = "pres"
 basenm          = "MHD_Jet_"
 
 restart						= .false.
-checkpointFileIntervalTime  = 1E-3
-checkpointFileNumber        =  0
+checkpointFileIntervalTime  = 1.0E7
+checkpointFileNumber        = 0
 
-plotFileIntervalTime		= 1E99
-plotFileNumber              =  0
+plotFileIntervalTime		= 1.0E6
+plotFileNumber              = 0
 
 plot_var_1 = "dens"
 plot_var_2 = "pres"
@@ -89,10 +92,10 @@ plot_var_4 = "jet "
 plot_var_5 = "velx"
 plot_var_6 = "vely"
 plot_var_7 = "velz"
-#plot_var_8 = "magx"
-#plot_var_9 = "magy"
-#plot_var_10 = "magz"
-#plot_var_11 = "magp"
+plot_var_8 = "magx"
+plot_var_9 = "magy"
+plot_var_10 = "magz"
+plot_var_11 = "magp"
 
 
 ## -------------------------------------------------------------##

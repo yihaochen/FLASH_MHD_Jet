@@ -47,8 +47,8 @@ module Simulation_data
 
   type(nozzle_struct), save, dimension(NOZZLES) :: sim
 
-  real, save :: sim_pAmbient, sim_rhoAmbient, sim_windVel, sim_bzAmbient
-  real, save :: sim_gamma, sim_smallP, sim_smallX
+  real,save :: sim_pAmbient, sim_rhoAmbient, sim_windVel, sim_bzAmbient
+  real,save :: sim_gamma, sim_smallP, sim_smallX
   real,save,allocatable,dimension(:) :: sim_xcoord
   real,save,allocatable,dimension(:) :: sim_ycoord
   real,save,allocatable,dimension(:) :: sim_zcoord
@@ -90,6 +90,27 @@ contains
 
   end function taperR
 
+  function taperL(nozzle, z, var_in, var_out)
+
+    integer, INTENT(in) :: nozzle
+    real, INTENT(in) :: z, var_in, var_out
+    real :: zout, zjet
+    real :: taperL
+    zjet = sim(nozzle)%length
+    zout = zjet + sim(nozzle)%zfeather
+
+    ! z part
+    if (abs(z).ge.0.0 .and. abs(z).lt.zjet) then
+      taperL = 1.0*var_in
+    else if (abs(z).ge.zjet .and. abs(z).lt.zout) then
+      taperL = (-2*(zout-abs(z))**3/(zout-zjet)**3 &
+      + 3*(zout-abs(z))**2/(zout-zjet)**2)*(var_in-var_out) + var_out
+    else
+      taperL = var_out
+    end if
+
+  end function taperL
+  
   function taper(nozzle, r, z, var_cen, var_in, var_out)
   ! Taper function for both R and z direction
   ! For radial direction, variable could have 3 values: center, inside, and outside

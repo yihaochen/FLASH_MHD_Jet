@@ -52,8 +52,7 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   integer :: sizeX,sizeY,sizeZ
   logical :: gcell = .true.
   real :: Br, Bz, Bphi
-  real, pointer, dimension(:,:,:,:) :: solnData, &
-        solnFaceXData, solnFaceYData, solnFaceZData, E
+  real, pointer, dimension(:,:,:,:) :: solnData
 
   integer :: nozzle=1
   real, dimension(3) :: cellvec, cellB, del
@@ -71,9 +70,9 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   allocate(sim_xCoord(sizeX),stat=istat)
   allocate(sim_yCoord(sizeY),stat=istat)
   allocate(sim_zCoord(sizeZ),stat=istat)
-  allocate(sim_xCoordf(sizeX+1),stat=istat)
-  allocate(sim_yCoordf(sizeY+1),stat=istat)
-  allocate(sim_zCoordf(sizeZ+1),stat=istat)
+  !allocate(sim_xCoordf(sizeX+1),stat=istat)
+  !allocate(sim_yCoordf(sizeY+1),stat=istat)
+  !allocate(sim_zCoordf(sizeZ+1),stat=istat)
   call Grid_getDeltas(blockID, del)
   dx = del(1)
   dy = del(2)
@@ -83,19 +82,19 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   call Grid_getCellCoords(JAXIS,blockID,CENTER,gcell, sim_yCoord, sizeY)
   call Grid_getCellCoords(KAXIS,blockID,CENTER,gcell, sim_zCoord, sizeZ)
 
-  call Grid_getCellCoords(IAXIS,blockID,FACES,gcell, sim_xcoordf, sizeX+1)
-  call Grid_getCellCoords(JAXIS,blockID,FACES,gcell, sim_ycoordf, sizeX+1)
-  call Grid_getCellCoords(KAXIS,blockID,FACES,gcell, sim_zcoordf, sizeX+1)
+  !call Grid_getCellCoords(IAXIS,blockID,FACES,gcell, sim_xcoordf, sizeX+1)
+  !call Grid_getCellCoords(JAXIS,blockID,FACES,gcell, sim_ycoordf, sizeX+1)
+  !call Grid_getCellCoords(KAXIS,blockID,FACES,gcell, sim_zcoordf, sizeX+1)
   
   call Grid_getBlkPtr(blockID,solnData,CENTER)
   !call Grid_getBlkPtr(blockID,solnFaceXData,FACEX)
   !call Grid_getBlkPtr(blockID,solnFaceYData,FACEY)
   !call Grid_getBlkPtr(blockID,solnFaceZData,FACEZ)
-  call Grid_getBlkPtr(blockID,E,SCRATCH)
+  !call Grid_getBlkPtr(blockID,E,SCRATCH)
 
   ! Set the electric field to 0 to avoid duplicated advection when 
   ! hy_uhd_staggeredDivB is called again in Heat.F90
-  E(EX_SCRATCH_GRID_VAR:EZ_SCRATCH_GRID_VAR,:,:,:) = 0.0
+  !E(EX_SCRATCH_GRID_VAR:EZ_SCRATCH_GRID_VAR,:,:,:) = 0.0
 
   do k = blkLimitsGC(LOW,KAXIS), blkLimitsGC(HIGH,KAXIS)
    do j = blkLimitsGC(LOW,JAXIS), blkLimitsGC(HIGH,JAXIS)
@@ -110,9 +109,9 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
           fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
           ! smooth transition from nozzle to flash grid
           ! 1.0 for nozzle injection; 0.0 for flash solution
-          solnData(VELX_VAR,i,j,k) = vel*jetvec(1)*fac+ solnData(VELX_VAR,i,j,k)*(1.0-fac)
-          solnData(VELY_VAR,i,j,k) = vel*jetvec(2)*fac+ solnData(VELY_VAR,i,j,k)*(1.0-fac)
-          solnData(VELZ_VAR,i,j,k) = vel*jetvec(3)*fac+ solnData(VELZ_VAR,i,j,k)*(1.0-fac)
+          solnData(VELX_VAR,i,j,k) = vel*jetvec(1)*fac + solnData(VELX_VAR,i,j,k)*(1.0-fac)
+          solnData(VELY_VAR,i,j,k) = vel*jetvec(2)*fac + solnData(VELY_VAR,i,j,k)*(1.0-fac)
+          solnData(VELZ_VAR,i,j,k) = vel*jetvec(3)*fac + solnData(VELZ_VAR,i,j,k)*(1.0-fac)
           solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac+&
                                      solnData(DENS_VAR,i,j,k)*(1.0-fac)
           solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac+&
@@ -170,7 +169,7 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
 
        ! Fill the nozzle with toroidal and poloidal field and close the field
        ! outside the nozzle
-       call Heat_electricNozzle(nozzle,i,j,k,E(:,i,j,k))
+       !call Heat_electricNozzle(nozzle,i,j,k,E(:,i,j,k))
     enddo
    enddo
   enddo
@@ -178,9 +177,9 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   deallocate(sim_xCoord)
   deallocate(sim_yCoord)
   deallocate(sim_zCoord)
-  deallocate(sim_xCoordf)
-  deallocate(sim_yCoordf)
-  deallocate(sim_zCoordf)
+  !deallocate(sim_xCoordf)
+  !deallocate(sim_yCoordf)
+  !deallocate(sim_zCoordf)
 
   !call Eos_wrapped(hy_unsplitEosMode, blkLimits, blockID)
 
@@ -188,7 +187,7 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   !call Grid_releaseBlkPtr(blockID,solnFaceXData,FACEX)
   !call Grid_releaseBlkPtr(blockID,solnFaceYData,FACEY)
   !call Grid_releaseBlkPtr(blockID,solnFaceZData,FACEZ)
-  call Grid_releaseBlkPtr(blockID,E,SCRATCH)
+  !call Grid_releaseBlkPtr(blockID,E,SCRATCH)
 
   return
 

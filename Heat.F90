@@ -66,7 +66,7 @@ subroutine Heat (blockCount,blockList,dt,time)
 
      call Heat_fillnozzle(blockID,dt,time)
 
-     call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
+     !call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
 
   enddo
 
