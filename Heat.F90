@@ -43,6 +43,7 @@ subroutine Heat (blockCount,blockList,dt,time)
   use hy_uhd_interface, ONLY : hy_uhd_staggeredDivb
   !use Hydro_data, ONLY: hy_unsplitEosMode
   !use Eos_interface, ONLY : Eos_wrapped
+  use Driver_data, ONLY : dr_globalMe, dr_nStep
   use Simulation_data
   implicit none
 
@@ -56,9 +57,14 @@ subroutine Heat (blockCount,blockList,dt,time)
   integer, dimension(LOW:HIGH,MDIM) :: blkLimits,blkLimitsGC
   logical :: halfTimeAdvance = .false.
 
-  integer :: blockID, blkInd
+  integer :: blockID, blkInd, nozzle=1
 
-
+  call calc_jet(nozzle, time)
+  if (dr_globalMe==MASTER_PE .and. mod(dr_nStep,20)==0) then
+     write(*,'(a,2es11.3, f7.2)') '      (p, rho, M)=', &
+     sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach
+  endif
+  
   do blkInd=1,blockCount
      blockID = blockList(blkInd)
      call Grid_getDeltas(blockID,del)

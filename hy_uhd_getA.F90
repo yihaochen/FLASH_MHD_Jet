@@ -48,11 +48,31 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
   !real, dimensiON(3), INTENt(OUT) :: Avec
   INTEGER :: Aopt
 
-  ! for convenience
-  bf = sim(nozzle)%bfeather_outer
   !
   ! geometric factors
+  ! Bphi:
+  !          _____________________________ 
+  !        /                               \
+  !     /                                     \
+  !  /                                           \
+  ! -----------------------------------------------------
+  ! |        |                            |        |
+  ! 0        r1                           r2      rout 
   !
+  ! Bz:
+  ! ______________________________________ 
+  !                                        \
+  !                                           \
+  !                                              \
+  ! -----------------------------------------------------------------------------
+  ! |                                     |         |  \                        / |
+  ! |                                     |         |     \                  /    |
+  ! |                                     |         |        \ __________ /       |
+  ! |                                     |         |                             |
+  ! 0                                     r2       rout                          rpol
+  !
+  ! for convenience
+  bf = sim(nozzle)%bfeather_outer
   r1 = sim(nozzle)%bfeather_inner 
   r2 = sim(nozzle)%radius
   rout = sim(nozzle)%radius + bf
@@ -63,11 +83,11 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
   vjet = sim(nozzle)%velocity
   
   !
-  ! toroidal field
+  ! toroidal and poloidal field
   !
   Aopt = 2
   select case(Aopt)
-  ! 1) using A_r
+  ! 1) using Ar
     case(1)
       if (r.lt.rout) then
         !Ar = (-z + vjet*simTime)*taperR(nozzle, r, sim(nozzle)%bphi, 0.0)
@@ -79,8 +99,9 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
       Az = 0.0
       Aphi = 0.5*r*sim(nozzle)%bz
 
-  ! 2) using A_z (divergenless Coulumb gauge?) 
+  ! 2) using Az (divergenless Coulumb gauge?) 
     case(2)
+    ! Az for toroidal field and Aphi for poloidal field
       const = r2*(0.5*r2-4.0/PI**2/r2*bf**2)
       if (r.ge.0 .and. r.le.r1) then
         Az = r**4/(2*r1**3) - r**3/r1**2 + 0.5*(-r1+rout+r2)

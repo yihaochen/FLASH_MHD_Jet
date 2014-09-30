@@ -96,14 +96,16 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   ! hy_uhd_staggeredDivB is called again in Heat.F90
   !E(EX_SCRATCH_GRID_VAR:EZ_SCRATCH_GRID_VAR,:,:,:) = 0.0
 
+
   do k = blkLimitsGC(LOW,KAXIS), blkLimitsGC(HIGH,KAXIS)
    do j = blkLimitsGC(LOW,JAXIS), blkLimitsGC(HIGH,JAXIS)
     do i = blkLimitsGC(LOW,IAXIS), blkLimitsGC(HIGH,IAXIS)
        cellvec = (/ sim_xCoord(i), sim_yCoord(j), sim_zCoord(k) /)
-       call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
+       call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
+                                     sig,theta,jetvec,rvec,plnvec,phivec)
 
-       if ((radius.le.sim(nozzle)%radius+sim(nozzle)%bfeather_outer)&
-           .and.(abs(length).le.sim(nozzle)%length+sim(nozzle)%zfeather)) then
+       if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%bfeather_outer))&
+           .and.(abs(length).le.(sim(nozzle)%length+sim(nozzle)%zfeather))) then
        ! inside the jet nozzle
           vel = sim(nozzle)%velocity*sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)

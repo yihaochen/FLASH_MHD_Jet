@@ -14,15 +14,6 @@
 !! ARGUMENTS
 !!
 !!
-!! PARAMETERS
-!!
-!!  sim_pAmbient    Initial ambient pressure
-!!  sim_rhoAmbient  Initial ambient density
-!!  sim_windVel     Inflow velocity (parallel to x-axis)
-!!  gamma           the Gamma EOS thing
-!!  smallp          minimum for pressure
-!!  smallx          minimum for abundance
-!!
 !!
 !!
 !!
@@ -38,7 +29,7 @@ module Simulation_data
   TYPE nozzle_struct
       real, dimension(3) :: pos, jetvec
       real :: radius, length, bPosZ
-      real :: pressure, density, velocity, gamma
+      real :: power, pressure, density, velocity, gamma, mach
       real :: bfeather_inner, bfeather_outer, zfeather
       real :: bphi, bz, timeMHDon
   end TYPE nozzle_struct
@@ -47,6 +38,7 @@ module Simulation_data
 
   type(nozzle_struct), save, dimension(NOZZLES) :: sim
 
+  real,save :: t0 = -1.0
   real,save :: sim_pAmbient, sim_rhoAmbient, sim_windVel, sim_bzAmbient
   real,save :: sim_gamma, sim_smallP, sim_smallX
   real,save,allocatable,dimension(:) :: sim_xcoord
@@ -189,6 +181,25 @@ contains
 
   end function coshat
 
+  subroutine calc_jet(nozzle, time)
+    integer, INTENT(in) :: nozzle
+    real, INTENT(in) :: time
+    ! Calculate the jet pressure
+    real :: p, g, v, r, L
+    g = sim(nozzle)%gamma
+    v = sim(nozzle)%velocity
+    r = sim(nozzle)%radius
+    L = sim(nozzle)%power
+    if (t0 < 0.0) then
+       t0 = (r*r*PI*2*v)**1.25*(sim_rhoAmbient*g/(g-1)/L)**0.75*0.227082*2.0
+    endif
+    sim(nozzle)%pressure = (max(time,t0))**(-0.8)*0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
+    sim(nozzle)%density = 2.0/v/v*(L/(r*r*PI*2*v) - g/(g-1)*sim(nozzle)%pressure)
+    !sim(nozzle)%density = max(gr_smallrho, sim(nozzle)%density)
+    sim(nozzle)%mach = v/sqrt(g*sim(nozzle)%pressure/sim(nozzle)%density)
+
+
+  end subroutine calc_jet
 
 
 end module Simulation_data

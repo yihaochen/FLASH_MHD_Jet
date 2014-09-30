@@ -33,6 +33,7 @@ subroutine Simulation_init()
   use Simulation_data
   use RuntimeParameters_interface, ONLY : RuntimeParameters_get
   use Driver_data, ONLY : dr_globalMe
+  !use Grid_data, ONLY : gr_smallrho
 
   implicit none
 #include "constants.h"
@@ -46,8 +47,8 @@ subroutine Simulation_init()
   call RuntimeParameters_get('sim_gammaAmbient', sim_gamma)
   call RuntimeParameters_get('sim_bzAmbient', sim_bzAmbient)
 
-  call RuntimeParameters_get('sim_pJet', sim(nozzle)%pressure)
-  call RuntimeParameters_get('sim_rhoJet', sim(nozzle)%density)
+  call RuntimeParameters_get('sim_powerJet', sim(nozzle)%power)
+  !call RuntimeParameters_get('sim_rhoJet', sim(nozzle)%density)
   call RuntimeParameters_get('sim_velJet', sim(nozzle)%velocity)
   call RuntimeParameters_get('sim_gammaJet', sim(nozzle)%gamma)
   call RuntimeParameters_get('sim_bphiJet', sim(nozzle)%bphi)
@@ -71,11 +72,16 @@ subroutine Simulation_init()
   call RuntimeParameters_get('smallp', sim_smallP)
 
   if (sim(nozzle)%bPosZ < sim(nozzle)%length+1.5*sim(nozzle)%zfeather .and.&
-    dr_globalMe==MASTER_PE) then
-    print*, '!!!!!!!!'
-    print*, 'Warning! bPosZ is too small that it overlaps with the nozzle.'
-    print*, 'Toroidal field will be smaller than sim_bphiJet'
-    print*, '!!!!!!!!'
+     dr_globalMe==MASTER_PE) then
+     print*, '!!!!!!!!'
+     print*, 'Warning! bPosZ is too small that it overlaps with the nozzle.'
+     print*, 'Toroidal field will be smaller than sim_bphiJet'
+     print*, '!!!!!!!!'
+  endif
+  call calc_jet(nozzle, 0.0)
+  if (dr_globalMe==MASTER_PE) then
+     write(*,'(a, es11.3)') 't0:', t0
+     write(*,'(a, 2es11.3)') '(p, rho)=', sim(nozzle)%pressure, sim(nozzle)%density
   endif
 
 

@@ -34,7 +34,7 @@ subroutine Simulation_initBlock(blockID)
     Grid_getBlkPtr, Grid_releaseBlkPtr, Grid_getCellCoords
   use Logfile_interface, ONLY : Logfile_stamp
   use Simulation_data
-  use Driver_data, ONLY : dr_simTime
+  use Driver_data, ONLY : dr_simTime, dr_dtInit
 
 
   implicit none
@@ -141,13 +141,14 @@ subroutine Simulation_initBlock(blockID)
    do j = blkLimits(LOW,JAXIS), blkLimits(HIGH,JAXIS)
     do i = blkLimits(LOW,IAXIS), blkLimits(HIGH,IAXIS)
        cellvec = (/ xCoord(i), yCoord(j), zCoord(k) /)
-       call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
-       if ((radius.le.2.0*(sim(nozzle)%radius+sim(nozzle)%bfeather_outer))&
+       call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
+                                     sig,theta,jetvec,rvec,plnvec,phivec)
+       if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%bfeather_outer))&
            .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zfeather))) then
           !if ((radius.gt.2.0*sim(nozzle)%radius).or.(abs(length).gt.2.0*sim(nozzle)%length)) then
-             solnData(DENS_VAR,i,j,k) = taper(nozzle, 0.5*radius, 0.5*length, sim(nozzle)%density,&
+             solnData(DENS_VAR,i,j,k) = taper(nozzle, radius, 0.5*length, sim(nozzle)%density,&
                                               sim(nozzle)%density, sim_rhoAmbient)
-             solnData(PRES_VAR,i,j,k) = taper(nozzle, 0.5*radius, 0.5*length, sim(nozzle)%pressure,&
+             solnData(PRES_VAR,i,j,k) = taper(nozzle, radius, 0.5*length, sim(nozzle)%pressure,&
                                               sim(nozzle)%pressure, sim_pAmbient)
              if (abs(length).gt.(sim(nozzle)%length)) then
                  vel = taper(nozzle, radius, 0.5*length, sim(nozzle)%velocity,&
@@ -159,8 +160,8 @@ subroutine Simulation_initBlock(blockID)
              solnData(VELX_VAR,i,j,k) = vel*jetvec(1)
              solnData(VELY_VAR,i,j,k) = vel*jetvec(2)
              solnData(VELZ_VAR,i,j,k) = vel*jetvec(3)
-             solnData(JET_SPEC,i,j,k) = taper(nozzle, 0.5*radius, 0.5*length, 1.0, 1.0, 0.0)
-             solnData(ISM_SPEC,i,j,k) = taper(nozzle, 0.5*radius, 0.5*length, 0.0, 0.0, 1.0)
+             solnData(JET_SPEC,i,j,k) = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
+             solnData(ISM_SPEC,i,j,k) = taper(nozzle, radius, 0.5*length, 0.0, 0.0, 1.0)
           !else
           !   vel = sim(nozzle)%velocity*sin(PI/2.0*length/sim(nozzle)%length)
           !   solnData(DENS_VAR,i,j,k) = sim(nozzle)%density
@@ -181,7 +182,7 @@ subroutine Simulation_initBlock(blockID)
     enddo
    enddo
   enddo
-  call Heat_fillnozzle(blockID, 0.0, dr_simTime, .true.)
+  call Heat_fillnozzle(blockID, dr_dtInit, dr_simTime, .true.)
 
   call Grid_releaseBlkPtr(blockID, solnData, CENTER)
   call Grid_releaseBlkPtr(blockID,solnFaceXData,FACEX)

@@ -19,8 +19,7 @@ PARAMETER sim_gammaAmbient REAL	   1.4
 PARAMETER sim_bzAmbient	   REAL	   0.0
 
 # Jet Properties
-PARAMETER sim_pJet	       REAL    1.0
-PARAMETER sim_rhoJet	   REAL    0.01
+PARAMETER sim_powerJet     REAL    1.0
 PARAMETER sim_velJet	   REAL	   40.0
 PARAMETER sim_gammaJet	   REAL	   1.4
 PARAMETER sim_bphiJet	   REAL	   0.0
