@@ -4,7 +4,6 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
   use Driver_data,      ONLY : dr_simTime,dr_nstep,dr_dt
   use Grid_interface,   ONLY : Grid_getBlkPtr,Grid_releaseBlkPtr,Grid_getCellCoords,&
                                Grid_getDeltas
-  use constants
 
   implicit none
   
@@ -24,9 +23,9 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
   real :: Ar, Az, Aphi, Arold, Azold, Aphiold!, thetavel, angvel, vel
 
   real :: length,radius,distance, theta, cellsig!, fac, fillfac
-  real :: LRTaper, LTaper!, blockingRTaper, toroidalReplenishLTaper
+  real :: Efac, torfac!, blockingRTaper, toroidalReplenishLTaper
 
-  ! Fro debug
+  ! For debug
   real, dimension(3) :: del
   real :: dx, dy, dz
   call Grid_getDeltas(blockID, del)
@@ -97,9 +96,9 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
         !LRTaper = 0.5*(1.0+cos(PI*max(0.0,(min(1.0,&
         !          (abs(length)-sim(nozzle)%length)/sim(nozzle)%zfeather)))))*&
         !          taperR(nozzle, radius, 1.0, 0.0)
-        LRTaper = taper(nozzle, radius, length, 0.0, 0.0, 1.0)
+        Efac = ETaper(nozzle, radius, length, 0.0, 0.0, 1.0)
         
-        Ltaper = taperL(nozzle, length, 0.0, 1.0)
+        torfac = taperL(nozzle, length, 0.0, 1.0)
         
         ! nozzle face taper factor for toroidal field
         ! 0 means use injection scheme, 
@@ -174,8 +173,8 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
            !write(*,*) 'Advect field'
            !endif
            E(xyz,i,j,k) = &
-                E(xyz,i,j,k)*LRTaper+&!1.0*blockingRTaper) + &
-                torvec(xyz)*Ltaper + advect(xyz)
+                E(xyz,i,j,k)*Efac+&!1.0*blockingRTaper) + &
+                torvec(xyz)*torfac + advect(xyz)
            
            !if (Aphi .gt. 0.0 .and. &
            !    i .eq. 8 .and. j.eq.8 .and. k.eq.8) then

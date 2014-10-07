@@ -182,7 +182,7 @@ subroutine Simulation_initBlock(blockID)
     enddo
    enddo
   enddo
-  call Heat_fillnozzle(blockID, dr_dtInit, dr_simTime, .true.)
+  !call Heat_fillnozzle(blockID, dr_dtInit, dr_simTime, .true.)
 
   call Grid_releaseBlkPtr(blockID, solnData, CENTER)
   call Grid_releaseBlkPtr(blockID,solnFaceXData,FACEX)

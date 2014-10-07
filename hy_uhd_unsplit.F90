@@ -94,6 +94,11 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
                          hy_biermannSource
 
   use Driver_interface, ONLY : Driver_abortFlash
+! <- ychen 10-2014
+  use Driver_data, ONLY : dr_simTime, dr_globalMe, dr_nStep, dr_dt
+  use Simulation_data
+
+! ychen ->
 
   use hy_uhd_interface, ONLY : hy_uhd_getRiemannState,  &
                                hy_uhd_getFaceFlux,      &
@@ -185,6 +190,9 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
 
   integer, parameter :: updateMode=UPDATE_ALL
   real    :: gravDtFactor
+! <- ychen 10-2014
+  integer :: nozzle=1
+! ychen ->
   !! End of data declaration ***********************************************
 
 
@@ -262,6 +270,15 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
      endif
      hy_dtmin = huge(1.0)
   endif
+
+! <- ychen 10-2014
+  call calc_jet(nozzle, dr_simTime)
+  call calc_deltaJet(nozzle, dr_simTime, dr_dt)
+  if (dr_globalMe==MASTER_PE .and. mod(dr_nStep,20)==0) then
+     write(*,'(a,2es11.3, f7.2)') '      (p, rho, M)=', &
+     sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach
+  endif
+! ychen ->
 
   do i=1,blockCount
 

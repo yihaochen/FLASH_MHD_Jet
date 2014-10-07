@@ -2,7 +2,6 @@ Subroutine hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length, &
      distance,sig,theta,jetvec,rvec,plnvec,phivec )
 
   use Simulation_data
-  use constants
 
   implicit none
   
