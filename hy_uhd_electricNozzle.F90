@@ -23,7 +23,7 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
   real :: Ar, Az, Aphi, Arold, Azold, Aphiold!, thetavel, angvel, vel
 
   real :: length,radius,distance, theta, cellsig!, fac, fillfac
-  real :: Efac, torfac!, blockingRTaper, toroidalReplenishLTaper
+  real :: Efac!, torfac!, blockingRTaper, toroidalReplenishLTaper
 
   ! For debug
   real, dimension(3) :: del
@@ -87,8 +87,6 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
         !     vel,dens,pres,eint,fac,fillfac )
         call hy_uhd_getA(nozzle, dr_simTime, radius, length, 0.0, Ar, Az, Aphi)
         call hy_uhd_getA(nozzle, dr_simTime-dr_dt, radius, length, 0.0, Arold, Azold, Aphiold)
-        !write(*,*) 'r, l =', radius, length
-        !write(*,*) 'Az, Aphi =', Az, Aphi
         
         !
         ! Taper factors - smoothly transition from imposed to FLASH solution
@@ -98,7 +96,7 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
         !          taperR(nozzle, radius, 1.0, 0.0)
         Efac = ETaper(nozzle, radius, length, 0.0, 0.0, 1.0)
         
-        torfac = taperL(nozzle, length, 0.0, 1.0)
+        !torfac = taperL(nozzle, length, 0.0, 1.0)
         
         ! nozzle face taper factor for toroidal field
         ! 0 means use injection scheme, 
@@ -126,37 +124,20 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
             dr_simTime.lt.sim(nozzle)%timeMHDon + dr_dt) then
            
            ! First jet timestep - inject initial field
-           !if (blockID .eq. 3 .and. i.eq.8 .and. j.eq.8 .and. k.eq.8 .and. xyz.eq.1) then
-           !   write(*,*) blockID, 'First jet timestep - inject initial field'
-           !endif
-           
 
-           ! Vector potential for poloidal field is 
-           ! phihat*poloidalGeneratingFunction*distance*sin(theta)/2
-           
            advect(:)=[0.,0.,0.]
            
            ! add field
-           !if (i .eq. 8 .and. j.eq.8 .and. k.eq.8) then
-           !write(*,*) 'Injet initial field'
-           !endif
-           !write(*,*) 'E =', E(xyz,i,j,k)
-           E(xyz,i,j,k) = E(xyz,i,j,k) - (Ar*plnvec(xyz)+Az*jetvec(xyz))&!/dr_dt&
-                    !*sim(nozzle)%zfeather/sim(nozzle)%velocity &
-                    -Aphi*phivec(xyz)/dr_dt
-           !if (abs(edgevec(3)).lt.dz .and. abs(edgevec(1)).lt.dx .and. abs(edgevec(2)).lt.4E8) then
-           !    write(*,*) radius, E(1,i,j,k)
-           !endif
+           E(xyz,i,j,k) = E(xyz,i,j,k) - (Ar*plnvec(xyz)+Az*jetvec(xyz))&
+                                       - Aphi*phivec(xyz)/dr_dt
 
         else if (dr_simTime.ge.sim(nozzle)%timeMHDon + dr_dt) then
            
            ! Toroidal field update: Replace the flux advected away
-           !if (blockID .eq. 2 .and. i.eq.8 .and. j.eq.8 .and. k.eq.8 .and. xyz.eq.1) then
-           !   write(*,*) 'Toroidal field update: Replace the flux advected away', dr_simTime
-           !endif
-           !torvec(:)= - Ar(:)*sum(jetvec(:)*sim(nozzle)%velocity)*&
-           !     toroidalReplenishLTaper
-           torvec(xyz) = - (Ar*plnvec(xyz)+Az*jetvec(xyz))!*blockingLTaper
+
+           ! Az has dimension [B*length/time]
+           ! We don't need to divide it ty dr_dt again.
+           torvec(xyz) = - (Ar*plnvec(xyz)+Az*jetvec(xyz))
            
            !call hy_uhd_jetNozzleGeometryOld(edgevec,radius,length, &
            !     distance,cellsig,theta,jetvec,rvec,plnvec,phivec)
@@ -168,19 +149,10 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
 
            ! Finally, update the E-field so that FLASH can update B using
            ! dB = - (curl E) * dt
+           ! ( dA/dt = -E )
            
-           !if (i .eq. 8 .and. j.eq.8 .and. k.eq.8) then
-           !write(*,*) 'Advect field'
-           !endif
-           E(xyz,i,j,k) = &
-                E(xyz,i,j,k)*Efac+&!1.0*blockingRTaper) + &
-                torvec(xyz)*torfac + advect(xyz)
-           
-           !if (Aphi .gt. 0.0 .and. &
-           !    i .eq. 8 .and. j.eq.8 .and. k.eq.8) then
-           !   write(*,*) '(r, Aphi) = ', radius, Aphi
-           !   write(*,*)'E',xyz,E(xyz,i,j,k)
-           !endif
+           ! The mixing factors are included in torvec and advect.
+           E(xyz,i,j,k) = E(xyz,i,j,k)*Efac + torvec(xyz) + advect(xyz)
            
         endif
 

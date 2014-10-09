@@ -36,8 +36,8 @@ PARAMETER nozzleVecX   REAL		0.0
 PARAMETER nozzleVecY   REAL		0.0
 PARAMETER nozzleVecZ   REAL		1.0
 PARAMETER bPosZ		   REAL		0.05
-PARAMETER bfeather_inner   REAL		0.02
-PARAMETER bfeather_outer   REAL		0.02
+PARAMETER rfeather_inner   REAL		0.02
+PARAMETER rfeather_outer   REAL		0.02
 PARAMETER zfeather		   REAL		0.04
 
 

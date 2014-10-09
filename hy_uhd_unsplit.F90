@@ -272,8 +272,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
   endif
 
 ! <- ychen 10-2014
-  call calc_jet(nozzle, dr_simTime)
-  call calc_deltaJet(nozzle, dr_simTime, dr_dt)
+  call calc_jet(nozzle, dr_simTime, dr_dt)
   if (dr_globalMe==MASTER_PE .and. mod(dr_nStep,20)==0) then
      write(*,'(a,2es11.3, f7.2)') '      (p, rho, M)=', &
      sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach

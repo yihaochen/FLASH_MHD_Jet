@@ -27,14 +27,16 @@ nozzleVecY	 = 0.0
 nozzleVecZ	 = 1.0
 
 bPosZ		 = 3.75E20	# 3.75E15 cm ~ 250 AU	
-bfeather_inner = 7.0E20
-bfeather_outer = 1.5E20
+rfeather_inner = 7.0E20
+rfeather_outer = 1.5E20
 zfeather	   = 1.5E21
 
 
 smlrho  = 1E-30
-smallp  = 1E-30
-dtinit  = 1E1
+smallp  = 1E-14
+dtinit  = 1E5
+dtmin	= 1E5
+dtmax	= 1E12
 
 
 #	Computational volume parameters
@@ -80,7 +82,7 @@ refine_var_2 = "pres"
 basenm          = "MHD_Jet_"
 
 restart						= .false.
-checkpointFileIntervalTime  = 1.0E13
+checkpointFileIntervalTime  = 5.0E13
 checkpointFileNumber        = 0
 
 plotFileIntervalTime		= 1.0E12

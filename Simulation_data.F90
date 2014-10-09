@@ -31,7 +31,7 @@ module Simulation_data
       real :: radius, length, bPosZ
       real :: power, pressure, density, velocity, gamma, mach
       real :: deltaP, deltaRho
-      real :: bfeather_inner, bfeather_outer, zfeather
+      real :: rfeather_inner, rfeather_outer, zfeather
       real :: bphi, bz, timeMHDon
   end TYPE nozzle_struct
 
@@ -66,9 +66,9 @@ contains
     real, INTENT(in) :: r, var_in, var_out
     real :: r1, r2, rout
     real :: taperR
-    r1 = sim(nozzle)%bfeather_inner
+    r1 = sim(nozzle)%rfeather_inner
     r2 = sim(nozzle)%radius
-    rout = sim(nozzle)%radius + sim(nozzle)%bfeather_outer
+    rout = sim(nozzle)%radius + sim(nozzle)%rfeather_outer
 
     if (r.ge.0.0 .and. r.lt.r1) then
       taperR = (-2*r**3/r1**3 + 3*r**2/r1**2)*var_in
@@ -108,7 +108,7 @@ contains
   ! Taper function for both R and z direction
   ! For radial direction, variable could have 3 values: center, inside, and outside
   !
-  ! 0          bfeather_inner       radius         radius+bfeather_outer
+  ! 0          rfeather_inner       radius         radius+rfeather_outer
   ! 0               r1                r2                   rout
   ! |   center       |       inside    |    outside          |
   ! |   var_cen      |       var_in    |    var_out          |
@@ -117,9 +117,9 @@ contains
     real, INTENT(in) :: r, z, var_cen, var_in, var_out
     real :: r1, r2, rout, zout, zjet, var_zcen, var_zin
     real :: taper
-    r1 = sim(nozzle)%bfeather_inner
+    r1 = sim(nozzle)%rfeather_inner
     r2 = sim(nozzle)%radius
-    rout = sim(nozzle)%radius + sim(nozzle)%bfeather_outer
+    rout = sim(nozzle)%radius + sim(nozzle)%rfeather_outer
     zjet = sim(nozzle)%length
     zout = zjet + sim(nozzle)%zfeather
 
@@ -162,9 +162,9 @@ contains
     real, INTENT(in) :: r, z, var_cen, var_in, var_out
     real :: r1, r2, rout, zout, zjet, var_zcen, var_zin
     real :: ETaper
-    r1 = sim(nozzle)%bfeather_inner
-    r2 = sim(nozzle)%radius + sim(nozzle)%bfeather_outer
-    rout = r2 + sim(nozzle)%bfeather_outer
+    r1 = sim(nozzle)%rfeather_inner
+    r2 = sim(nozzle)%radius + sim(nozzle)%rfeather_outer
+    rout = r2 + sim(nozzle)%rfeather_outer
     zjet = sim(nozzle)%length
     zout = zjet + sim(nozzle)%zfeather
 
@@ -227,9 +227,9 @@ contains
 
   end function coshat
 
-  subroutine calc_jet(nozzle, time)
+  subroutine calc_jet(nozzle, time, dt)
     integer, INTENT(in) :: nozzle
-    real, INTENT(in) :: time
+    real, INTENT(in) :: time, dt
     ! Calculate the jet pressure
     real :: p, g, v, r, L
     g = sim(nozzle)%gamma
@@ -244,26 +244,11 @@ contains
     !sim(nozzle)%density = max(gr_smallrho, sim(nozzle)%density)
     sim(nozzle)%mach = v/sqrt(g*sim(nozzle)%pressure/sim(nozzle)%density)
 
-  end subroutine calc_jet
-
-  subroutine calc_deltaJet(nozzle, time, dt)
-    integer, INTENT(in) :: nozzle
-    real, INTENT(in) :: time, dt
-    ! Calculate the jet pressure
-    real :: p, g, v, r, L
-    g = sim(nozzle)%gamma
-    v = sim(nozzle)%velocity
-    r = sim(nozzle)%radius
-    L = sim(nozzle)%power
-    if (t0 < 0.0) then
-       t0 = (r*r*PI*2*v)**1.25*(sim_rhoAmbient*g/(g-1)/L)**0.75*0.227082*2.0
-    endif
     sim(nozzle)%deltaP = ( (max(time,t0))**(-0.8)-(max(time-dt,t0))**(-0.8) )&
                            *0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
     sim(nozzle)%deltaRho = -2.0/v/v*(g/(g-1)*sim(nozzle)%deltaP)
 
-
-  end subroutine calc_deltaJet
+  end subroutine calc_jet
 
 end module Simulation_data
 

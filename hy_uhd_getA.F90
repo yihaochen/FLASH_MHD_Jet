@@ -73,8 +73,8 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
   !
   ! geometric factors
   ! for convenience
-  bf = sim(nozzle)%bfeather_outer
-  r1 = sim(nozzle)%bfeather_inner 
+  bf = sim(nozzle)%rfeather_outer
+  r1 = sim(nozzle)%rfeather_inner 
   r2 = sim(nozzle)%radius
   rout = sim(nozzle)%radius + bf
   r3 = r2 + 2.0*bf

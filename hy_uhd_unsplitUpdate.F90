@@ -788,9 +788,8 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
   real, dimension(HY_VARINUM) :: UdeltaNozzle
   real, intent(IN) :: x, y, z
   integer :: nozzle=1
-  real, dimension(3) :: cellvec
   real :: radius, length, sig, distance, theta, vel, fac
-  real, dimension(3) :: plnvec, jetvec, rvec, phivec
+  real, dimension(3) :: cellvec, plnvec, jetvec, rvec, phivec, velvec
 
   cellvec = (/ x, y, z /)
   call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
@@ -802,17 +801,19 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
   momentaOld(1:3) = Ul(HY_XMOM:HY_ZMOM)
 
 ! <- ychen 10-2014
-  if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%bfeather_outer))&
+  if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rfeather_outer))&
       .and.(abs(length).le.(sim(nozzle)%length+sim(nozzle)%zfeather))) then
      ! inside the jet nozzle
      !! Update conservative variables from n to n+1 step
      vel = sim(nozzle)%velocity*sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
      fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
+     velvec = vel*jetvec + 0.1*sim(nozzle)%velocity*plnvec*&
+                      0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))
      !fac = taperR(nozzle, radius, 1.0, 0.0)
      ! smooth transition from nozzle to flash grid
      ! 1.0 for nozzle injection; 0.0 for flash solution
      UdeltaNozzle(HY_DENS)        =sim(nozzle)%deltaRho*fac
-     UdeltaNozzle(HY_XMOM:HY_ZMOM)=vel*fac*jetvec*sim(nozzle)%deltaRho*fac
+     UdeltaNozzle(HY_XMOM:HY_ZMOM)=velvec*fac*sim(nozzle)%deltaRho*fac
      UdeltaNozzle(HY_ENER)        =sim(nozzle)%deltaP*fac/(sim(nozzle)%gamma-1.0)+&
                                    0.5*sim(nozzle)%deltaRho*fac*(vel*fac)**2
      UdeltaNozzle(HY_MAGX:HY_MAGZ)=(/0.0, 0.0, 0.0/)

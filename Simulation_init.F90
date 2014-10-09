@@ -65,8 +65,8 @@ subroutine Simulation_init()
   call RuntimeParameters_get('nozzleVecZ', sim(nozzle)%jetvec(3))
   sim(nozzle)%jetvec = sim(nozzle)%jetvec/ sqrt(sum(sim(nozzle)%jetvec*sim(nozzle)%jetvec))
   call RuntimeParameters_get('bPosZ', sim(nozzle)%bPosZ)
-  call RuntimeParameters_get('bfeather_inner', sim(nozzle)%bfeather_inner)
-  call RuntimeParameters_get('bfeather_outer', sim(nozzle)%bfeather_outer)
+  call RuntimeParameters_get('rfeather_inner', sim(nozzle)%rfeather_inner)
+  call RuntimeParameters_get('rfeather_outer', sim(nozzle)%rfeather_outer)
   call RuntimeParameters_get('zfeather', sim(nozzle)%zfeather)
   call RuntimeParameters_get('smallx', sim_smallX)
   call RuntimeParameters_get('smallp', sim_smallP)
@@ -78,7 +78,7 @@ subroutine Simulation_init()
      print*, 'Toroidal field will be smaller than sim_bphiJet'
      print*, '!!!!!!!!'
   endif
-  call calc_jet(nozzle, 0.0)
+  call calc_jet(nozzle, 0.0, 0.0)
   if (dr_globalMe==MASTER_PE) then
      write(*,'(a, es11.3)') 't0:', t0
      write(*,'(a, 2es11.3)') '(p, rho)=', sim(nozzle)%pressure, sim(nozzle)%density
