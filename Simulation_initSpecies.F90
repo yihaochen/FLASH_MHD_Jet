@@ -1,5 +1,4 @@
-
-!!****if* source/Simulation/SimulationMain/TwoGamma/Simulation_initSpecies
+!!****if* source/Simulation/SimulationMain/MHD_Jet/Simulation_initSpecies
 !!
 !! NAME
 !!

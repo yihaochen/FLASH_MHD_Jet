@@ -1,4 +1,4 @@
-!!****if* source/Simulation/SimulationMain/WindTunnel/Simulation_init
+!!****if* source/Simulation/SimulationMain/MHD_Jet/Simulation_init
 !!
 !! NAME
 !!
@@ -31,8 +31,9 @@
 subroutine Simulation_init()
 
   use Simulation_data
+  use Simulation_jetNozzleUpdate, ONLY : sim_jetNozzleUpdate
   use RuntimeParameters_interface, ONLY : RuntimeParameters_get
-  use Driver_data, ONLY : dr_globalMe
+  use Driver_data, ONLY : dr_globalMe, dr_simTime
   !use Grid_data, ONLY : gr_smallrho
 
   implicit none
@@ -78,7 +79,7 @@ subroutine Simulation_init()
      print*, 'Toroidal field will be smaller than sim_bphiJet'
      print*, '!!!!!!!!'
   endif
-  call calc_jet(nozzle, 0.0, 0.0)
+  call sim_jetNozzleUpdate(nozzle, dr_simTime, 0.0)
   if (dr_globalMe==MASTER_PE) then
      write(*,'(a, es11.3)') 't0:', t0
      write(*,'(a, 2es11.3)') '(p, rho)=', sim(nozzle)%pressure, sim(nozzle)%density

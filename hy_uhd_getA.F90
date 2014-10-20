@@ -186,4 +186,37 @@ Subroutine hy_uhd_getA(nozzle,simTime,r,z,phi,Ar,Az,Aphi)
 
   end select
 
+
+contains
+
+  function coshat(x, halfwidth, feather, max_in)
+  !                _____________________________ 
+  !              /                               \
+  !          /                                       \
+  !      /                                               \
+  ! ---------------------------------------------------------
+  !    |          |              |              |          |
+  !          |     halfwidth     |
+  !    |  feather  |
+
+    real, INTENT(in) :: x, halfwidth, feather
+    real, INTENT(in), optional :: max_in
+    real :: coshat, hatvalue
+
+    if (present(max_in)) then
+        hatvalue = max_in
+    else
+        hatvalue = 2.0*feather/PI
+    endif
+    
+    if (abs(x).le.halfwidth-0.5*feather) then
+        coshat = hatvalue
+    else if (abs(x).lt.(halfwidth+0.5*feather)) then
+        coshat = hatvalue*0.5*(1.0+cos( PI*((abs(x) - halfwidth)/feather+0.5) ))
+    else
+        coshat = 0.0
+    endif
+
+  end function coshat
+
 End Subroutine hy_uhd_getA

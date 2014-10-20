@@ -96,8 +96,8 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
   use Driver_interface, ONLY : Driver_abortFlash
 ! <- ychen 10-2014
   use Driver_data, ONLY : dr_simTime, dr_globalMe, dr_nStep, dr_dt
+  use Simulation_jetNozzleUpdate, ONLY : sim_jetNozzleUpdate
   use Simulation_data
-
 ! ychen ->
 
   use hy_uhd_interface, ONLY : hy_uhd_getRiemannState,  &
@@ -272,7 +272,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
   endif
 
 ! <- ychen 10-2014
-  call calc_jet(nozzle, dr_simTime, dr_dt)
+  call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dt)
   if (dr_globalMe==MASTER_PE .and. mod(dr_nStep,20)==0) then
      write(*,'(a,2es11.3, f7.2)') '      (p, rho, M)=', &
      sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach
@@ -511,7 +511,9 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
            halfTimeAdvance = .false.
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
+! <- ychen 09-2014
            call hy_uhd_electricNozzle(blockID,blkLimits,blkLimitsGC)
+! ychen ->
            call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
         endif ! End of if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
 #endif
@@ -547,7 +549,11 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
            halfTimeAdvance = .false.
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
+! <- ychen 09-2014
+  !write(*,*) "*************** electricNozzle1 ***************"
            call hy_uhd_electricNozzle(blockID,blkLimits,blkLimitsGC)
+  !write(*,*) "*************** electricNozzle2 ***************"
+! ychen ->
            !write(*,*) blockID, 'unsplit'
         endif ! End of if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
 #endif
@@ -603,6 +609,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
   !! ***************************************************************************
   !! Do this part only if refining and flux correcting
   if (hy_fluxCorrect) then
+  !write(*,*) "*************** fluxCorrect ***************"
 
      !! ************************************************************************
      !! Conservation of Fluxes at each block boundary
@@ -656,6 +663,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         fly = 0.
         flz = 0.
 
+  !write(*,*) "*************** getBlkPtr ***************"
         call Grid_getBlkPtr(blockID,scrch_Ctr,SCRATCH_CTR)
 
         flx(HY_DENS_FLUX:HY_END_FLUX,:,:,:)&
@@ -700,6 +708,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
 
         !! *********************************************************************
         !! Unsplit update for conservative variables from n to n+1 time step
+        !write(*,*) "*************** unsplitUpdate ***************"
         call Timers_start("unsplitUpdate")
         call hy_uhd_unsplitUpdate(blockID,updateMode,dt,del,datasize,blkLimits,&
                                   blkLimitsGC,flx,fly,flz,gravX,gravY,gravZ)

@@ -144,30 +144,20 @@ subroutine Simulation_initBlock(blockID)
                                      sig,theta,jetvec,rvec,plnvec,phivec)
        if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rfeather_outer))&
            .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zfeather))) then
-          !if ((radius.gt.2.0*sim(nozzle)%radius).or.(abs(length).gt.2.0*sim(nozzle)%length)) then
-             fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
-             solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + sim_rhoAmbient*(1.0-fac)
-             solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + sim_pAmbient*(1.0-fac)
-             vel = sim(nozzle)%velocity*&
-                   sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
-             velvec = vel*jetvec +&
-                      0.1*sim(nozzle)%velocity*plnvec*&
-                      0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))
-                      
-                      !cos(PI/2.0*(abs(radius)-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)
-             solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac
-             solnData(JET_SPEC,i,j,k) = fac
-             solnData(ISM_SPEC,i,j,k) = 1.0-fac
-          !else
-          !   vel = sim(nozzle)%velocity*sin(PI/2.0*length/sim(nozzle)%length)
-          !   solnData(DENS_VAR,i,j,k) = sim(nozzle)%density
-          !   solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure
-          !   solnData(VELX_VAR,i,j,k) = vel*jetvec(1)*sig
-          !   solnData(VELY_VAR,i,j,k) = vel*jetvec(2)*sig
-          !   solnData(VELZ_VAR,i,j,k) = vel*jetvec(3)*sig
-          !   solnData(JET_SPEC,i,j,k) = 1.0 - sim_smallX
-          !   solnData(ISM_SPEC,i,j,k) = sim_smallX
-          !endif
+          ! inside the extended nozzle and feather
+          fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
+          solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + sim_rhoAmbient*(1.0-fac)
+          solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + sim_pAmbient*(1.0-fac)
+          vel = sim(nozzle)%velocity*&
+                sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
+          velvec = vel*jetvec&
+                   + 0.1*sim(nozzle)%velocity*plnvec*&
+                     0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))
+                   !+ sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec)*fac
+                   !cos(PI/2.0*(abs(radius)-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)
+          solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac
+          solnData(JET_SPEC,i,j,k) = fac
+          solnData(ISM_SPEC,i,j,k) = 1.0-fac
           solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
                                      /(solnData(GAME_VAR,i,j,k)-1.0)
           solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)+&
@@ -178,7 +168,6 @@ subroutine Simulation_initBlock(blockID)
     enddo
    enddo
   enddo
-  !call Heat_fillnozzle(blockID, dr_dtInit, dr_simTime, .true.)
 
   call Grid_releaseBlkPtr(blockID, solnData, CENTER)
   call Grid_releaseBlkPtr(blockID,solnFaceXData,FACEX)

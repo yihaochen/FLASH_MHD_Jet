@@ -1,4 +1,4 @@
-!!****if* source/Simulation/SimulationMain/WindTunnel/Simulation_data
+!!****if* source/Simulation/SimulationMain/MHD_Jet/Simulation_data
 !!
 !! NAME
 !!  Simulation_data
@@ -28,6 +28,8 @@ module Simulation_data
 
   TYPE nozzle_struct
       real, dimension(3) :: pos, jetvec
+      real, dimension(3) :: pos_old, jetvec_old
+      real, dimension(3) :: angVel, linVel
       real :: radius, length, bPosZ
       real :: power, pressure, density, velocity, gamma, mach
       real :: deltaP, deltaRho
@@ -195,60 +197,6 @@ contains
     endif
 
   end function ETaper
-
-
-  function coshat(x, halfwidth, feather, max_in)
-  !                _____________________________ 
-  !              /                               \
-  !          /                                       \
-  !      /                                               \
-  ! ---------------------------------------------------------
-  !    |          |              |              |          |
-  !          |     halfwidth     |
-  !    |  feather  |
-
-    real, INTENT(in) :: x, halfwidth, feather
-    real, INTENT(in), optional :: max_in
-    real :: coshat, hatvalue
-
-    if (present(max_in)) then
-        hatvalue = max_in
-    else
-        hatvalue = 2.0*feather/PI
-    endif
-    
-    if (abs(x).le.halfwidth-0.5*feather) then
-        coshat = hatvalue
-    else if (abs(x).lt.(halfwidth+0.5*feather)) then
-        coshat = hatvalue*0.5*(1.0+cos( PI*((abs(x) - halfwidth)/feather+0.5) ))
-    else
-        coshat = 0.0
-    endif
-
-  end function coshat
-
-  subroutine calc_jet(nozzle, time, dt)
-    integer, INTENT(in) :: nozzle
-    real, INTENT(in) :: time, dt
-    ! Calculate the jet pressure
-    real :: p, g, v, r, L
-    g = sim(nozzle)%gamma
-    v = sim(nozzle)%velocity
-    r = sim(nozzle)%radius
-    L = sim(nozzle)%power
-    if (t0 < 0.0) then
-       t0 = (r*r*PI*2*v)**1.25*(sim_rhoAmbient*g/(g-1)/L)**0.75*0.227082*2.0
-    endif
-    sim(nozzle)%pressure = (max(time,t0))**(-0.8)*0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
-    sim(nozzle)%density = 2.0/v/v*(L/(r*r*PI*2*v) - g/(g-1)*sim(nozzle)%pressure)
-    !sim(nozzle)%density = max(gr_smallrho, sim(nozzle)%density)
-    sim(nozzle)%mach = v/sqrt(g*sim(nozzle)%pressure/sim(nozzle)%density)
-
-    sim(nozzle)%deltaP = ( (max(time,t0))**(-0.8)-(max(time-dt,t0))**(-0.8) )&
-                           *0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
-    sim(nozzle)%deltaRho = -2.0/v/v*(g/(g-1)*sim(nozzle)%deltaP)
-
-  end subroutine calc_jet
 
 end module Simulation_data
 

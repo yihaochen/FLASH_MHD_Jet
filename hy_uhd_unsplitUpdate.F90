@@ -788,7 +788,7 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
   real, dimension(HY_VARINUM) :: UdeltaNozzle
   real, intent(IN) :: x, y, z
   integer :: nozzle=1
-  real :: radius, length, sig, distance, theta, vel, fac
+  real :: radius, length, sig, distance, theta, vel, fac, facold
   real, dimension(3) :: cellvec, plnvec, jetvec, rvec, phivec, velvec
 
   cellvec = (/ x, y, z /)
@@ -801,30 +801,40 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
   momentaOld(1:3) = Ul(HY_XMOM:HY_ZMOM)
 
 ! <- ychen 10-2014
+  !write(*,*) "*************** unsplitUpdate(begin) ***************"
   if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rfeather_outer))&
       .and.(abs(length).le.(sim(nozzle)%length+sim(nozzle)%zfeather))) then
      ! inside the jet nozzle
      !! Update conservative variables from n to n+1 step
      vel = sim(nozzle)%velocity*sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
-     fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
-     velvec = vel*jetvec + 0.1*sim(nozzle)%velocity*plnvec*&
-                      0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))
-     !fac = taperR(nozzle, radius, 1.0, 0.0)
+
      ! smooth transition from nozzle to flash grid
-     ! 1.0 for nozzle injection; 0.0 for flash solution
-     UdeltaNozzle(HY_DENS)        =sim(nozzle)%deltaRho*fac
-     UdeltaNozzle(HY_XMOM:HY_ZMOM)=velvec*fac*sim(nozzle)%deltaRho*fac
-     UdeltaNozzle(HY_ENER)        =sim(nozzle)%deltaP*fac/(sim(nozzle)%gamma-1.0)+&
-                                   0.5*sim(nozzle)%deltaRho*fac*(vel*fac)**2
-     UdeltaNozzle(HY_MAGX:HY_MAGZ)=(/0.0, 0.0, 0.0/)
-     !write (*,'(a10, 10e9.2, f6.3)') 'Unozzle', Unozzle, radius, length, fac
-     !write (*,'(a10, 8e9.2)') 'Ul', Ul
+     ! fac=1.0 for nozzle injection; 0.0 for flash solution
+     fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
+     velvec = vel*jetvec&
+              ! small radial outflow to increase stability
+              + 0.1*sim(nozzle)%velocity*plnvec*&
+                0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))
+              ! movement of the nozzle
+              !+ sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec)*fac
+
+     !write (*,'(a10, 2e9.2, f6.3)') 'Unozzle', radius, length, fac
+     !call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
+     !                              sig,theta,jetvec,rvec,plnvec,phivec,.true.)
+     !write (*,'(a10, 2e9.2, f6.3)') 'Unozzle', radius, length, fac
+     !facold = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
+     !velvec = velvec - sim(nozzle)%linVel*facold - cross(sim(nozzle)%angVel,rvec)*facold
+
+     UdeltaNozzle(HY_DENS)         = sim(nozzle)%deltaRho
+     UdeltaNozzle(HY_XMOM:HY_ZMOM) = velvec*sim(nozzle)%deltaRho
+     UdeltaNozzle(HY_ENER)         = sim(nozzle)%deltaP/(sim(nozzle)%gamma-1.0)+&
+                                     0.5*sim(nozzle)%deltaRho*dot_product(velvec,velvec)
+     UdeltaNozzle(HY_MAGX:HY_MAGZ) = (/0.0, 0.0, 0.0/)
 
      Ul(HY_DENS:HY_DENS+HY_VARINUM-1)=Ul(HY_DENS:HY_DENS+HY_VARINUM-1)&
-          +UdeltaNozzle(HY_DENS:HY_DENS+HY_VARINUM-1)&
+          +UdeltaNozzle(HY_DENS:HY_DENS+HY_VARINUM-1)*fac&
           -dt/dx*( FR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)&
                   -FL(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1))*(1.0-fac)
-     !write (*,'(a10, 8e9.2)') 'Ulx', Ul
      
      if (NDIM > 1) then
      Ul(HY_DENS:HY_DENS+HY_VARINUM-1)=Ul(HY_DENS:HY_DENS+HY_VARINUM-1)&
@@ -844,6 +854,8 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
      !write (*,'(a10, 8e9.2)') 'Ulz', Ul
   else
 ! ychen ->
+  !write(*,*) "*************** unsplitUpdate(outsidenozzle) ***************"
+
      !! Update conservative variables from n to n+1 step
      Ul(HY_DENS:HY_DENS+HY_VARINUM-1)=Ul(HY_DENS:HY_DENS+HY_VARINUM-1)&
           -dt/dx*( FR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)&
