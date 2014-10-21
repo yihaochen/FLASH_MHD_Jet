@@ -13,43 +13,57 @@ D   pAmbient        Initial ambient pressure
 D   rhoAmbient      Initial ambient density
 D	windVel			Inflow velocity (parallel to x-axis)
 
-PARAMETER sim_pAmbient     REAL    1.0
-PARAMETER sim_rhoAmbient   REAL    1.0
-PARAMETER sim_windVel	   REAL	   3.0
-PARAMETER sim_gammaAmbient REAL	   1.4
-PARAMETER sim_bzAmbient	   REAL	   0.0
+PARAMETER sim_pAmbient		REAL	1.38065E-11
+PARAMETER sim_rhoAmbient	REAL	1.67E-26
+PARAMETER sim_windVel		REAL	0.0
+PARAMETER sim_gammaAmbient	REAL	1.6666
+PARAMETER sim_bzAmbient		REAL	0.0
+
+
+D	powerJet		Power of the jet
+D	velJet			Velocity of the jet
+D	gammaJet		Gamma of the jet
+D	betaJet			Beta parameter of the jet (beta = P_gas / P_mag
+D	helicityJet		B_toroidal / B_poloidal ( = B_phi / B_z )
+D	timeMHDon		Time when the magnetic fields are turned on
 
 # Jet Properties
-PARAMETER sim_powerJet     REAL    1.0
-PARAMETER sim_velJet	   REAL	   40.0
-PARAMETER sim_gammaJet	   REAL	   1.4
-PARAMETER sim_bphiJet	   REAL	   0.0
-PARAMETER sim_bzJet		   REAL	   0.0
-PARAMETER sim_timeMHDon    REAL	   0.0
+PARAMETER sim_powerJet		REAL    1.0E45
+PARAMETER sim_velJet		REAL	3.0E9
+PARAMETER sim_gammaJet		REAL	1.6666
+PARAMETER sim_betaJet		REAL	100.0
+PARAMETER sim_helicityJet	REAL	1.0
+PARAMETER sim_timeMHDon		REAL	1.0E-11
 
 # Nozzle Geometry
-PARAMETER nozzleRadius REAL		0.05
-PARAMETER nozzleHalfL  REAL		0.1
-PARAMETER nozzlePosX   REAL		0.0
-PARAMETER nozzlePosY   REAL		0.0
-PARAMETER nozzlePosZ   REAL		0.0
-PARAMETER nozzleVecX   REAL		0.0
-PARAMETER nozzleVecY   REAL		0.0
-PARAMETER nozzleVecZ   REAL		1.0
-PARAMETER bPosZ		   REAL		0.05
-PARAMETER rfeather_inner   REAL		0.02
-PARAMETER rfeather_outer   REAL		0.02
-PARAMETER zfeather		   REAL		0.04
+PARAMETER nozzleRadius		REAL	7.5E20
+PARAMETER nozzleHalfL		REAL	1.5E21
+PARAMETER nozzlePosX		REAL	0.0
+PARAMETER nozzlePosY		REAL	0.0
+PARAMETER nozzlePosZ		REAL	0.0
+PARAMETER nozzleVecX		REAL	0.0
+PARAMETER nozzleVecY		REAL	0.0
+PARAMETER nozzleVecZ		REAL	1.0
+PARAMETER zTorInj			REAL	3.75E21
+PARAMETER rFeatherIn		REAL	3.0E20
+PARAMETER rFeatherOut  		REAL	7.5E20
+PARAMETER zFeather			REAL	1.5E21
+PARAMETER nozzleAngVelX		REAL	0.0
+PARAMETER nozzleAngVelY		REAL	0.0
+PARAMETER nozzleAngVelZ		REAL	0.0
+PARAMETER nozzleLinVelX		REAL	0.0
+PARAMETER nozzleLinVelY		REAL	0.0
+PARAMETER nozzleLinVelZ		REAL	0.0
 
 
 # Enough NBOUNDARIES space for taking 12 blocks out of a 2d problem:
-PPDEFINE NBOUNDARIES 16
+#PPDEFINE NBOUNDARIES 16
 
 
 # Heat Source Term
 DEFAULT HeatMain
 D	useHeat   runtime control for turning the heat on or off
-PARAMETER useHeat    BOOLEAN TRUE
+PARAMETER useHeat			BOOLEAN TRUE
 
 
 # Two Species for tracing jet and ISM components

@@ -28,20 +28,22 @@ module Simulation_data
 
   TYPE nozzle_struct
       real, dimension(3) :: pos, jetvec
-      real, dimension(3) :: pos_old, jetvec_old
+      real, dimension(3) :: posOld, jetvecOld
       real, dimension(3) :: angVel, linVel
-      real :: radius, length, bPosZ
+      real :: radius, length, zTorInj
       real :: power, pressure, density, velocity, gamma, mach
       real :: deltaP, deltaRho
-      real :: rfeather_inner, rfeather_outer, zfeather
+      real :: rFeatherIn, rFeatherOut, zFeather
+      real :: beta, helicity
       real :: bphi, bz, timeMHDon
+      real :: bzOld
+      real :: t0 = -1.0
   end TYPE nozzle_struct
 
   !! *** Runtime Parameters *** !!
 
   type(nozzle_struct), save, dimension(NOZZLES) :: sim
 
-  real,save :: t0 = -1.0
   real,save :: sim_pAmbient, sim_rhoAmbient, sim_windVel, sim_bzAmbient
   real,save :: sim_gamma, sim_smallP, sim_smallX
   real,save,allocatable,dimension(:) :: sim_xcoord
@@ -68,9 +70,9 @@ contains
     real, INTENT(in) :: r, var_in, var_out
     real :: r1, r2, rout
     real :: taperR
-    r1 = sim(nozzle)%rfeather_inner
+    r1 = sim(nozzle)%rFeatherIn
     r2 = sim(nozzle)%radius
-    rout = sim(nozzle)%radius + sim(nozzle)%rfeather_outer
+    rout = sim(nozzle)%radius + sim(nozzle)%rFeatherOut
 
     if (r.ge.0.0 .and. r.lt.r1) then
       taperR = (-2*r**3/r1**3 + 3*r**2/r1**2)*var_in
@@ -92,7 +94,7 @@ contains
     real :: zout, zjet
     real :: taperL
     zjet = sim(nozzle)%length
-    zout = zjet + sim(nozzle)%zfeather
+    zout = zjet + sim(nozzle)%zFeather
 
     ! z part
     if (abs(z).ge.0.0 .and. abs(z).lt.zjet) then
@@ -110,7 +112,7 @@ contains
   ! Taper function for both R and z direction
   ! For radial direction, variable could have 3 values: center, inside, and outside
   !
-  ! 0          rfeather_inner       radius         radius+rfeather_outer
+  ! 0          rFeatherIn       radius         radius+rFeatherOut
   ! 0               r1                r2                   rout
   ! |   center       |       inside    |    outside          |
   ! |   var_cen      |       var_in    |    var_out          |
@@ -119,11 +121,11 @@ contains
     real, INTENT(in) :: r, z, var_cen, var_in, var_out
     real :: r1, r2, rout, zout, zjet, var_zcen, var_zin
     real :: taper
-    r1 = sim(nozzle)%rfeather_inner
+    r1 = sim(nozzle)%rFeatherIn
     r2 = sim(nozzle)%radius
-    rout = sim(nozzle)%radius + sim(nozzle)%rfeather_outer
+    rout = sim(nozzle)%radius + sim(nozzle)%rFeatherOut
     zjet = sim(nozzle)%length
-    zout = zjet + sim(nozzle)%zfeather
+    zout = zjet + sim(nozzle)%zFeather
 
     ! z part
     if (abs(z).ge.0.0 .and. abs(z).lt.zjet) then
@@ -164,11 +166,11 @@ contains
     real, INTENT(in) :: r, z, var_cen, var_in, var_out
     real :: r1, r2, rout, zout, zjet, var_zcen, var_zin
     real :: ETaper
-    r1 = sim(nozzle)%rfeather_inner
-    r2 = sim(nozzle)%radius + sim(nozzle)%rfeather_outer
-    rout = r2 + sim(nozzle)%rfeather_outer
+    r1 = sim(nozzle)%rFeatherIn
+    r2 = sim(nozzle)%radius + sim(nozzle)%rFeatherOut
+    rout = r2 + sim(nozzle)%rFeatherOut
     zjet = sim(nozzle)%length
-    zout = zjet + sim(nozzle)%zfeather
+    zout = zjet + sim(nozzle)%zFeather
 
     ! z part
     if (abs(z).ge.0.0 .and. abs(z).lt.zjet) then

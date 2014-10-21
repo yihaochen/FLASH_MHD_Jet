@@ -19,7 +19,7 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
   real, pointer, dimension(:,:,:,:) :: E
 
   real, dimension(3) :: nozvec, nozvecf, edgevec, advect, torvec, polvec
-  real, dimension(3) :: jetvec, rvec, plnvec, phivec, phivec_old
+  real, dimension(3) :: jetvec, rvec, plnvec, phivec, phivecOld
   real :: Ar, Az, Aphi, Arold, Azold, Aphiold!, thetavel, angvel, vel
 
   real :: length,radius,distance, theta, cellsig!, fac, fillfac
@@ -82,7 +82,7 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
         
         !call hy_uhd_jetNozzleFill(rvec,jetvec,radius,length,distance,cellsig,&
         !     vel,dens,pres,eint,fac,fillfac )
-        call hy_uhd_getA(nozzle, dr_simTime, radius, length, 0.0, Ar, Az, Aphi)
+        call hy_uhd_getA(nozzle, radius, length, 0.0, Ar, Az, Aphi)
         
         !
         ! Taper factors - smoothly transition from imposed to FLASH solution
@@ -99,7 +99,7 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
         ! 1 means use FLASH calculated value
         
         !blockingLTaper = 0.5*(1.0+cos(PI*max(-1.0,(min(1.0,&
-        !                 (abs(length)-sim(nozzle)%bPosZ)/sim(nozzle)%zfeather)))))
+        !                 (abs(length)-sim(nozzle)%zTorInj)/sim(nozzle)%zfeather)))))
         
         
         ! radial taper factor
@@ -109,7 +109,7 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
         ! of blockingLTaper
         !toroidalReplenishLTaper=0.5*PI / sim(nozzle)%zfeather * &
         !     sin(PI * (max(-1.0,min(1.0 , &
-        !     (abs(length) - sim(nozzle)%bPosZ) / sim(nozzle)%zfeather ))))
+        !     (abs(length) - sim(nozzle)%zTorInj) / sim(nozzle)%zfeather ))))
 
         ! rotation velicity to be used for advection
         !thetavel(:)=cross(sim(nozzle)%angvel(:),rvec(:)*distance)
@@ -132,7 +132,7 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
            ! Toroidal field update: Replace the flux advected away
 
            ! Az has dimension [B*length/time]
-           ! We don't need to divide it ty dr_dt again.
+           ! We don't need to divide it by dr_dt again.
            torvec(xyz) = - (Ar*plnvec(xyz)+Az*jetvec(xyz))
            
            !call hy_uhd_jetNozzleGeometryOld(edgevec,radius,length, &
@@ -142,10 +142,10 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
            
 
            call hy_uhd_jetNozzleGeometryOld(nozzle,edgevec,radius,length, &
-                distance,cellsig,theta,jetvec,rvec,plnvec,phivec_old)
-           call hy_uhd_getA(nozzle, dr_simTime-dr_dt, radius, length, 0.0, Arold, Azold, Aphiold)
+                distance,cellsig,theta,jetvec,rvec,plnvec,phivecOld)
+           call hy_uhd_getAOld(nozzle, radius, length, 0.0, Arold, Azold, Aphiold)
            ! rotate and move poloidal field (subtract old field, add moved)
-           advect(xyz) = -(Aphi*phivec(xyz) - Aphiold*phivec_old(xyz))/dr_dt
+           advect(xyz) = -(Aphi*phivec(xyz) - Aphiold*phivecOld(xyz))/dr_dt
 
            ! Finally, update the E-field so that FLASH can update B using
            ! dB = - (curl E) * dt

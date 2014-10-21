@@ -23,8 +23,6 @@
 !!  sim_rhoAmbient  Initial ambient density
 !!  sim_windVel     Inflow velocity (parallel to x-axis)
 !!  gamma           the Gamma EOS thing
-!!  smallp          minimum for pressure
-!!  smallx          minimum for abundance
 !!
 !!***
 
@@ -52,8 +50,8 @@ subroutine Simulation_init()
   !call RuntimeParameters_get('sim_rhoJet', sim(nozzle)%density)
   call RuntimeParameters_get('sim_velJet', sim(nozzle)%velocity)
   call RuntimeParameters_get('sim_gammaJet', sim(nozzle)%gamma)
-  call RuntimeParameters_get('sim_bphiJet', sim(nozzle)%bphi)
-  call RuntimeParameters_get('sim_bzJet', sim(nozzle)%bz)
+  call RuntimeParameters_get('sim_betaJet', sim(nozzle)%beta)
+  call RuntimeParameters_get('sim_helicityJet', sim(nozzle)%helicity)
   call RuntimeParameters_get('sim_timeMHDon', sim(nozzle)%timeMHDon)
 
   call RuntimeParameters_get('nozzleRadius', sim(nozzle)%radius)
@@ -65,23 +63,28 @@ subroutine Simulation_init()
   call RuntimeParameters_get('nozzleVecY', sim(nozzle)%jetvec(2))
   call RuntimeParameters_get('nozzleVecZ', sim(nozzle)%jetvec(3))
   sim(nozzle)%jetvec = sim(nozzle)%jetvec/ sqrt(sum(sim(nozzle)%jetvec*sim(nozzle)%jetvec))
-  call RuntimeParameters_get('bPosZ', sim(nozzle)%bPosZ)
-  call RuntimeParameters_get('rfeather_inner', sim(nozzle)%rfeather_inner)
-  call RuntimeParameters_get('rfeather_outer', sim(nozzle)%rfeather_outer)
-  call RuntimeParameters_get('zfeather', sim(nozzle)%zfeather)
-  call RuntimeParameters_get('smallx', sim_smallX)
-  call RuntimeParameters_get('smallp', sim_smallP)
+  call RuntimeParameters_get('zTorInj', sim(nozzle)%zTorInj)
+  call RuntimeParameters_get('rFeatherIn', sim(nozzle)%rFeatherIn)
+  call RuntimeParameters_get('rFeatherOut', sim(nozzle)%rFeatherOut)
+  call RuntimeParameters_get('zFeather', sim(nozzle)%zFeather)
+  call RuntimeParameters_get('nozzleAngVelX', sim(nozzle)%angVel(1))
+  call RuntimeParameters_get('nozzleAngVelY', sim(nozzle)%angVel(2))
+  call RuntimeParameters_get('nozzleAngVelZ', sim(nozzle)%angVel(3))
+  call RuntimeParameters_get('nozzleLinVelX', sim(nozzle)%linVel(1))
+  call RuntimeParameters_get('nozzleLinVelY', sim(nozzle)%linVel(2))
+  call RuntimeParameters_get('nozzleLinVelZ', sim(nozzle)%linVel(3))
 
-  if (sim(nozzle)%bPosZ < sim(nozzle)%length+1.5*sim(nozzle)%zfeather .and.&
+
+  if (sim(nozzle)%zTorInj < sim(nozzle)%length+1.5*sim(nozzle)%zFeather .and.&
      dr_globalMe==MASTER_PE) then
      print*, '!!!!!!!!'
-     print*, 'Warning! bPosZ is too small that it overlaps with the nozzle.'
-     print*, 'Toroidal field will be smaller than sim_bphiJet'
+     print*, 'Warning! zTorInj is too small that it overlaps with the nozzle.'
+     print*, 'Toroidal field will be smaller than it should be.'
      print*, '!!!!!!!!'
   endif
   call sim_jetNozzleUpdate(nozzle, dr_simTime, 0.0)
   if (dr_globalMe==MASTER_PE) then
-     write(*,'(a, es11.3)') 't0:', t0
+     write(*,'(a, es11.3)') 't0:', sim(nozzle)%t0
      write(*,'(a, 2es11.3)') '(p, rho)=', sim(nozzle)%pressure, sim(nozzle)%density
   endif
 

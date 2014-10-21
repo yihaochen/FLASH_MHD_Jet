@@ -1,5 +1,5 @@
 ! get the cylindrical coordinate of the nozzle at the previous time
-! using pos_old and jetvec_old.
+! using posOld and jetvecOld.
 Subroutine hy_uhd_jetNozzleGeometryOld(nozzle,cellvec,radius,length, &
      distance,sig,theta,jetvec,rvec,plnvec,phivec )
 
@@ -15,10 +15,10 @@ Subroutine hy_uhd_jetNozzleGeometryOld(nozzle,cellvec,radius,length, &
   real :: norm
 
   ! Jer direction
-  jetvec(:)=sim(nozzle)%jetvec_old(:)
+  jetvec(:)=sim(nozzle)%jetvecOld(:)
 
   ! Vector to cell center
-  nozvec(:)=cellvec(:) - sim(nozzle)%pos_old(:)
+  nozvec(:)=cellvec(:) - sim(nozzle)%posOld(:)
 
   norm=sqrt(sum(nozvec(:)**2))
   if (norm.gt.0) then

@@ -104,8 +104,8 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
 
-       if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rfeather_outer))&
-           .and.(abs(length).le.(sim(nozzle)%length+sim(nozzle)%zfeather))) then
+       if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rFeatherOut))&
+           .and.(abs(length).le.(sim(nozzle)%length+sim(nozzle)%zFeather))) then
        ! inside the jet nozzle
           vel = sim(nozzle)%velocity*sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           if ((radius.le.sim(nozzle)%radius) .and. (abs(length).le.sim(nozzle)%length)) then
@@ -120,7 +120,7 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
                 sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           velvec = vel*jetvec&
                    + 0.1*sim(nozzle)%velocity*plnvec*&
-                     0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))&
+                     0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rFeatherOut)))&
                    + sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec*distance)
           solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac + solnData(VELX_VAR:VELZ_VAR,i,j,k)*(1.0-fac)
           solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac+&

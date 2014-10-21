@@ -29,19 +29,12 @@ contains
 #include "Simulation.h"
 
     use Simulation_data
-    use Driver_data, ONLY: dr_dtMin
 
     implicit none
 
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: time, dt
-    ! Calculate the jet pressure
     real :: p, g, v, r, L
-    !real, dimension(3) :: angVel = (/ 0.0, 0.0, 2.0*PI/1.0E13 /)
-    ! Angular velocity
-    sim(nozzle)%angVel = (/ 0.0, 0.0, 1.0E-13 /)
-    ! Linear velocity
-    sim(nozzle)%linVel = (/ 0.0, 0.0, 0.0 /)
 
     ! --------------------------------------------------------------------------
     ! Update the hydro variables of the jet nozzle according to the wind-driven bubble solution.
@@ -50,14 +43,19 @@ contains
     r = sim(nozzle)%radius
     L = sim(nozzle)%power
 
-    if (t0 < 0.0) then
-       t0 = (r*r*PI*2*v)**1.25*(sim_rhoAmbient*g/(g-1)/L)**0.75*0.227082*2.0
+    if (sim(nozzle)%t0 < 0.0) then
+       sim(nozzle)%t0 = (r*r*PI*2*v)**1.25*(sim_rhoAmbient*g/(g-1)/L)**0.75*0.227082*2.0
     endif
-    sim(nozzle)%pressure = (max(time,t0))**(-0.8)*0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
+    ! Calculate the jet pressure
+    sim(nozzle)%pressure = (max(time,sim(nozzle)%t0))**(-0.8)&
+                           *0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
     sim(nozzle)%density = 2.0/v/v*(L/(r*r*PI*2*v) - g/(g-1)*sim(nozzle)%pressure)
     !sim(nozzle)%density = max(gr_smallrho, sim(nozzle)%density)
     sim(nozzle)%mach = v/sqrt(g*sim(nozzle)%pressure/sim(nozzle)%density)
 
+    sim(nozzle)%bzOld = sim(nozzle)%bz
+    sim(nozzle)%bz = sqrt(2.0*sim(nozzle)%pressure/sim(nozzle)%beta/(1.0+sim(nozzle)%helicity**2))
+    sim(nozzle)%bphi = sim(nozzle)%bz*sim(nozzle)%helicity
     !sim(nozzle)%deltaP = ( (max(time,t0))**(-0.8)-(max(time-dt,t0))**(-0.8) )&
     !                       *0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
     !sim(nozzle)%deltaRho = -2.0/v/v*(g/(g-1)*sim(nozzle)%deltaP)
@@ -66,8 +64,8 @@ contains
     ! --------------------------------------------------------------------------
     ! Update the jet nozzle position and direction according to the velocity and
     ! angular velocity.
-    sim(nozzle)%pos_old = sim(nozzle)%pos
-    sim(nozzle)%jetvec_old = sim(nozzle)%jetvec
+    sim(nozzle)%posOld = sim(nozzle)%pos
+    sim(nozzle)%jetvecOld = sim(nozzle)%jetvec
 
     sim(nozzle)%pos = sim(nozzle)%pos + sim(nozzle)%linVel*dt
     sim(nozzle)%jetvec = sim(nozzle)%jetvec + cross(sim(nozzle)%angVel, sim(nozzle)%jetvec)*dt

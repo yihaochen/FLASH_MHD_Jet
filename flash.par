@@ -12,12 +12,12 @@ sim_powerJet	= 1.0E45
 #sim_rhoJet		= 1.67E-25
 sim_velJet		= 3.0E9			# 3.0E9 = 0.1 c
 sim_gammaJet	= 1.6666
-sim_bphiJet     = 5.2548E-6		# 5.255E-5 for P_mag=1.38E-11
-sim_bzJet		= 5.2548E-6
+sim_betaJet		= 100
+sim_helicityJet = 1.0
 sim_timeMHDon	= 1.0E-11
 
 #	Nozzle Geometry
-nozzleRadius = 1.5E20	# 1.5E15 cm ~ 100 AU; 3.1E21 cm ~ 1 kpc
+nozzleRadius = 7.5E20	# 1.5E15 cm ~ 100 AU; 3.1E21 cm ~ 1 kpc
 nozzleHalfL  = 1.5E21
 nozzlePosX   = 0.0
 nozzlePosY   = 0.0
@@ -26,10 +26,18 @@ nozzleVecX	 = 0.0
 nozzleVecY	 = 0.0
 nozzleVecZ	 = 1.0
 
-bPosZ		 = 3.75E20	# 3.75E15 cm ~ 250 AU	
-rfeather_inner = 7.0E20
-rfeather_outer = 1.5E20
-zfeather	   = 1.5E21
+zTorInj		 = 3.75E21	# 3.75E15 cm ~ 250 AU	
+rFeatherIn	 = 3.0E20
+rFeatherOut  = 7.5E20
+zFeather	 = 1.5E21
+
+#	Nozzle motion
+nozzleAngVelX = 0.0
+nozzleAngVelY = 0.0
+nozzleAngVelZ = 0.0
+nozzleLinVelX = 0.0
+nozzleLinVelY = 0.0
+nozzleLinVelZ = 0.0
 
 
 smlrho  = 1E-30
@@ -50,12 +58,12 @@ geometry = "cartesian"
 Nblockx		= 4
 Nblocky		= 4
 Nblockz		= 8
-xmin		= -1.91485E23	# 1.91485E17 cm ~ 128 *100 AU
-xmax		=  1.91485E23
-ymin		= -1.91485E23
-ymax		=  1.91485E23
-zmin		= -3.82970E23
-zmax		=  3.82970E23
+xmin		= -9.6E22		# 3.1E21 cm ~ 1 kpc
+xmax		=  9.6E22
+ymin		= -9.6E22
+ymax		=  9.6E22
+zmin		= -1.92E23
+zmax		=  1.92E23
 
 #		Boundary conditions
 
@@ -104,7 +112,7 @@ plot_var_11 = "magp"
 ## -------------------------------------------------------------##
 ##  SWITCHES SPECIFIC TO THE UNSPLIT HYDRO SOLVER               ##
 #	I. INTERPOLATION SCHEME:
-order		= 2      # Interpolation order (First/Second order)
+order		= 3      # Interpolation order (First/Second order)
 slopeLimiter    = "mc"   # Slope limiters (minmod, mc, vanLeer, hybrid, limited)
 LimitedSlopeBeta= 1.     # Slope parameter for the "limited" slope by Toro
 charLimiting	= .true. # Characteristic limiting vs. Primitive limiting

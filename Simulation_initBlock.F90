@@ -142,8 +142,8 @@ subroutine Simulation_initBlock(blockID)
        cellvec = (/ xCoord(i), yCoord(j), zCoord(k) /)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
-       if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rfeather_outer))&
-           .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zfeather))) then
+       if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rFeatherOut))&
+           .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
           ! inside the extended nozzle and feather
           fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
           solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + sim_rhoAmbient*(1.0-fac)
@@ -152,9 +152,9 @@ subroutine Simulation_initBlock(blockID)
                 sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           velvec = vel*jetvec&
                    + 0.1*sim(nozzle)%velocity*plnvec*&
-                     0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))&
+                     0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rFeatherOut)))&
                    + sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec*distance)*fac
-                   !cos(PI/2.0*(abs(radius)-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)
+                   !cos(PI/2.0*(abs(radius)-sim(nozzle)%radius)/sim(nozzle)%rFeatherOut)
           solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac
           solnData(JET_SPEC,i,j,k) = fac
           solnData(ISM_SPEC,i,j,k) = 1.0-fac

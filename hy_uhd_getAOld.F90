@@ -1,10 +1,10 @@
 !! NAME
 !!
-!!  hy_uhd_getA
+!!  hy_uhd_getAOld
 !!
 !! SYNOPSIS
 !!
-!!  hy_uhd_getA( integer (IN) :: nozzle,
+!!  hy_uhd_getAOld( integer (IN) :: nozzle,
 !!               real    (IN) :: r, 
 !!               real    (IN) :: z,
 !!               real    (IN) :: phi,
@@ -29,7 +29,7 @@
 !!  Az     - z component of the vector potential
 !!  Aphi   - phi component of the vector potential
 
-Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
+Subroutine hy_uhd_getAOld(nozzle,r,z,phi,Ar,Az,Aphi)
   use Simulation_data
 
   implicit none
@@ -95,7 +95,7 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
         Ar = 0.0
       end if
       Az = 0.0
-      Aphi = 0.5*r*sim(nozzle)%bz
+      Aphi = 0.5*r*sim(nozzle)%bzOld
 
   ! 2) using Az (divergenless Coulumb gauge?) 
     case(2)
@@ -130,7 +130,7 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
 
       Ar = 0.0
 
-      Aphi = Aphi*sim(nozzle)%bz*&
+      Aphi = Aphi*sim(nozzle)%bzOld*&
            0.5*(1.0+cos(PI*max(0.0,(min(1.0,(abs(z)-sim(nozzle)%zTorInj)/sim(nozzle)%zFeather)))))
       ! exponential decay of Aphi results in the discontinuity of B_r
       !Aphi = Aphi*exp(-(max(0.0, abs(z)-sim(nozzle)%zTorInj))/sim(nozzle)%zFeather)
@@ -138,7 +138,7 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
 
     case(3)
     ! cos poloidal field    
-      bz0 = sim(nozzle)%bz
+      bz0 = sim(nozzle)%bzOld
       bz1 = 0.1*bz0
       ! constants
       c1 = 0.5*(r2*PI)**2/bf - bf
@@ -218,4 +218,4 @@ contains
 
   end function coshat
 
-End Subroutine hy_uhd_getA
+End Subroutine hy_uhd_getAOld
