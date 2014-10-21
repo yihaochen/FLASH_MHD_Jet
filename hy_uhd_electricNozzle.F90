@@ -19,7 +19,7 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
   real, pointer, dimension(:,:,:,:) :: E
 
   real, dimension(3) :: nozvec, nozvecf, edgevec, advect, torvec, polvec
-  real, dimension(3) :: jetvec, rvec, plnvec, phivec
+  real, dimension(3) :: jetvec, rvec, plnvec, phivec, phivec_old
   real :: Ar, Az, Aphi, Arold, Azold, Aphiold!, thetavel, angvel, vel
 
   real :: length,radius,distance, theta, cellsig!, fac, fillfac
@@ -75,18 +75,14 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
         edgevec(xyz)=nozvec(xyz)
         !write(*,*) 'edgevec =', edgevec
 
-        !write(*,*) '###########################################################1'
         call hy_uhd_jetNozzleGeometry(nozzle,edgevec,radius,length, &
              distance,cellsig,theta,jetvec,rvec,plnvec,phivec)
-        !write(*,*) '###########################################################2'
-        
 
         ! now calculate the additional vector potential to be added
         
         !call hy_uhd_jetNozzleFill(rvec,jetvec,radius,length,distance,cellsig,&
         !     vel,dens,pres,eint,fac,fillfac )
         call hy_uhd_getA(nozzle, dr_simTime, radius, length, 0.0, Ar, Az, Aphi)
-        call hy_uhd_getA(nozzle, dr_simTime-dr_dt, radius, length, 0.0, Arold, Azold, Aphiold)
         
         !
         ! Taper factors - smoothly transition from imposed to FLASH solution
@@ -144,8 +140,12 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
            !call hy_uhd_getA(radius,length,distance,phi,theta,&
            !     jetvec,rvec,plnvec,phivec,aphiold,azold,aold)
            
+
+           call hy_uhd_jetNozzleGeometryOld(nozzle,edgevec,radius,length, &
+                distance,cellsig,theta,jetvec,rvec,plnvec,phivec_old)
+           call hy_uhd_getA(nozzle, dr_simTime-dr_dt, radius, length, 0.0, Arold, Azold, Aphiold)
            ! rotate and move poloidal field (subtract old field, add moved)
-           advect(xyz) = -(Aphi - Aphiold)*phivec(xyz)/dr_dt
+           advect(xyz) = -(Aphi*phivec(xyz) - Aphiold*phivec_old(xyz))/dr_dt
 
            ! Finally, update the E-field so that FLASH can update B using
            ! dB = - (curl E) * dt

@@ -152,8 +152,8 @@ subroutine Simulation_initBlock(blockID)
                 sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           velvec = vel*jetvec&
                    + 0.1*sim(nozzle)%velocity*plnvec*&
-                     0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))
-                   !+ sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec)*fac
+                     0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))&
+                   + sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec*distance)*fac
                    !cos(PI/2.0*(abs(radius)-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)
           solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac
           solnData(JET_SPEC,i,j,k) = fac

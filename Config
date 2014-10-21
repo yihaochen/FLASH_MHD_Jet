@@ -4,6 +4,7 @@
 
 #REQUIRES Grid/GridBoundaryConditions/OneRow
 REQUIRES physics/Hydro/
+#REQUIRES physics/sourceTerms/Heat/
 REQUIRES physics/Eos/EosMain/Multigamma
 REQUIRES Multispecies
 
@@ -46,9 +47,9 @@ PPDEFINE NBOUNDARIES 16
 
 
 # Heat Source Term
-#DEFAULT HeatMain
-#D	useHeat   runtime control for turning the heat on or off
-#PARAMETER useHeat    BOOLEAN TRUE
+DEFAULT HeatMain
+D	useHeat   runtime control for turning the heat on or off
+PARAMETER useHeat    BOOLEAN TRUE
 
 
 # Two Species for tracing jet and ISM components

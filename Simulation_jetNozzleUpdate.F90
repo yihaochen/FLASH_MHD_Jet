@@ -39,9 +39,9 @@ contains
     real :: p, g, v, r, L
     !real, dimension(3) :: angVel = (/ 0.0, 0.0, 2.0*PI/1.0E13 /)
     ! Angular velocity
-    sim(nozzle)%angVel = (/ 0.0, 0.0, 0.0 /)
+    sim(nozzle)%angVel = (/ 0.0, 0.0, 1.0E-13 /)
     ! Linear velocity
-    sim(nozzle)%linVel = (/ 0.0, 6.0E8, 0.0 /)
+    sim(nozzle)%linVel = (/ 0.0, 0.0, 0.0 /)
 
     ! --------------------------------------------------------------------------
     ! Update the hydro variables of the jet nozzle according to the wind-driven bubble solution.
@@ -58,9 +58,9 @@ contains
     !sim(nozzle)%density = max(gr_smallrho, sim(nozzle)%density)
     sim(nozzle)%mach = v/sqrt(g*sim(nozzle)%pressure/sim(nozzle)%density)
 
-    sim(nozzle)%deltaP = ( (max(time,t0))**(-0.8)-(max(time-dt,t0))**(-0.8) )&
-                           *0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
-    sim(nozzle)%deltaRho = -2.0/v/v*(g/(g-1)*sim(nozzle)%deltaP)
+    !sim(nozzle)%deltaP = ( (max(time,t0))**(-0.8)-(max(time-dt,t0))**(-0.8) )&
+    !                       *0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
+    !sim(nozzle)%deltaRho = -2.0/v/v*(g/(g-1)*sim(nozzle)%deltaP)
 
 
     ! --------------------------------------------------------------------------

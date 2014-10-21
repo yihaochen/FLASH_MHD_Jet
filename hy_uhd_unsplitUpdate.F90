@@ -134,11 +134,6 @@
 #else
     real, dimension(dataSize(IAXIS)) :: xCenter, xLeft, xRight
 #endif
-!<- ychen 10-2014
-    real, dimension(dataSize(IAXIS)) :: xcent
-    real, dimension(dataSize(JAXIS)) :: ycent
-    real, dimension(dataSize(KAXIS)) :: zcent
-! ychen ->
 
     logical :: gcMask(hy_gcMaskSize)
     real, dimension(HY_VARINUM) :: Sgeo
@@ -283,12 +278,6 @@
        call Grid_getCellCoords(IAXIS,blockID, LEFT_EDGE, .true.,xLeft,   dataSize(IAXIS))
        call Grid_getCellCoords(IAXIS,blockID, RIGHT_EDGE,.true.,xRight,  dataSize(IAXIS))
     endif
-
-! <- ychen 10-2014
-    call Grid_getCellCoords(IAXIS,blockID, CENTER,    .true.,xcent, dataSize(IAXIS))
-    call Grid_getCellCoords(JAXIS,blockID, CENTER,    .true.,ycent, dataSize(JAXIS))
-    call Grid_getCellCoords(KAXIS,blockID, CENTER,    .true.,zcent, dataSize(KAXIS))
-! ychen ->
 
 #ifdef FLASH_USM_MHD
 #ifdef FLASH_UHD_3T
@@ -666,10 +655,7 @@
                       GR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1),&
                       HL(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1),&
                       HR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1),&
-                      gravX(i,j,k),gravY(i,j,k),gravZ(i,j,k),dx,dy,dz,dt,Sgeo,&
-! <- ychen 10-2014
-                      xcent(i), ycent(j), zcent(k))
-! ychen ->
+                      gravX(i,j,k),gravY(i,j,k),gravZ(i,j,k),dx,dy,dz,dt,Sgeo)
 
                 U(DENS_VAR,i,j,k) = max(U0(HY_DENS),hy_smalldens)                    !density
 #if defined(FLASH_USM_MHD) 
@@ -768,15 +754,8 @@
 !! ==================================================================
 Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
                                       gravX, gravY, gravZ,&
-                                      dx,dy,dz,dt,Sgeo, &
-! <- ychen 10-2014
-                                      x,y,z)
-! ychen ->
+                                      dx,dy,dz,dt,Sgeo)
   use Hydro_data, ONLY : hy_useGravity
-! <- ychen 10-2014
-  use Simulation_data
-  use Driver_data,  ONLY : dr_simTime
-! ychen ->
   implicit none
   real, dimension(HY_VARINUM), intent(INOUT) :: Ul,Sgeo
   real, dimension(HY_VARINUM), intent(IN) :: FL,FR,GL,GR,HL,HR
@@ -784,77 +763,10 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
   real, intent(IN) :: dx,dy,dz,dt
   real, dimension(3) :: momentaOld
   real :: densOld
-! <- ychen 10-2014
-  real, dimension(HY_VARINUM) :: UdeltaNozzle
-  real, intent(IN) :: x, y, z
-  integer :: nozzle=1
-  real :: radius, length, sig, distance, theta, vel, fac, facold
-  real, dimension(3) :: cellvec, plnvec, jetvec, rvec, phivec, velvec
-
-  cellvec = (/ x, y, z /)
-  call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
-                                sig,theta,jetvec,rvec,plnvec,phivec)
-! ychen ->
 
   !! Store old states at n
   densOld = Ul(HY_DENS)
   momentaOld(1:3) = Ul(HY_XMOM:HY_ZMOM)
-
-! <- ychen 10-2014
-  !write(*,*) "*************** unsplitUpdate(begin) ***************"
-  if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rfeather_outer))&
-      .and.(abs(length).le.(sim(nozzle)%length+sim(nozzle)%zfeather))) then
-     ! inside the jet nozzle
-     !! Update conservative variables from n to n+1 step
-     vel = sim(nozzle)%velocity*sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
-
-     ! smooth transition from nozzle to flash grid
-     ! fac=1.0 for nozzle injection; 0.0 for flash solution
-     fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
-     velvec = vel*jetvec&
-              ! small radial outflow to increase stability
-              + 0.1*sim(nozzle)%velocity*plnvec*&
-                0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rfeather_outer)))
-              ! movement of the nozzle
-              !+ sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec)*fac
-
-     !write (*,'(a10, 2e9.2, f6.3)') 'Unozzle', radius, length, fac
-     !call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
-     !                              sig,theta,jetvec,rvec,plnvec,phivec,.true.)
-     !write (*,'(a10, 2e9.2, f6.3)') 'Unozzle', radius, length, fac
-     !facold = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
-     !velvec = velvec - sim(nozzle)%linVel*facold - cross(sim(nozzle)%angVel,rvec)*facold
-
-     UdeltaNozzle(HY_DENS)         = sim(nozzle)%deltaRho
-     UdeltaNozzle(HY_XMOM:HY_ZMOM) = velvec*sim(nozzle)%deltaRho
-     UdeltaNozzle(HY_ENER)         = sim(nozzle)%deltaP/(sim(nozzle)%gamma-1.0)+&
-                                     0.5*sim(nozzle)%deltaRho*dot_product(velvec,velvec)
-     UdeltaNozzle(HY_MAGX:HY_MAGZ) = (/0.0, 0.0, 0.0/)
-
-     Ul(HY_DENS:HY_DENS+HY_VARINUM-1)=Ul(HY_DENS:HY_DENS+HY_VARINUM-1)&
-          +UdeltaNozzle(HY_DENS:HY_DENS+HY_VARINUM-1)*fac&
-          -dt/dx*( FR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)&
-                  -FL(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1))*(1.0-fac)
-     
-     if (NDIM > 1) then
-     Ul(HY_DENS:HY_DENS+HY_VARINUM-1)=Ul(HY_DENS:HY_DENS+HY_VARINUM-1)&
-          -dt/dy*( GR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)&
-                  -GL(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1))*(1.0-fac)
-     !write (*,'(a10, 8e9.2)') 'Uly', Ul
-
-        if (NDIM > 2) then
-        Ul(HY_DENS:HY_DENS+HY_VARINUM-1)=Ul(HY_DENS:HY_DENS+HY_VARINUM-1)& 
-             -dt/dz*( HR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)&
-                     -HL(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1))*(1.0-fac)
-        endif
-
-     endif
-     !write (*,'(a10, 8e9.2)') 'HR', HR
-     !write (*,'(a10, 8e9.2)') 'HL', HL
-     !write (*,'(a10, 8e9.2)') 'Ulz', Ul
-  else
-! ychen ->
-  !write(*,*) "*************** unsplitUpdate(outsidenozzle) ***************"
 
      !! Update conservative variables from n to n+1 step
      Ul(HY_DENS:HY_DENS+HY_VARINUM-1)=Ul(HY_DENS:HY_DENS+HY_VARINUM-1)&
@@ -873,9 +785,6 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
         endif
 
      endif
-! <- ychen 10-2014
-  endif
-! ychen ->
 
 
   !! Include geometric source term
