@@ -30,7 +30,7 @@ module Simulation_data
       real, dimension(3) :: pos, jetvec
       real, dimension(3) :: posOld, jetvecOld
       real, dimension(3) :: angVel, linVel
-      real :: radius, length, zTorInj
+      real :: radius, length, zTorInj, outflowR
       real :: power, pressure, density, velocity, gamma, mach
       real :: deltaP, deltaRho
       real :: rFeatherIn, rFeatherOut, zFeather
@@ -38,6 +38,7 @@ module Simulation_data
       real :: bphi, bz, timeMHDon
       real :: bzOld
       real :: t0 = -1.0
+      character(len=MAX_STRING_LENGTH) :: initGeometry
   end TYPE nozzle_struct
 
   !! *** Runtime Parameters *** !!
@@ -155,50 +156,26 @@ contains
 
   end function taper
 
-
-  function ETaper(nozzle, r, z, var_cen, var_in, var_out)
-  ! Taper function for electric field in both R and z direction
-  ! The electric nozzle is bigger than the hydro nozzle to avoid boundary
-  ! magnification of the magnetic field due to the large velocity.
-  ! See taper() for more details.
+  function taperSph(nozzle, r, var_in, var_out)
 
     integer, INTENT(in) :: nozzle
-    real, INTENT(in) :: r, z, var_cen, var_in, var_out
-    real :: r1, r2, rout, zout, zjet, var_zcen, var_zin
-    real :: ETaper
-    r1 = sim(nozzle)%rFeatherIn
-    r2 = sim(nozzle)%radius + sim(nozzle)%rFeatherOut
-    rout = r2 + sim(nozzle)%rFeatherOut
-    zjet = sim(nozzle)%length
-    zout = zjet + sim(nozzle)%zFeather
+    real, INTENT(in) :: r, var_in, var_out
+    real :: r2, rout
+    real :: taperSph
+    r2 = max(sim(nozzle)%radius, sim(nozzle)%length)
+    rout = max( (sim(nozzle)%radius+sim(nozzle)%rFeatherOut),&
+                (sim(nozzle)%length+sim(nozzle)%zFeather) )
 
-    ! z part
-    if (abs(z).ge.0.0 .and. abs(z).lt.zjet) then
-      var_zin = 1.0*var_in
-      var_zcen = 1.0*var_cen
-    else if (abs(z).ge.zjet .and. abs(z).lt.zout) then
-      var_zin = (-2*(zout-abs(z))**3/(zout-zjet)**3 &
-      + 3*(zout-abs(z))**2/(zout-zjet)**2)*(var_in-var_out) + var_out
-      var_zcen = (-2*(zout-abs(z))**3/(zout-zjet)**3 &
-      + 3*(zout-abs(z))**2/(zout-zjet)**2)*(var_cen-var_out) + var_out
-    else
-      var_zin = var_out
-      var_zcen = var_out
-    end if
-
-    ! radial part
-    if (r.ge.0.0 .and. r.lt.r1) then
-      ETaper = (-2*r**3/r1**3 + 3*r**2/r1**2)*(var_zin-var_zcen) + var_zcen
-    else if (r.ge.r1 .and. r.lt.r2) then
-      ETaper = 1.0*var_zin
+    if (r.ge.0.0 .and. r.lt.r2) then
+      taperSph = var_in
     else if (r.ge.r2 .and. r.lt.rout) then
-      ETaper = (-2*(rout-r)**3/(rout-r2)**3 &
-      + 3*(rout-r)**2/(rout-r2)**2)*(var_zin-var_out) + var_out
+      taperSph = (-2*(rout-r)**3/(rout-r2)**3 &
+      + 3*(rout-r)**2/(rout-r2)**2)*(var_in-var_out) + var_out
     else
-      ETaper = var_out
+      taperSph = var_out
     endif
 
-  end function ETaper
+  end function taperSph
 
 end module Simulation_data
 

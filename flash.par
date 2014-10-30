@@ -11,6 +11,7 @@ sim_bzAmbient	= 0.0 #1.8623E-6
 sim_powerJet	= 1.0E45
 #sim_rhoJet		= 1.67E-25
 sim_velJet		= 3.0E9			# 3.0E9 = 0.1 c
+sim_outflowRatio= 0.1
 sim_gammaJet	= 1.6666
 sim_betaJet		= 100
 sim_helicityJet = 1.0
@@ -31,6 +32,8 @@ rFeatherIn	 = 3.0E20
 rFeatherOut  = 7.5E20
 zFeather	 = 1.5E21
 
+initGeometry = "spherical"
+
 #	Nozzle motion
 nozzleAngVelX = 0.0
 nozzleAngVelY = 0.0
@@ -38,6 +41,7 @@ nozzleAngVelZ = 0.0
 nozzleLinVelX = 0.0
 nozzleLinVelY = 0.0
 nozzleLinVelZ = 0.0
+
 
 
 smlrho  = 1E-30

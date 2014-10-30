@@ -49,6 +49,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('sim_powerJet', sim(nozzle)%power)
   !call RuntimeParameters_get('sim_rhoJet', sim(nozzle)%density)
   call RuntimeParameters_get('sim_velJet', sim(nozzle)%velocity)
+  call RuntimeParameters_get('sim_outflowRatio', sim(nozzle)%outflowR)
   call RuntimeParameters_get('sim_gammaJet', sim(nozzle)%gamma)
   call RuntimeParameters_get('sim_betaJet', sim(nozzle)%beta)
   call RuntimeParameters_get('sim_helicityJet', sim(nozzle)%helicity)
@@ -67,6 +68,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('rFeatherIn', sim(nozzle)%rFeatherIn)
   call RuntimeParameters_get('rFeatherOut', sim(nozzle)%rFeatherOut)
   call RuntimeParameters_get('zFeather', sim(nozzle)%zFeather)
+  call RuntimeParameters_get('initGeometry', sim(nozzle)%initGeometry)
   call RuntimeParameters_get('nozzleAngVelX', sim(nozzle)%angVel(1))
   call RuntimeParameters_get('nozzleAngVelY', sim(nozzle)%angVel(2))
   call RuntimeParameters_get('nozzleAngVelZ', sim(nozzle)%angVel(3))
@@ -86,6 +88,7 @@ subroutine Simulation_init()
   if (dr_globalMe==MASTER_PE) then
      write(*,'(a, es11.3)') 't0:', sim(nozzle)%t0
      write(*,'(a, 2es11.3)') '(p, rho)=', sim(nozzle)%pressure, sim(nozzle)%density
+     write(*,'(a, 2es11.3)') '(bz, bphi)=', sim(nozzle)%bz, sim(nozzle)%bphi
   endif
 
 

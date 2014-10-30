@@ -119,7 +119,7 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
           vel = sim(nozzle)%velocity*&
                 sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           velvec = vel*jetvec&
-                   + 0.1*sim(nozzle)%velocity*plnvec*&
+                   + sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec*&
                      0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rFeatherOut)))&
                    + sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec*distance)
           solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac + solnData(VELX_VAR:VELZ_VAR,i,j,k)*(1.0-fac)

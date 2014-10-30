@@ -13,8 +13,8 @@ D   pAmbient        Initial ambient pressure
 D   rhoAmbient      Initial ambient density
 D	windVel			Inflow velocity (parallel to x-axis)
 
-PARAMETER sim_pAmbient		REAL	1.38065E-11
-PARAMETER sim_rhoAmbient	REAL	1.67E-26
+PARAMETER sim_pAmbient		REAL	1.38065E-11	[0.0...]
+PARAMETER sim_rhoAmbient	REAL	1.67E-26	[0.0...]
 PARAMETER sim_windVel		REAL	0.0
 PARAMETER sim_gammaAmbient	REAL	1.6666
 PARAMETER sim_bzAmbient		REAL	0.0
@@ -30,14 +30,15 @@ D	timeMHDon		Time when the magnetic fields are turned on
 # Jet Properties
 PARAMETER sim_powerJet		REAL    1.0E45
 PARAMETER sim_velJet		REAL	3.0E9
+PARAMETER sim_outflowRatio	REAL	0.1			[0.0...1.0]
 PARAMETER sim_gammaJet		REAL	1.6666
 PARAMETER sim_betaJet		REAL	100.0
 PARAMETER sim_helicityJet	REAL	1.0
 PARAMETER sim_timeMHDon		REAL	1.0E-11
 
 # Nozzle Geometry
-PARAMETER nozzleRadius		REAL	7.5E20
-PARAMETER nozzleHalfL		REAL	1.5E21
+PARAMETER nozzleRadius		REAL	7.5E20		[0.0...]
+PARAMETER nozzleHalfL		REAL	1.5E21		[0.0...]
 PARAMETER nozzlePosX		REAL	0.0
 PARAMETER nozzlePosY		REAL	0.0
 PARAMETER nozzlePosZ		REAL	0.0
@@ -45,9 +46,10 @@ PARAMETER nozzleVecX		REAL	0.0
 PARAMETER nozzleVecY		REAL	0.0
 PARAMETER nozzleVecZ		REAL	1.0
 PARAMETER zTorInj			REAL	3.75E21
-PARAMETER rFeatherIn		REAL	3.0E20
-PARAMETER rFeatherOut  		REAL	7.5E20
-PARAMETER zFeather			REAL	1.5E21
+PARAMETER rFeatherIn		REAL	3.0E20		[0.0...]
+PARAMETER rFeatherOut  		REAL	7.5E20		[0.0...]
+PARAMETER zFeather			REAL	1.5E21		[0.0...]
+PARAMETER initGeometry		STRING	"cylindrical"	["cylindrical", "spherical"]
 PARAMETER nozzleAngVelX		REAL	0.0
 PARAMETER nozzleAngVelY		REAL	0.0
 PARAMETER nozzleAngVelZ		REAL	0.0

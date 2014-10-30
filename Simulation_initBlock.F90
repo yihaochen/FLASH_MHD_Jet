@@ -142,20 +142,39 @@ subroutine Simulation_initBlock(blockID)
        cellvec = (/ xCoord(i), yCoord(j), zCoord(k) /)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
+       ! cylindrical velocity field
        if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rFeatherOut))&
            .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
-          ! inside the extended nozzle and feather
           fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
-          solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + sim_rhoAmbient*(1.0-fac)
-          solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + sim_pAmbient*(1.0-fac)
           vel = sim(nozzle)%velocity*&
                 sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           velvec = vel*jetvec&
-                   + 0.1*sim(nozzle)%velocity*plnvec*&
+                   + sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec*&
                      0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rFeatherOut)))&
                    + sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec*distance)*fac
                    !cos(PI/2.0*(abs(radius)-sim(nozzle)%radius)/sim(nozzle)%rFeatherOut)
           solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac
+       endif
+       ! cylindrical initial cavity
+       if (sim(nozzle)%initGeometry .eq. 'cylindrical') then
+          if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rFeatherOut))&
+              .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
+             ! inside the extended nozzle and feather
+             fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
+          else
+             fac = 0.0
+          endif
+       ! spherical initial cavity
+       else
+          if (distance.le.2.0*max( (sim(nozzle)%radius+sim(nozzle)%rFeatherOut),&
+               (sim(nozzle)%length+sim(nozzle)%zFeather) ) ) then
+             fac = taperSph(nozzle, 0.5*distance, 1.0, 0.0)
+          else
+             fac = 0.0
+          endif
+       endif
+          solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + sim_rhoAmbient*(1.0-fac)
+          solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + sim_pAmbient*(1.0-fac)
           solnData(JET_SPEC,i,j,k) = fac
           solnData(ISM_SPEC,i,j,k) = 1.0-fac
           solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
@@ -164,7 +183,6 @@ subroutine Simulation_initBlock(blockID)
                                 0.5*(solnData(VELX_VAR,i,j,k)**2 +&
                                      solnData(VELY_VAR,i,j,k)**2 +&
                                      solnData(VELZ_VAR,i,j,k)**2)
-       endif
     enddo
    enddo
   enddo

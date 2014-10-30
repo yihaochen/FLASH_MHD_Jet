@@ -41,6 +41,7 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
   integer, intent(IN) :: nozzle
   real, intent(IN) :: r, z, phi
   real :: r1, r2, rout, r3, r4, rpol, bf, vjet, const, bz0, bz1
+  real :: r2Tor, routTor
   !real, dimension(3), intent(IN) :: jetvec, rvec, plnvec, phivec 
   real, intent(OUT) :: Ar, Az, Aphi
   real :: c1, c2, c3, c4
@@ -74,7 +75,7 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
   bf = sim(nozzle)%rFeatherOut
   r1 = sim(nozzle)%rFeatherIn 
   r2 = sim(nozzle)%radius
-  rout = sim(nozzle)%radius + bf
+  rout = r2 + bf
   r3 = r2 + 2.0*bf
 
   ! velocity of the jet (in z-direction)
@@ -125,8 +126,8 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
         Aphi = 0.0
       end if
 
-      Az = Az*sim(nozzle)%bphi*sim(nozzle)%velocity/sim(nozzle)%zFeather*&
-           0.5*(1.0+cos(PI*max(-1.0,(min(1.0,(abs(z)-sim(nozzle)%zTorInj)/sim(nozzle)%zFeather)))))
+      Az = Az*sim(nozzle)%bphi*sim(nozzle)%velocity*2.0/sim(nozzle)%zFeather*&
+           0.5*(1.0+cos(PI*max(-1.0,(min(1.0,(abs(z)-sim(nozzle)%zTorInj)*2.0/sim(nozzle)%zFeather)))))
 
       Ar = 0.0
 
@@ -137,6 +138,8 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
     
 
     case(3)
+      r2Tor = r2
+      routTor = rout
     ! cos poloidal field    
       bz0 = sim(nozzle)%bz
       bz1 = 0.1*bz0
@@ -149,30 +152,31 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
       c4 = (0.25*r4**2 + c3)*(2.0*PI**2/bf) - bf
 
       if (r>=0.0 .and. r<r1) then
-        Az = r**4/(2*r1**3) - r**3/r1**2 + 0.5*(-r1+rout+r2)
-        Aphi = 0.5*bz0*r
-      else if (r>=r1 .and. r<r2) then
-        Az = -r + 0.5*(rout+r2)
+        Az = r**4/(2*r1**3) - r**3/r1**2 + 0.5*(-r1+routTor+r2Tor)
+      else if (r>=r1 .and. r<r2Tor) then
+        Az = -r + 0.5*(routTor+r2Tor)
+      else if (r>=r2Tor .and. r<routTor) then
+        Az = -(routTor-r)**4/(2*(routTor-r2Tor)**3) + (routTor-r)**3/(routTor-r2Tor)**2
+      else if (r>=routTor) then
+        Az = 0.0
+      endif
+
+      if (r>=0.0 .and. r<r2) then
         Aphi = 0.5*bz0*r
       else if (r>=r2 .and. r<rout) then
-        Az = -(rout-r)**4/(2*(rout-r2)**3) + (rout-r)**3/(rout-r2)**2
         Aphi = bz0*(0.25*r + 0.5*bf/PI**2/r*( bf*cos(PI*((r-r2)/bf))+PI*r*sin(PI*((r-r2)/bf)) + c1 ))
       else if (r>=rout .and. r<r3) then
-        Az = 0.0
         Aphi = -bz1*(0.25*r + 0.5*bf/PI**2/r*( bf*cos(PI*((r-r3)/bf))+PI*r*sin(PI*((r-r3)/bf)) + c2 ))
       else if (r>=r3 .and. r<r4) then
-        Az = 0.0
         Aphi = -bz1*(0.5*r + c3/r)
       else if (r>=r4 .and. r<rpol) then
-        Az = 0.0
         Aphi = -bz1*(0.25*r + 0.5*bf/PI**2/r*( bf*cos(PI*((r-r4)/bf))+PI*r*sin(PI*((r-r4)/bf)) + c4 ))
       else
-        Az = 0.0
         Aphi = 0.0
       endif
 
-      Az = Az*sim(nozzle)%bphi*sim(nozzle)%velocity/sim(nozzle)%zFeather*&
-           0.5*(1.0+cos(PI*max(-1.0,(min(1.0,(abs(z)-sim(nozzle)%zTorInj)/sim(nozzle)%zFeather)))))
+      Az = Az*sim(nozzle)%bphi*sim(nozzle)%velocity*2.0/sim(nozzle)%zFeather*&
+           0.5*(1.0+cos(PI*max(-1.0,(min(1.0,(abs(z)-sim(nozzle)%zTorInj)*2.0/sim(nozzle)%zFeather)))))
 
       Ar = 0.0
 
