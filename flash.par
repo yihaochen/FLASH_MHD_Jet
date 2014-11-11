@@ -6,19 +6,22 @@ sim_rhoAmbient	= 1.67E-26		# g/cm3 = N particles/cm3 * 1.67E-24
 sim_windVel     = 0.0
 sim_gammaAmbient = 1.6666
 sim_bzAmbient	= 0.0 #1.8623E-6
+sim_densityProfile = "betacore"
+sim_densityBeta = 2.0
+sim_densityCoreR= 3.1E22
 
 #	Jet properties
 sim_powerJet	= 1.0E45
 #sim_rhoJet		= 1.67E-25
 sim_velJet		= 3.0E9			# 3.0E9 = 0.1 c
-sim_outflowRatio= 0.1
+sim_outflowRatio= 0.01
 sim_gammaJet	= 1.6666
-sim_betaJet		= 100
+sim_betaJet		= 100.0
 sim_helicityJet = 1.0
 sim_timeMHDon	= 1.0E-11
 
 #	Nozzle Geometry
-nozzleRadius = 7.5E20	# 1.5E15 cm ~ 100 AU; 3.1E21 cm ~ 1 kpc
+nozzleRadius = 7.5E20	# 3.1E21 cm ~ 1 kpc
 nozzleHalfL  = 1.5E21
 nozzlePosX   = 0.0
 nozzlePosY   = 0.0
@@ -27,7 +30,7 @@ nozzleVecX	 = 0.0
 nozzleVecY	 = 0.0
 nozzleVecZ	 = 1.0
 
-zTorInj		 = 3.75E21	# 3.75E15 cm ~ 250 AU	
+zTorInj		 = 3.75E21
 rFeatherIn	 = 3.0E20
 rFeatherOut  = 7.5E20
 zFeather	 = 1.5E21
@@ -41,7 +44,6 @@ nozzleAngVelZ = 0.0
 nozzleLinVelX = 0.0
 nozzleLinVelY = 0.0
 nozzleLinVelZ = 0.0
-
 
 
 smlrho  = 1E-30
@@ -88,10 +90,14 @@ tmax            = 5.0E14
 nend            = 1000000
 eintSwitch		= 1.e-4
 
-lrefine_max     = 6
-refine_var_1 = "dens"
-refine_var_2 = "pres"
-basenm          = "MHD_Jet_"
+lrefine_max			= 6
+refine_var_1		= "dens"
+refine_cutoff_1		= 0.9
+derefine_cutoff_1	= 0.7
+refine_var_2		= "pres"
+refine_cutoff_2		= 0.9
+derefine_cutoff_2	= 0.8
+basenm				= "MHD_Jet_"
 
 restart						= .false.
 checkpointFileIntervalTime  = 5.0E13

@@ -18,6 +18,9 @@ PARAMETER sim_rhoAmbient	REAL	1.67E-26	[0.0...]
 PARAMETER sim_windVel		REAL	0.0
 PARAMETER sim_gammaAmbient	REAL	1.6666
 PARAMETER sim_bzAmbient		REAL	0.0
+PARAMETER sim_densityBeta	REAL	2.0
+PARAMETER sim_densityCoreR	REAL	6.2E23		[0.0...]
+PARAMETER sim_densityProfile STRING "uniform"	["uniform", "betacore"]
 
 
 D	powerJet		Power of the jet

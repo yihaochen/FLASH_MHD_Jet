@@ -31,7 +31,7 @@ subroutine Simulation_init()
   use Simulation_data
   use Simulation_jetNozzleUpdate, ONLY : sim_jetNozzleUpdate
   use RuntimeParameters_interface, ONLY : RuntimeParameters_get
-  use Driver_data, ONLY : dr_globalMe, dr_simTime
+  use Driver_data, ONLY : dr_globalMe, dr_simTime, dr_dtInit
   !use Grid_data, ONLY : gr_smallrho
 
   implicit none
@@ -45,6 +45,11 @@ subroutine Simulation_init()
   call RuntimeParameters_get('sim_windVel', sim_windVel)
   call RuntimeParameters_get('sim_gammaAmbient', sim_gamma)
   call RuntimeParameters_get('sim_bzAmbient', sim_bzAmbient)
+  call RuntimeParameters_get('sim_densityProfile', sim_densityProfile)
+  if (sim_densityProfile == "betacore") then
+     call RuntimeParameters_get('sim_densityBeta', sim_densityBeta)
+     call RuntimeParameters_get('sim_densityCoreR', sim_densityCoreR)
+  endif
 
   call RuntimeParameters_get('sim_powerJet', sim(nozzle)%power)
   !call RuntimeParameters_get('sim_rhoJet', sim(nozzle)%density)
@@ -84,7 +89,7 @@ subroutine Simulation_init()
      print*, 'Toroidal field will be smaller than it should be.'
      print*, '!!!!!!!!'
   endif
-  call sim_jetNozzleUpdate(nozzle, dr_simTime, 0.0)
+  call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dtInit)
   if (dr_globalMe==MASTER_PE) then
      write(*,'(a, es11.3)') 't0:', sim(nozzle)%t0
      write(*,'(a, 2es11.3)') '(p, rho)=', sim(nozzle)%pressure, sim(nozzle)%density

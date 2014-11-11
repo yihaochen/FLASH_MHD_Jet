@@ -48,7 +48,9 @@ subroutine Simulation_initBlock(blockID)
 
 
   real :: rho_zone, velx_zone, vely_zone, velz_zone, pres_zone, &
-       ener_zone, ekin_zone, eint_zone, vel, fac
+       ener_zone, ekin_zone, eint_zone
+  real :: densityBG
+  real :: vel, fac
 
 
   integer :: i,j,k, istat
@@ -99,11 +101,11 @@ subroutine Simulation_initBlock(blockID)
 
   ! Compute the gas energy and set the gamma-values needed for
   ! the equation of state.
-  ekin_zone = 0.5 * (velx_zone**2 + vely_zone**2 + velz_zone**2)
+  !ekin_zone = 0.5 * (velx_zone**2 + vely_zone**2 + velz_zone**2)
 
-  eint_zone = pres_zone / (sim_gamma-1.) / rho_zone
-  ener_zone = eint_zone + ekin_zone
-  ener_zone = max(ener_zone, sim_smallP)
+  !eint_zone = pres_zone / (sim_gamma-1.) / rho_zone
+  !ener_zone = eint_zone + ekin_zone
+  !ener_zone = max(ener_zone, sim_smallP)
 
 
 #if NSPECIES > 0
@@ -114,17 +116,22 @@ subroutine Simulation_initBlock(blockID)
   ! store the variables in the block's unk data
   solnData(DENS_VAR,:,:,:) = rho_zone
   solnData(PRES_VAR,:,:,:) = pres_zone
-  solnData(ENER_VAR,:,:,:) = ener_zone
-#ifdef EINT_VAR
-  solnData(EINT_VAR,:,:,:) = eint_zone
-#endif
   solnData(GAMC_VAR,:,:,:) = sim_gamma
   solnData(GAME_VAR,:,:,:) = sim_gamma
-
-
   solnData(VELX_VAR,:,:,:) = velx_zone
   solnData(VELY_VAR,:,:,:) = vely_zone
   solnData(VELZ_VAR,:,:,:) = velz_zone
+
+#ifdef EINT_VAR
+  !solnData(EINT_VAR,:,:,:) = eint_zone
+  solnData(EINT_VAR,:,:,:) = solnData(PRES_VAR,:,:,:)/solnData(DENS_VAR,:,:,:)&
+                                     /(solnData(GAME_VAR,:,:,:)-1.0)
+#endif
+  !solnData(ENER_VAR,:,:,:) = ener_zone
+  solnData(ENER_VAR,:,:,:) = solnData(EINT_VAR,:,:,:)+&
+                        0.5*(solnData(VELX_VAR,:,:,:)**2 +&
+                             solnData(VELY_VAR,:,:,:)**2 +&
+                             solnData(VELZ_VAR,:,:,:)**2)
 
   solndata(MAGX_VAR,:,:,:) = 0.0
   solndata(MAGY_VAR,:,:,:) = 0.0
@@ -142,7 +149,7 @@ subroutine Simulation_initBlock(blockID)
        cellvec = (/ xCoord(i), yCoord(j), zCoord(k) /)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
-       ! cylindrical velocity field
+       ! inside the nozzle
        if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rFeatherOut))&
            .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
           fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
@@ -156,7 +163,7 @@ subroutine Simulation_initBlock(blockID)
           solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac
        endif
        ! cylindrical initial cavity
-       if (sim(nozzle)%initGeometry .eq. 'cylindrical') then
+       if (sim(nozzle)%initGeometry == 'cylindrical') then
           if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rFeatherOut))&
               .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
              ! inside the extended nozzle and feather
@@ -173,16 +180,21 @@ subroutine Simulation_initBlock(blockID)
              fac = 0.0
           endif
        endif
-          solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + sim_rhoAmbient*(1.0-fac)
-          solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + sim_pAmbient*(1.0-fac)
-          solnData(JET_SPEC,i,j,k) = fac
-          solnData(ISM_SPEC,i,j,k) = 1.0-fac
-          solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
-                                     /(solnData(GAME_VAR,i,j,k)-1.0)
-          solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)+&
-                                0.5*(solnData(VELX_VAR,i,j,k)**2 +&
-                                     solnData(VELY_VAR,i,j,k)**2 +&
-                                     solnData(VELZ_VAR,i,j,k)**2)
+       if (sim_densityProfile == "uniform") then
+          densityBG = sim_rhoAmbient
+       else if (sim_densityProfile =="betacore") then
+          densityBG = sim_rhoAmbient*(1 + (distance/sim_densityCoreR)**2)**(-sim_densityBeta)
+       endif
+       solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + densityBG*(1.0-fac)
+       solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + sim_pAmbient*(1.0-fac)
+       solnData(JET_SPEC,i,j,k) = fac
+       solnData(ISM_SPEC,i,j,k) = 1.0-fac
+       solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
+                                  /(solnData(GAME_VAR,i,j,k)-1.0)
+       solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)+&
+                             0.5*(solnData(VELX_VAR,i,j,k)**2 +&
+                                  solnData(VELY_VAR,i,j,k)**2 +&
+                                  solnData(VELZ_VAR,i,j,k)**2)
     enddo
    enddo
   enddo

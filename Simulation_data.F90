@@ -38,7 +38,9 @@ module Simulation_data
       real :: bphi, bz, timeMHDon
       real :: bzOld
       real :: t0 = -1.0
+      !TODO: initGeometry -> sim_initGeometry
       character(len=MAX_STRING_LENGTH) :: initGeometry
+
   end TYPE nozzle_struct
 
   !! *** Runtime Parameters *** !!
@@ -46,6 +48,7 @@ module Simulation_data
   type(nozzle_struct), save, dimension(NOZZLES) :: sim
 
   real,save :: sim_pAmbient, sim_rhoAmbient, sim_windVel, sim_bzAmbient
+  real,save :: sim_densityBeta, sim_densityCoreR
   real,save :: sim_gamma, sim_smallP, sim_smallX
   real,save,allocatable,dimension(:) :: sim_xcoord
   real,save,allocatable,dimension(:) :: sim_ycoord
@@ -53,6 +56,7 @@ module Simulation_data
   real,save,allocatable,dimension(:) :: sim_xcoordf
   real,save,allocatable,dimension(:) :: sim_ycoordf
   real,save,allocatable,dimension(:) :: sim_zcoordf
+  character(len=MAX_STRING_LENGTH) :: sim_densityProfile
 
 
 contains
