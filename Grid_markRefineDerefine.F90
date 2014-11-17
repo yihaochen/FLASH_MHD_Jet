@@ -49,15 +49,16 @@ subroutine Grid_markRefineDerefine()
   use Logfile_interface, ONLY : Logfile_stampVarMask
   !use Grid_interface, ONLY : Grid_fillGuardCells
   use Particles_interface, only: Particles_sinkMarkRefineDerefine
-!<-- YiHao
+!<-- ychen
   use tree, ONLY : newchild, refine, derefine, stay, nodetype, lrefine_max
   use Grid_interface, ONLY : Grid_fillGuardCells, Grid_markRefineSpecialized
   use Simulation_data
-!--> YiHao
+!--> ychen
   implicit none
 
 #include "constants.h"
 #include "Flash.h"
+#include "Simulation.h"
 
   
   real :: ref_cut,deref_cut,ref_filter
@@ -67,9 +68,9 @@ subroutine Grid_markRefineDerefine()
   logical :: doEos=.true.
   integer,parameter :: maskSize = NUNK_VARS+NDIM*NFACE_VARS
   logical,dimension(maskSize) :: gcMask
-!<-- YiHao
-  integer :: nozzle=1
-!--> YiHao
+!<-- ychen
+  integer :: nozzle
+!--> ychen
 
   if(gr_lrefineMaxRedDoByTime) then
      call gr_markDerefineByTime()
@@ -120,11 +121,15 @@ subroutine Grid_markRefineDerefine()
      call gr_markRefineDerefine(iref,ref_cut,deref_cut,ref_filter)
   end do
   
-!<-- YiHao
-  call Grid_markRefineSpecialized(INRADIUS, 4, (/ sim(nozzle)%pos(1), &
-  sim(nozzle)%pos(2), sim(nozzle)%pos(3), &
-  max(sim(nozzle)%radius, sim(nozzle)%length) /), lrefine_max )
-!--> YiHao
+!<-- ychen
+  do nozzle=1, NOZZLES 
+     !call Grid_markRefineSpecialized(INRADIUS, 4, (/ sim(nozzle)%pos(1), &
+     !sim(nozzle)%pos(2), sim(nozzle)%pos(3), &
+     !max(sim(nozzle)%radius, sim(nozzle)%length) /), lrefine_max )
+
+     call gr_markJetHeight(nozzle)
+  end do
+!--> ychen
 
 #ifdef FLASH_GRID_PARAMESH2
   ! For PARAMESH2, call gr_markRefineDerefine here if it hasn't been called above.

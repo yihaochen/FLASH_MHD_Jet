@@ -31,11 +31,13 @@ module Simulation_data
       real, dimension(3) :: posOld, jetvecOld
       real, dimension(3) :: angVel, linVel
       real :: radius, length, zTorInj, outflowR
+      real :: deref_z1, deref_z2
       real :: power, pressure, density, velocity, gamma, mach
       real :: deltaP, deltaRho
       real :: rFeatherIn, rFeatherOut, zFeather
       real :: beta, helicity
-      real :: bphi, bz, timeMHDon
+      !TODO: tOn, tOff
+      real :: bphi, bz, tOn, tOff, timeMHDon
       real :: bzOld
       real :: t0 = -1.0
       !TODO: initGeometry -> sim_initGeometry

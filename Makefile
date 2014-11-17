@@ -10,3 +10,5 @@ Hydro += hy_uhd_electricNozzle.o\
 		 hy_uhd_getAOld.o
 
 Heat += Heat_fillnozzle.o
+
+Grid += gr_markJetHeight.o

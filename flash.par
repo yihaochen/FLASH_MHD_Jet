@@ -30,6 +30,9 @@ nozzleVecX	 = 0.0
 nozzleVecY	 = 0.0
 nozzleVecZ	 = 1.0
 
+deref_z1	 = 8.0
+deref_z2	 = 24.0
+
 zTorInj		 = 3.75E21
 rFeatherIn	 = 3.0E20
 rFeatherOut  = 7.5E20
@@ -97,6 +100,9 @@ derefine_cutoff_1	= 0.7
 refine_var_2		= "pres"
 refine_cutoff_2		= 0.9
 derefine_cutoff_2	= 0.8
+refine_var_3		= "magp"
+refine_cutoff_3		= 0.9
+derefine_cutoff_3	= 0.7
 basenm				= "MHD_Jet_"
 
 restart						= .false.

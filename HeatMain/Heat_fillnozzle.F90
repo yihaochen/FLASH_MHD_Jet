@@ -55,7 +55,7 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   real, pointer, dimension(:,:,:,:) :: solnData
 
   integer :: nozzle=1
-  real, dimension(3) :: cellvec, cellB, del
+  real, dimension(3) :: cellvec, del
   real :: radius, length, sig, distance, theta, vel, fac
   real, dimension(3) :: plnvec, jetvec, rvec, phivec, velvec
 

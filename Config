@@ -59,6 +59,8 @@ PARAMETER nozzleAngVelZ		REAL	0.0
 PARAMETER nozzleLinVelX		REAL	0.0
 PARAMETER nozzleLinVelY		REAL	0.0
 PARAMETER nozzleLinVelZ		REAL	0.0
+PARAMETER deref_z1			REAL	8.0			[0.0...]
+PARAMETER deref_z2			REAL	24.0		[0.0...]
 
 
 # Enough NBOUNDARIES space for taking 12 blocks out of a 2d problem:

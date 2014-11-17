@@ -80,6 +80,8 @@ subroutine Simulation_init()
   call RuntimeParameters_get('nozzleLinVelX', sim(nozzle)%linVel(1))
   call RuntimeParameters_get('nozzleLinVelY', sim(nozzle)%linVel(2))
   call RuntimeParameters_get('nozzleLinVelZ', sim(nozzle)%linVel(3))
+  call RuntimeParameters_get('deref_z1', sim(nozzle)%deref_z1)
+  call RuntimeParameters_get('deref_z2', sim(nozzle)%deref_z2)
 
 
   if (sim(nozzle)%zTorInj < sim(nozzle)%length+1.5*sim(nozzle)%zFeather .and.&

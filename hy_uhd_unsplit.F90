@@ -400,7 +400,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         !! Evolve face-centered magnetic fields n+1/2 time step
         call hy_uhd_staggeredDivb(blockID,0.5*dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
      enddo
-
+     
      !! Fill guardcells for only the face-centered field variable that are
      !! evolved to n+1/2 time step for date reconstruction
      gcMask  =.false.
@@ -499,12 +499,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
      call Grid_releaseBlkPtr(blockID,scrch_Ctr,SCRATCH_CTR) 
       
      if (.not. hy_fluxCorrect) then
-        !! ************************************************************************
-        !! Unsplit update for conservative variables from n to n+1 time step
-        call Timers_start("unsplitUpdate")
-        call hy_uhd_unsplitUpdate(blockID,updateMode,dt,del,datasize,blkLimits,&
-                                  blkLimitsGC,flx,fly,flz,gravX,gravY,gravZ)
-        call Timers_stop("unsplitUpdate")
+
 #if NFACE_VARS > 0
         !! ************************************************************************
         !! Update face-centered magnetic fields from n to n+1 time step
@@ -517,6 +512,13 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
            call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
         endif ! End of if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
 #endif
+
+        !! ************************************************************************
+        !! Unsplit update for conservative variables from n to n+1 time step
+        call Timers_start("unsplitUpdate")
+        call hy_uhd_unsplitUpdate(blockID,updateMode,dt,del,datasize,blkLimits,&
+                                  blkLimitsGC,flx,fly,flz,gravX,gravY,gravZ)
+        call Timers_stop("unsplitUpdate")
 
 #ifndef GRAVITY /* if gravity is included we delay energy fix until we update gravity at n+1 state */
         !! Correct energy if necessary
@@ -614,7 +616,6 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
      !! ************************************************************************
      !! Conservation of Fluxes at each block boundary
      call Grid_conserveFluxes(ALLDIR,level)
-
 #if NFACE_VARS > 0
      !! ************************************************************************
      !! Correct electric fields at fine-coarse boundaries
@@ -706,14 +707,6 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         call Grid_releaseBlkPtr(blockID,scrch_Ctr,SCRATCH_CTR)
 
 
-        !! *********************************************************************
-        !! Unsplit update for conservative variables from n to n+1 time step
-        !write(*,*) "*************** unsplitUpdate ***************"
-        call Timers_start("unsplitUpdate")
-        call hy_uhd_unsplitUpdate(blockID,updateMode,dt,del,datasize,blkLimits,&
-                                  blkLimitsGC,flx,fly,flz,gravX,gravY,gravZ)
-        call Timers_stop("unsplitUpdate")
-
 #if NFACE_VARS > 0
         !! *********************************************************************
         !! Update face-centered magnetic fields from n to n+1 time step
@@ -722,6 +715,14 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
            call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
         endif
 #endif
+
+        !! *********************************************************************
+        !! Unsplit update for conservative variables from n to n+1 time step
+        !write(*,*) "*************** unsplitUpdate ***************"
+        call Timers_start("unsplitUpdate")
+        call hy_uhd_unsplitUpdate(blockID,updateMode,dt,del,datasize,blkLimits,&
+                                  blkLimitsGC,flx,fly,flz,gravX,gravY,gravZ)
+        call Timers_stop("unsplitUpdate")
 
 #ifndef GRAVITY /* if gravity is included we delay energy fix until we update gravity at n+1 state */
         !! *********************************************************************
@@ -818,7 +819,8 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
            gravDtFactor = 2.
         endif
 
-        call hy_uhd_putGravityUnsplit(blockID,blkLimitsGC,dataSize,dt,dtOld,gravX,gravY,gravZ)
+        call hy_uhd_putGravityUnsplit(blockID,blkLimitsGC,dataSize,dt,dtOld,gravX,gravY,gravZ,&
+             lastCall=.TRUE.)
         gravX = gravX/hy_gref
         gravY = gravY/hy_gref
         gravZ = gravZ/hy_gref
