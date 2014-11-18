@@ -31,7 +31,8 @@ module Simulation_data
       real, dimension(3) :: posOld, jetvecOld
       real, dimension(3) :: angVel, linVel
       real :: radius, length, zTorInj, outflowR
-      real :: deref_z1, deref_z2
+      real :: derefine_z1, derefine_z2, refine_jetR1, refine_jetR2
+      integer :: lrefine_z0
       real :: power, pressure, density, velocity, gamma, mach
       real :: deltaP, deltaRho
       real :: rFeatherIn, rFeatherOut, zFeather

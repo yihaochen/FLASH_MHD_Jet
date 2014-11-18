@@ -30,8 +30,10 @@ nozzleVecX	 = 0.0
 nozzleVecY	 = 0.0
 nozzleVecZ	 = 1.0
 
-deref_z1	 = 8.0
-deref_z2	 = 24.0
+derefine_z1	 = 8.0
+derefine_z2	 = 24.0
+refine_jetR1 = 0.9
+refine_jetR2 = 0.1
 
 zTorInj		 = 3.75E21
 rFeatherIn	 = 3.0E20
@@ -93,7 +95,8 @@ tmax            = 5.0E14
 nend            = 1000000
 eintSwitch		= 1.e-4
 
-lrefine_max			= 6
+lrefine_max			= 5
+lrefine_jet			= 6
 refine_var_1		= "dens"
 refine_cutoff_1		= 0.9
 derefine_cutoff_1	= 0.7

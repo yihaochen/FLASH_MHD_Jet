@@ -123,11 +123,28 @@ subroutine Grid_markRefineDerefine()
   
 !<-- ychen
   do nozzle=1, NOZZLES 
-     !call Grid_markRefineSpecialized(INRADIUS, 4, (/ sim(nozzle)%pos(1), &
-     !sim(nozzle)%pos(2), sim(nozzle)%pos(3), &
-     !max(sim(nozzle)%radius, sim(nozzle)%length) /), lrefine_max )
+     call gr_markJet(nozzle)
 
-     call gr_markJetHeight(nozzle)
+     call Grid_markRefineSpecialized(INRADIUS, 4, (/ sim(nozzle)%pos(1), &
+     sim(nozzle)%pos(2), sim(nozzle)%pos(3), &
+     min(sim(nozzle)%radius, sim(nozzle)%length) /), lrefine_max )
+
+     !call gr_markCylinder(sim(nozzle)%pos, sim(nozzle)%jetvec,&
+     !                     sim(nozzle)%radius, sim(nozzle)%length, lrefine_max)
+
+     !rvec = cross(sim(nozzle)%jetvec, (/0.0, gr_smallx, 1.0/))
+     !rvec = rvec/sqrt(sum(rvec**2))
+     !rb = sim(nozzle)%pos + sim(nozzle)%length*sim(nozzle)%jetvec &
+     !                     + sim(nozzle)%radius*rvec &
+     !                     + sim(nozzle)%radius*cross(sim(nozzle)%jetvec, rvec)
+     !lb = sim(nozzle)%pos - sim(nozzle)%length*sim(nozzle)%jetvec &
+     !                     - sim(nozzle)%radius*rvec &
+     !                     - sim(nozzle)%radius*cross(sim(nozzle)%jetvec, rvec)
+
+     !call gr_markInRectangle(min(lb(1), rb(1)), max(lb(1), rb(1)),&
+     !                        min(lb(2), rb(2)), max(lb(2), rb(2)),&
+     !                        min(lb(3), rb(3)), max(lb(3), rb(3)), lrefine_max, 0)
+
   end do
 !--> ychen
 
