@@ -56,8 +56,9 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
 
   integer :: nozzle=1
   real, dimension(3) :: cellvec, del
-  real :: radius, length, sig, distance, theta, vel, fac
-  real, dimension(3) :: plnvec, jetvec, rvec, phivec, velvec
+  real :: radius, length, sig, distance, theta, vel, fac, facvel
+  real, dimension(3) :: plnvec, jetvec, rvec, phivec, voutvec, velvec
+  real :: r2, bf, rout
 
   if (present(init_in)) then
       init = init_in
@@ -96,6 +97,10 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   ! hy_uhd_staggeredDivB is called again in Heat.F90
   !E(EX_SCRATCH_GRID_VAR:EZ_SCRATCH_GRID_VAR,:,:,:) = 0.0
 
+  bf = sim(nozzle)%rFeatherOut
+  r2 = sim(nozzle)%radius
+  rout = r2 + bf
+
 
   do k = blkLimitsGC(LOW,KAXIS), blkLimitsGC(HIGH,KAXIS)
    do j = blkLimitsGC(LOW,JAXIS), blkLimitsGC(HIGH,JAXIS)
@@ -104,36 +109,43 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
 
-       if ((radius.le.(sim(nozzle)%radius+sim(nozzle)%rFeatherOut))&
+       if ((radius.le.rout)&
            .and.(abs(length).le.(sim(nozzle)%length+sim(nozzle)%zFeather))) then
-       ! inside the jet nozzle
-          vel = sim(nozzle)%velocity*sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
-          if ((radius.le.sim(nozzle)%radius) .and. (abs(length).le.sim(nozzle)%length)) then
-              fac = 1.0
+          if (abs(length).le.sim(nozzle)%length) then
+              facvel = 1.0
           else
-              fac = 0.0
+              facvel = 0.0
           endif
           !fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
           ! smooth transition from nozzle to flash grid
           ! 1.0 for nozzle injection; 0.0 for flash solution
-          vel = sim(nozzle)%velocity*&
-                sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
-          velvec = vel*jetvec&
-                   + sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec*&
-                     0.5*(1.0+cos(PI*(min(0.0, radius-sim(nozzle)%radius)/sim(nozzle)%rFeatherOut)))&
-                   + sim(nozzle)%linVel*fac + cross(sim(nozzle)%angVel,rvec*distance)
-          solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac + solnData(VELX_VAR:VELZ_VAR,i,j,k)*(1.0-fac)
-          solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac+&
-                                     solnData(DENS_VAR,i,j,k)*(1.0-fac)
-          solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac+&
-                                     solnData(PRES_VAR,i,j,k)*(1.0-fac)
+          vel = sim(nozzle)%velocity&
+                *0.5*(1.0+cos(PI*(max(0.0, radius-r2)/bf)))&
+                *sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
+          voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
+                    *0.5*(1.0+cos(PI*( min(0.0, max(-1.0,(radius-r2)/bf)) )))
+
+          velvec = vel*jetvec + voutvec &
+                   + sim(nozzle)%linVel + cross(sim(nozzle)%angVel,rvec*distance)
+          solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*facvel&
+                   + solnData(VELX_VAR:VELZ_VAR,i,j,k)*(1.0-facvel)
+          ! inside the jet nozzle
+          if ((radius.le.r2) .and. (abs(length).le.sim(nozzle)%length)) then
+              fac = 1.0
+          else
+              fac = 0.0
+          endif
+          solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac&
+                                     + solnData(DENS_VAR,i,j,k)*(1.0-fac)
+          solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac&
+                                     + solnData(PRES_VAR,i,j,k)*(1.0-fac)
 
           solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
                                      /(solnData(GAME_VAR,i,j,k)-1.0)
-          solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)+&
-                                0.5*(solnData(VELX_VAR,i,j,k)**2 +&
-                                     solnData(VELY_VAR,i,j,k)**2 +&
-                                     solnData(VELZ_VAR,i,j,k)**2)
+          solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)&
+                                     + 0.5*(solnData(VELX_VAR,i,j,k)**2 &
+                                          + solnData(VELY_VAR,i,j,k)**2 &
+                                          + solnData(VELZ_VAR,i,j,k)**2)
           solnData(JET_SPEC,i,j,k) = (fac - sim_smallX) + solnData(JET_SPEC,i,j,k)*(1.0-fac)
           solnData(ISM_SPEC,i,j,k) = sim_smallX +  solnData(ISM_SPEC,i,j,k)*(1.0-fac)
           !! apply B field at cell center
@@ -152,20 +164,20 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
           !
           !! apply B field at face center
           !del = (/ -dx/2.0, 0.0, 0.0 /)
-          !call hy_uhd_jetNozzleGeometry(nozzle,cellvec+del,radius,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
-          !call hy_uhd_getBfield(nozzle,time,radius,length,0.0,Br,Bz,Bphi)
+          !call hy_uhd_jetNozzleGeometry(nozzle,cellvec+del,r,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
+          !call hy_uhd_getBfield(nozzle,time,r,length,0.0,Br,Bz,Bphi)
           !cellB = Br*plnvec + Bz*jetvec + Bphi*phivec
           !solnFaceXData(MAG_FACE_VAR,i,j,k) = cellB(1)
 
           !del = (/ 0.0, -dy/2.0, 0.0 /)
-          !call hy_uhd_jetNozzleGeometry(nozzle,cellvec+del,radius,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
-          !call hy_uhd_getBfield(nozzle,time,radius,length,0.0,Br,Bz,Bphi)
+          !call hy_uhd_jetNozzleGeometry(nozzle,cellvec+del,r,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
+          !call hy_uhd_getBfield(nozzle,time,r,length,0.0,Br,Bz,Bphi)
           !cellB = Br*plnvec + Bz*jetvec + Bphi*phivec
           !solnFaceYData(MAG_FACE_VAR,i,j,k) = cellB(2)
 
           !del = (/ 0.0, 0.0, -dz/2.0 /)
-          !call hy_uhd_jetNozzleGeometry(nozzle,cellvec+del,radius,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
-          !call hy_uhd_getBfield(nozzle,time,radius,length,0.0,Br,Bz,Bphi)
+          !call hy_uhd_jetNozzleGeometry(nozzle,cellvec+del,r,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
+          !call hy_uhd_getBfield(nozzle,time,r,length,0.0,Br,Bz,Bphi)
           !cellB = Br*plnvec + Bz*jetvec + Bphi*phivec
           !solnFaceZData(MAG_FACE_VAR,i,j,k) = cellB(3)
 

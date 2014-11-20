@@ -95,7 +95,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
 
   use Driver_interface, ONLY : Driver_abortFlash
 ! <- ychen 10-2014
-  use Driver_data, ONLY : dr_simTime, dr_globalMe, dr_nStep, dr_dt
+  use Driver_data, ONLY : dr_simTime, dr_globalMe, dr_nStep
   use Simulation_jetNozzleUpdate, ONLY : sim_jetNozzleUpdate
   use Simulation_data
 ! ychen ->
@@ -272,7 +272,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
   endif
 
 ! <- ychen 10-2014
-  call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dt)
+  call sim_jetNozzleUpdate(nozzle, dr_simTime, dt)
   if (dr_globalMe==MASTER_PE .and. mod(dr_nStep,20)==0) then
      write(*,'(a,2es11.3, f7.2)') '      (p, rho, M)=', &
      sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach

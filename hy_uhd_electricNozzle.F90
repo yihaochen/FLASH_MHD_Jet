@@ -1,7 +1,7 @@
 Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
 
   use Simulation_data
-  use Driver_data,      ONLY : dr_simTime,dr_nstep,dr_dt
+  use Driver_data,      ONLY : dr_simTime,dr_dt,dr_globalMe
   use Grid_interface,   ONLY : Grid_getBlkPtr,Grid_releaseBlkPtr,Grid_getCellCoords,&
                                Grid_getDeltas
 
@@ -58,8 +58,6 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
   do k = blkLimitsGC(LOW,KAXIS), blkLimitsGC(HIGH,KAXIS)
    do j = blkLimitsGC(LOW,JAXIS), blkLimitsGC(HIGH,JAXIS)
     do i = blkLimitsGC(LOW,IAXIS), blkLimitsGC(HIGH,IAXIS)
-     ! Now loop over the three faces
-     do xyz=EX_SCRATCH_GRID_VAR, EZ_SCRATCH_GRID_VAR
         !write (*,*) 'blockID, ijk, xyz=', blockID,i,j,k,xyz
         ! Vector to cell center
         nozvec(:)=[sim_xcoord(i),sim_ycoord(j),sim_zcoord(k)]
@@ -70,9 +68,11 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
         !write(*,*) 'nozvecf =', nozvecf
 
 
+     ! Now loop over the three faces
+     do xyz=EX_SCRATCH_GRID_VAR, EZ_SCRATCH_GRID_VAR
         ! edge-centered vector
-        edgevec(:)=nozvecf(:)
-        edgevec(xyz)=nozvec(xyz)
+        edgevec(:)   = nozvecf(:)
+        edgevec(xyz) = nozvec(xyz)
         !write(*,*) 'edgevec =', edgevec
 
         call hy_uhd_jetNozzleGeometry(nozzle,edgevec,radius,length, &
@@ -116,18 +116,21 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
         
         
         ! inject or advect?
-        if (dr_simTime.ge.sim(nozzle)%timeMHDon .and.&
-            dr_simTime.lt.sim(nozzle)%timeMHDon + dr_dt) then
+        if ( dr_simTime.ge.sim(nozzle)%timeMHDon .and. &
+            (dr_simTime-dr_dt).lt.sim(nozzle)%timeMHDon ) then
            
            ! First jet timestep - inject initial field
 
+           !if (dr_globalMe==MASTER_PE) then
+           !   write(*,*) '        Initial EM field injection'
+           !endif
            advect(:)=[0.,0.,0.]
            
            ! add field
            E(xyz,i,j,k) = E(xyz,i,j,k) - (Ar*plnvec(xyz)+Az*jetvec(xyz))&
                                        - Aphi*phivec(xyz)/dr_dt
 
-        else if (dr_simTime.ge.sim(nozzle)%timeMHDon + dr_dt) then
+        else if ((dr_simTime-dr_dt).ge.sim(nozzle)%timeMHDon) then
            
            ! Toroidal field update: Replace the flux advected away
 

@@ -31,7 +31,7 @@ subroutine Simulation_init()
   use Simulation_data
   use Simulation_jetNozzleUpdate, ONLY : sim_jetNozzleUpdate
   use RuntimeParameters_interface, ONLY : RuntimeParameters_get
-  use Driver_data, ONLY : dr_globalMe, dr_simTime, dr_dtInit, dr_restart
+  use Driver_data, ONLY : dr_globalMe, dr_simTime, dr_dt, dr_restart
   use IO_interface, ONLY :  IO_getScalar
   !use Grid_data, ONLY : gr_smallrho
 
@@ -88,6 +88,7 @@ subroutine Simulation_init()
      call IO_getScalar('nozzleLinVelX', sim(nozzle)%linVel(1))
      call IO_getScalar('nozzleLinVelY', sim(nozzle)%linVel(2))
      call IO_getScalar('nozzleLinVelZ', sim(nozzle)%linVel(3))
+     call IO_getScalar('nozzlet0', sim(nozzle)%t0)
 
   else
 
@@ -112,9 +113,9 @@ subroutine Simulation_init()
         print*, 'Toroidal field will be smaller than it should be.'
         print*, '!!!!!!!!'
      endif
-     call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dtInit)
   endif
 
+  call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dt)
   if (dr_globalMe==MASTER_PE) then
      write(*,'(a, es11.3)') 't0:', sim(nozzle)%t0
      write(*,'(a, 2es11.3, f7.2)') '(p, rho, M)=', &
