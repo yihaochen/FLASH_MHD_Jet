@@ -73,7 +73,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('derefine_z2', sim(nozzle)%derefine_z2)
   call RuntimeParameters_get('refine_jetR1', sim(nozzle)%refine_jetR1)
   call RuntimeParameters_get('refine_jetR2', sim(nozzle)%refine_jetR2)
-  call RuntimeParameters_get('lrefine_z0', sim(nozzle)%lrefine_z0)
+  call RuntimeParameters_get('lrefine_0', sim(nozzle)%lrefine_0)
 
   if (dr_restart) then
      call IO_getScalar('nozzlePosX', sim(nozzle)%pos(1))
