@@ -104,19 +104,11 @@ subroutine gr_markJet(nozzle)
            
 
            ! Force maximum refine level for the jet using momentum
-           if (pmax > sim(nozzle)%refine_jetR1*sim(nozzle)%velocity*sim(nozzle)%density) then
+           if (pmax >= sim(nozzle)%refine_jetR*sim(nozzle)%velocity*sim(nozzle)%density) then
               if (lrefine(b) < lrefine_max) then
                  refine(b) = .true.
                  derefine(b) = .false.
               else if (lrefine(b) == lrefine_max) then
-                 derefine(b) = .false.
-              endif
-           endif
-           if (pmax >= sim(nozzle)%refine_jetR2*sim(nozzle)%velocity*sim(nozzle)%density) then
-              if (lrefine(b) < lrefine_max-1) then
-                 refine(b) = .true.
-                 derefine(b) = .false.
-              else if (lrefine(b) == lrefine_max-1) then
                  derefine(b) = .false.
               endif
            endif

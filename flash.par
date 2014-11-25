@@ -8,13 +8,13 @@ sim_gammaAmbient = 1.6666
 sim_bzAmbient	= 0.0 #1.8623E-6
 sim_densityProfile = "betacore"
 sim_densityBeta = 2.0
-sim_densityCoreR= 3.1E22
+sim_densityCoreR= 6.2E22
 
 #	Jet properties
 sim_powerJet	= 1.0E45
 #sim_rhoJet		= 1.67E-25
 sim_velJet		= 3.0E9			# 3.0E9 = 0.1 c
-sim_outflowRatio= 0.01
+sim_outflowRatio= 0.05
 sim_gammaJet	= 1.6666
 sim_betaJet		= 100.0
 sim_helicityJet = 1.0
@@ -32,15 +32,14 @@ nozzleVecZ	 = 1.0
 
 derefine_z1	 = 8.0
 derefine_z2	 = 24.0
-refine_jetR1 = 0.9
-refine_jetR2 = 0.1
+refine_jetR  = 0.1
 
 zTorInj		 = 3.75E21
 rFeatherIn	 = 3.0E20
 rFeatherOut  = 7.5E20
 zFeather	 = 1.5E21
 
-initGeometry = "spherical"
+initGeometry = "cylindrical"
 
 #	Nozzle motion
 nozzleAngVelX = 0.0
@@ -53,7 +52,7 @@ nozzleLinVelZ = 0.0
 
 smlrho  = 1E-30
 smallp  = 1E-14
-dtinit  = 1E5
+dtinit  = 1E7
 dtmin	= 1E5
 dtmax	= 1E12
 
@@ -69,12 +68,12 @@ geometry = "cartesian"
 Nblockx		= 4
 Nblocky		= 4
 Nblockz		= 8
-xmin		= -9.6E22		# 3.1E21 cm ~ 1 kpc
-xmax		=  9.6E22
-ymin		= -9.6E22
-ymax		=  9.6E22
-zmin		= -1.92E23
-zmax		=  1.92E23
+xmin		= -4.8E22		# 3.1E21 cm ~ 1 kpc
+xmax		=  4.8E22
+ymin		= -4.8E22
+ymax		=  4.8E22
+zmin		= -9.6E22
+zmax		=  9.6E22
 
 #		Boundary conditions
 
@@ -91,25 +90,25 @@ zr_boundary_type = "outflow"
 #	Simulation (grid, time, I/O) parameters
 cfl				= 0.2
 
-tmax            = 5.0E14
-nend            = 1000000
+tmax            = 1.0E14
+nend            = 100000
 eintSwitch		= 1.e-4
 
-lrefine_max			= 5
-lrefine_jet			= 6
+lrefine_max			= 6
+lrefine_0			= 5
 refine_var_1		= "dens"
 refine_cutoff_1		= 0.9
 derefine_cutoff_1	= 0.7
 refine_var_2		= "pres"
 refine_cutoff_2		= 0.9
-derefine_cutoff_2	= 0.8
-refine_var_3		= "magp"
-refine_cutoff_3		= 0.9
-derefine_cutoff_3	= 0.7
+derefine_cutoff_2	= 0.7
+#refine_var_3		= "magp"
+#refine_cutoff_3		= 0.9
+#derefine_cutoff_3	= 0.7
 basenm				= "MHD_Jet_"
 
 restart						= .false.
-checkpointFileIntervalTime  = 5.0E13
+checkpointFileIntervalTime  = 5.0E12
 checkpointFileNumber        = 0
 
 plotFileIntervalTime		= 1.0E12

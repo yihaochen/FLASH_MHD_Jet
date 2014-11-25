@@ -61,8 +61,7 @@ PARAMETER nozzleLinVelY		REAL	0.0
 PARAMETER nozzleLinVelZ		REAL	0.0
 PARAMETER derefine_z1		REAL	8.0			[0.0...]
 PARAMETER derefine_z2		REAL	24.0		[0.0...]
-PARAMETER refine_jetR1		REAL	0.5			[0.0...]
-PARAMETER refine_jetR2		REAL	0.1			[0.0...]
+PARAMETER refine_jetR		REAL	0.1			[0.0...]
 PARAMETER lrefine_0			INTEGER	5			[1...]
 
 
