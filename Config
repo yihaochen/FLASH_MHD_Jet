@@ -33,7 +33,7 @@ D	timeMHDon		Time when the magnetic fields are turned on
 # Jet Properties
 PARAMETER sim_powerJet		REAL    1.0E45
 PARAMETER sim_velJet		REAL	3.0E9
-PARAMETER sim_outflowRatio	REAL	0.1			[-1.0...1.0]
+PARAMETER sim_outflowRatio	REAL	0.1			[0.0...1.0]
 PARAMETER sim_gammaJet		REAL	1.6666
 PARAMETER sim_betaJet		REAL	100.0
 PARAMETER sim_helicityJet	REAL	1.0
@@ -62,6 +62,7 @@ PARAMETER nozzleLinVelZ		REAL	0.0
 PARAMETER derefine_z1		REAL	8.0			[0.0...]
 PARAMETER derefine_z2		REAL	24.0		[0.0...]
 PARAMETER refine_jetR		REAL	0.1			[0.0...]
+PARAMETER derefine_jetR		REAL	0.05		[0.0...]
 PARAMETER lrefine_0			INTEGER	5			[1...]
 
 

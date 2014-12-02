@@ -72,6 +72,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('derefine_z1', sim(nozzle)%derefine_z1)
   call RuntimeParameters_get('derefine_z2', sim(nozzle)%derefine_z2)
   call RuntimeParameters_get('refine_jetR', sim(nozzle)%refine_jetR)
+  call RuntimeParameters_get('derefine_jetR', sim(nozzle)%derefine_jetR)
   call RuntimeParameters_get('lrefine_0', sim(nozzle)%lrefine_0)
 
   if (dr_restart) then

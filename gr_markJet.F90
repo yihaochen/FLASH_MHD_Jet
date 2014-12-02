@@ -112,6 +112,11 @@ subroutine gr_markJet(nozzle)
                  derefine(b) = .false.
               endif
            endif
+           if (pmax >= sim(nozzle)%derefine_jetR*sim(nozzle)%velocity*sim(nozzle)%density) then
+              if (lrefine(b) == lrefine_max) then
+                 derefine(b) = .false.
+              endif
+           endif
            call Grid_releaseBlkPtr(b, solnData, CENTER)
 
 
