@@ -33,7 +33,7 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   use Grid_interface, ONLY : Grid_getBlkIndexLimits, Grid_getBlkPtr, Grid_releaseBlkPtr,&
     Grid_getCellCoords, Grid_putPointData, Grid_getDeltas
   !use Hydro_data, ONLY: hy_unsplitEosMode
-  !use Eos_interface, ONLY : Eos_wrapped
+  use Eos_interface, ONLY : Eos_wrapped
   use Simulation_data
   implicit none
 
@@ -200,7 +200,7 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   !deallocate(sim_yCoordf)
   !deallocate(sim_zCoordf)
 
-  !call Eos_wrapped(hy_unsplitEosMode, blkLimits, blockID)
+  call Eos_wrapped(MODE_DENS_PRES, blkLimitsGC, blockID)
 
   call Grid_releaseBlkPtr(blockID,solnData,CENTER)
   !call Grid_releaseBlkPtr(blockID,solnFaceXData,FACEX)

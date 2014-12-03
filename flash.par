@@ -21,7 +21,7 @@ sim_helicityJet = 1.0
 sim_timeMHDon	= 1.0E-11
 
 #	Nozzle Geometry
-nozzleRadius = 7.5E20	# 3.1E21 cm ~ 1 kpc
+nozzleRadius = 6.0E20	# 3.1E21 cm ~ 1 kpc
 nozzleHalfL  = 1.5E21
 nozzlePosX   = 0.0
 nozzlePosY   = 0.0
@@ -33,10 +33,11 @@ nozzleVecZ	 = 1.0
 derefine_z1	 = 8.0
 derefine_z2	 = 24.0
 refine_jetR  = 0.1
+derefine_jetR= 0.01
 
 zTorInj		 = 3.75E21
 rFeatherIn	 = 3.0E20
-rFeatherOut  = 7.5E20
+rFeatherOut  = 3.0E20
 zFeather	 = 1.5E21
 
 initGeometry = "cylindrical"
@@ -50,11 +51,16 @@ nozzleLinVelY = 0.0
 nozzleLinVelZ = 0.0
 
 
-smlrho  = 1E-30
-smallp  = 1E-14
 dtinit  = 1E7
 dtmin	= 1E5
 dtmax	= 1E12
+smlrho  = 1E-30
+smallp  = 1E-14
+smalle  = 1E13
+#gr_sanitizeDataMode = 3
+gr_sanitizeVerbosity = 4
+eintSwitch			 = 1.e-4
+energyfix			 = .true.
 
 
 #	Computational volume parameters
@@ -91,8 +97,7 @@ zr_boundary_type = "outflow"
 cfl				= 0.2
 
 tmax            = 1.0E14
-nend            = 100000
-eintSwitch		= 1.e-4
+nend            = 20000
 
 lrefine_max			= 6
 lrefine_0			= 5

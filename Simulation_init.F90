@@ -43,6 +43,8 @@ subroutine Simulation_init()
   integer :: nozzle = 1
 
 
+  call RuntimeParameters_get('smallp', sim_smallp)
+
   call RuntimeParameters_get('sim_pAmbient', sim_pAmbient)
   call RuntimeParameters_get('sim_rhoAmbient', sim_rhoAmbient)
   call RuntimeParameters_get('sim_windVel', sim_windVel)
