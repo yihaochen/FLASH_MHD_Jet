@@ -59,19 +59,12 @@ subroutine Simulation_initBlock(blockID)
   integer :: sizeX,sizeY,sizeZ
   logical :: gcell = .true.
 
-  logical, save :: firstCall = .TRUE.
-
   integer :: nozzle=1
   real :: radius, length, sig, distance, theta
   real, dimension(3) :: cellvec, plnvec, jetvec, rvec, phivec, velvec, voutvec
   real :: r2, bf, rout
 
 !===============================================================================
-
-  if (firstCall) then
-
-
-  endif
 
   call Grid_getBlkIndexLimits(blockID,blkLimits,blkLimitsGC)
   sizeX = blkLimitsGC(HIGH,IAXIS) - blkLimitsGC(LOW,IAXIS) + 1
@@ -157,24 +150,25 @@ subroutine Simulation_initBlock(blockID)
        ! inside the nozzle
        if ((radius.le.rout)&
            .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
+          fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
           vel = sim(nozzle)%velocity&
-                *0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
+                !*0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
                 *sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
                     !*coshat(radius-0.5*(r2+2.0*bf), 0.5*(r2+bf), bf, 1.0)
-                    *0.5*(1.0+cos(PI*( min(1.0, max(-1.0,(radius-rout)/bf)) )))
+                    *0.5*(1.0+cos(PI*( min(0.0, max(-1.0,(radius-r2)/r2)) )))
 
           velvec = vel*jetvec + voutvec &
                    + sim(nozzle)%linVel + cross(sim(nozzle)%angVel,rvec*distance)
-          solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec
+          solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac + solnData(VELX_VAR:VELZ_VAR,i,j,k)*(1.0-fac)
        endif
        ! cylindrical initial cavity
        if (sim(nozzle)%initGeometry == 'cylindrical') then
           if ((radius.le.rout)&
               .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
              ! inside the extended nozzle and feather
-             !fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
-             fac = 1.0
+             fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
+             !fac = 1.0
           else
              fac = 0.0
           endif

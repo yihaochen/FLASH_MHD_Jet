@@ -50,7 +50,7 @@ PARAMETER nozzleVecY		REAL	0.0
 PARAMETER nozzleVecZ		REAL	1.0
 PARAMETER zTorInj			REAL	3.75E21
 PARAMETER rFeatherIn		REAL	3.0E20		[0.0...]
-PARAMETER rFeatherOut  		REAL	7.5E20		[0.0...]
+#PARAMETER rFeatherOut  		REAL	7.5E20		[0.0...]
 PARAMETER zFeather			REAL	1.5E21		[0.0...]
 PARAMETER initGeometry		STRING	"cylindrical"	["cylindrical", "spherical"]
 PARAMETER nozzleAngVelX		REAL	0.0

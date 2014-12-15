@@ -52,7 +52,7 @@ module Simulation_data
 
   real,save :: sim_pAmbient, sim_rhoAmbient, sim_windVel, sim_bzAmbient
   real,save :: sim_densityBeta, sim_densityCoreR
-  real,save :: sim_gamma, sim_smallP, sim_smallX
+  real,save :: sim_gamma, sim_smallp, sim_smallX, sim_smlrho, sim_smalle
   real,save,allocatable,dimension(:) :: sim_xcoord
   real,save,allocatable,dimension(:) :: sim_ycoord
   real,save,allocatable,dimension(:) :: sim_zcoord

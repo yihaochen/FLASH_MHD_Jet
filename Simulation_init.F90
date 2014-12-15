@@ -32,6 +32,7 @@ subroutine Simulation_init()
   use Simulation_jetNozzleUpdate, ONLY : sim_jetNozzleUpdate
   use RuntimeParameters_interface, ONLY : RuntimeParameters_get
   use Driver_data, ONLY : dr_globalMe, dr_simTime, dr_dt, dr_restart
+  use Grid_data, ONLY : gr_minCellSize
   use IO_interface, ONLY :  IO_getScalar
   !use Grid_data, ONLY : gr_smallrho
 
@@ -43,7 +44,10 @@ subroutine Simulation_init()
   integer :: nozzle = 1
 
 
+  call RuntimeParameters_get('smlrho', sim_smlrho)
   call RuntimeParameters_get('smallp', sim_smallp)
+  call RuntimeParameters_get('smalle', sim_smalle)
+  call RuntimeParameters_get('smallx', sim_smallx)
 
   call RuntimeParameters_get('sim_pAmbient', sim_pAmbient)
   call RuntimeParameters_get('sim_rhoAmbient', sim_rhoAmbient)
@@ -68,7 +72,8 @@ subroutine Simulation_init()
   call RuntimeParameters_get('nozzleHalfL', sim(nozzle)%length)
   call RuntimeParameters_get('zTorInj', sim(nozzle)%zTorInj)
   call RuntimeParameters_get('rFeatherIn', sim(nozzle)%rFeatherIn)
-  call RuntimeParameters_get('rFeatherOut', sim(nozzle)%rFeatherOut)
+  !call RuntimeParameters_get('rFeatherOut', sim(nozzle)%rFeatherOut)
+  sim(nozzle)%rFeatherOut = gr_minCellSize*NGUARD
   call RuntimeParameters_get('zFeather', sim(nozzle)%zFeather)
   call RuntimeParameters_get('initGeometry', sim(nozzle)%initGeometry)
   call RuntimeParameters_get('derefine_z1', sim(nozzle)%derefine_z1)
@@ -123,6 +128,7 @@ subroutine Simulation_init()
      write(*,'(a, 2es11.3, f7.2)') '(p, rho, M)=', &
      sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach
      write(*,'(a, 2es11.3)') '(bz, bphi)=', sim(nozzle)%bz, sim(nozzle)%bphi
+     write(*,'(a, es11.3)') 'rFeatherOut:' , sim(nozzle)%rFeatherOut
   endif
 
 

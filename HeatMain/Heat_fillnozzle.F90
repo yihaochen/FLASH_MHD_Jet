@@ -26,7 +26,7 @@
 !!
 !!***
 
-subroutine Heat_fillnozzle (blockID,dt,time,init_in)
+subroutine Heat_fillnozzle (blockID,dt,time)
 !
 !==============================================================================
 !
@@ -42,27 +42,21 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   
   integer,intent(IN) :: blockID
   real,intent(IN) :: dt,time
-  logical,intent(IN),optional :: init_in
-  logical :: init = .false.
 
   integer :: i,j,k, istat
-  !real,allocatable,dimension(:) :: xCoord,yCoord,zCoord
-  real :: dx, dy, dz
+  integer,dimension(3) :: minijk
   integer,dimension(2,MDIM) :: blkLimits,blkLimitsGC
   integer :: sizeX,sizeY,sizeZ
   logical :: gcell = .true.
   real :: Br, Bz, Bphi
   real, pointer, dimension(:,:,:,:) :: solnData
+  real, dimension(NPROP_VARS) :: outData
 
   integer :: nozzle=1
-  real, dimension(3) :: cellvec, del
+  real, dimension(3) :: cellvec, del, outvec
   real :: radius, length, sig, distance, theta, vel, fac
   real, dimension(3) :: plnvec, jetvec, rvec, phivec, voutvec, velvec
   real :: r2, bf, rout
-
-  if (present(init_in)) then
-      init = init_in
-  endif
 
   call Grid_getBlkIndexLimits(blockID,blkLimits,blkLimitsGC)
   sizeX = blkLimitsGC(HIGH,IAXIS) - blkLimitsGC(LOW,IAXIS) + 1
@@ -71,70 +65,55 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
   allocate(sim_xCoord(sizeX),stat=istat)
   allocate(sim_yCoord(sizeY),stat=istat)
   allocate(sim_zCoord(sizeZ),stat=istat)
-  !allocate(sim_xCoordf(sizeX+1),stat=istat)
-  !allocate(sim_yCoordf(sizeY+1),stat=istat)
-  !allocate(sim_zCoordf(sizeZ+1),stat=istat)
   call Grid_getDeltas(blockID, del)
-  dx = del(1)
-  dy = del(2)
-  dz = del(3)
   
   call Grid_getCellCoords(IAXIS,blockID,CENTER,gcell, sim_xCoord, sizeX)
   call Grid_getCellCoords(JAXIS,blockID,CENTER,gcell, sim_yCoord, sizeY)
   call Grid_getCellCoords(KAXIS,blockID,CENTER,gcell, sim_zCoord, sizeZ)
 
-  !call Grid_getCellCoords(IAXIS,blockID,FACES,gcell, sim_xcoordf, sizeX+1)
-  !call Grid_getCellCoords(JAXIS,blockID,FACES,gcell, sim_ycoordf, sizeX+1)
-  !call Grid_getCellCoords(KAXIS,blockID,FACES,gcell, sim_zcoordf, sizeX+1)
-  
   call Grid_getBlkPtr(blockID,solnData,CENTER)
-  !call Grid_getBlkPtr(blockID,solnFaceXData,FACEX)
-  !call Grid_getBlkPtr(blockID,solnFaceYData,FACEY)
-  !call Grid_getBlkPtr(blockID,solnFaceZData,FACEZ)
-  !call Grid_getBlkPtr(blockID,E,SCRATCH)
-
-  ! Set the electric field to 0 to avoid duplicated advection when 
-  ! hy_uhd_staggeredDivB is called again in Heat.F90
-  !E(EX_SCRATCH_GRID_VAR:EZ_SCRATCH_GRID_VAR,:,:,:) = 0.0
 
   bf = sim(nozzle)%rFeatherOut
   r2 = sim(nozzle)%radius
   rout = r2 + bf
 
-
-  do k = blkLimitsGC(LOW,KAXIS), blkLimitsGC(HIGH,KAXIS)
-   do j = blkLimitsGC(LOW,JAXIS), blkLimitsGC(HIGH,JAXIS)
-    do i = blkLimitsGC(LOW,IAXIS), blkLimitsGC(HIGH,IAXIS)
+  do k = blkLimits(LOW,KAXIS), blkLimits(HIGH,KAXIS)
+   do j = blkLimits(LOW,JAXIS), blkLimits(HIGH,JAXIS)
+    do i = blkLimits(LOW,IAXIS), blkLimits(HIGH,IAXIS)
        cellvec = (/ sim_xCoord(i), sim_yCoord(j), sim_zCoord(k) /)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
-
-       if ((radius.le.rout)&
-           .and.(abs(length).le.(sim(nozzle)%length+sim(nozzle)%zFeather))) then
+       if ((radius.le.rout).and.(abs(length).le.(sim(nozzle)%length))) then
           !! inside the jet nozzle
-          if ((radius.le.rout) .and. (abs(length).le.sim(nozzle)%length)) then
-              fac = 1.0
-          else
-              fac = 0.0
-          endif
-          !fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
+          !!if ((radius.le.rout) .and. (abs(length).le.sim(nozzle)%length)) then
+          !!    fac = 1.0
+          !!else
+          !!    fac = 0.0
+          !!endif
+          fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
           ! smooth transition from nozzle to flash grid
           ! 1.0 for nozzle injection; 0.0 for flash solution
+
+          ! vector to the outter boundary of the nozzle feather
+          outvec = cellvec+plnvec*(rout-radius)
+          ! outData contains the values of the variables for interpolation
+          call ht_getValueAtPoint(blockID, outvec, del, outData)
+
           vel = sim(nozzle)%velocity&
-                *0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
+                !*0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
                 *sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
                     !*coshat(radius-0.5*(r2+2.0*bf), 0.5*(r2+bf), bf, 1.0)
-                    *0.5*(1.0+cos(PI*( min(0.0, max(-1.0,(radius-rout)/bf)) )))
+                    *0.5*(1.0+cos(PI*( min(0.0, max(-1.0,(radius-r2)/r2)) )))
 
           velvec = vel*jetvec + voutvec &
                    + sim(nozzle)%linVel + cross(sim(nozzle)%angVel,rvec*distance)
           solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac&
-                   + solnData(VELX_VAR:VELZ_VAR,i,j,k)*(1.0-fac)
-          solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac&
-                                     + solnData(DENS_VAR,i,j,k)*(1.0-fac)
+                   + outData(VELX_VAR:VELZ_VAR)*(1.0-fac)
+          solnData(DENS_VAR,i,j,k) = max(sim(nozzle)%density*fac + outData(DENS_VAR)*(1.0-fac), &
+                                         sim_smlrho) 
           solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac&
-                                     + solnData(PRES_VAR,i,j,k)*(1.0-fac)
+                                     + outData(PRES_VAR)*(1.0-fac)
 
           solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
                                      /(solnData(GAME_VAR,i,j,k)-1.0)
@@ -142,47 +121,8 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
                                      + 0.5*(solnData(VELX_VAR,i,j,k)**2 &
                                           + solnData(VELY_VAR,i,j,k)**2 &
                                           + solnData(VELZ_VAR,i,j,k)**2)
-          solnData(JET_SPEC,i,j,k) = (fac - sim_smallX) + solnData(JET_SPEC,i,j,k)*(1.0-fac)
-          solnData(ISM_SPEC,i,j,k) = sim_smallX +  solnData(ISM_SPEC,i,j,k)*(1.0-fac)
-          !! apply B field at cell center
-          !call hy_uhd_getBfield(nozzle,time,radius,length,0.0,Br,Bz,Bphi)
-          !cellB = Br*plnvec + Bz*jetvec + Bphi*phivec
-          !solnData(MAGX_VAR,i,j,k) = cellB(1)
-          !solnData(MAGY_VAR,i,j,k) = cellB(2)
-          !solnData(MAGZ_VAR,i,j,k) = cellB(3)
-          !solnData(MAGP_VAR,i,j,k) = sum(cellB*cellB)/(8.0*PI)
-          !! update total energy
-          !solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)+&
-          !                      0.5*(solnData(VELX_VAR,i,j,k)**2 +&
-          !                           solnData(VELY_VAR,i,j,k)**2 +&
-          !                           solnData(VELZ_VAR,i,j,k)**2) +&
-          !                           sum(cellB*cellB)/(8.0*PI)
-          !
-          !! apply B field at face center
-          !del = (/ -dx/2.0, 0.0, 0.0 /)
-          !call hy_uhd_jetNozzleGeometry(nozzle,cellvec+del,r,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
-          !call hy_uhd_getBfield(nozzle,time,r,length,0.0,Br,Bz,Bphi)
-          !cellB = Br*plnvec + Bz*jetvec + Bphi*phivec
-          !solnFaceXData(MAG_FACE_VAR,i,j,k) = cellB(1)
-
-          !del = (/ 0.0, -dy/2.0, 0.0 /)
-          !call hy_uhd_jetNozzleGeometry(nozzle,cellvec+del,r,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
-          !call hy_uhd_getBfield(nozzle,time,r,length,0.0,Br,Bz,Bphi)
-          !cellB = Br*plnvec + Bz*jetvec + Bphi*phivec
-          !solnFaceYData(MAG_FACE_VAR,i,j,k) = cellB(2)
-
-          !del = (/ 0.0, 0.0, -dz/2.0 /)
-          !call hy_uhd_jetNozzleGeometry(nozzle,cellvec+del,r,length,distance,sig,theta,jetvec,rvec,plnvec,phivec)
-          !call hy_uhd_getBfield(nozzle,time,r,length,0.0,Br,Bz,Bphi)
-          !cellB = Br*plnvec + Bz*jetvec + Bphi*phivec
-          !solnFaceZData(MAG_FACE_VAR,i,j,k) = cellB(3)
-
-          
-          !if (i .eq. 8 .and. j.eq.8 .and. k.eq.8) then
-          !write(*,*)'EX',E(EX_SCRATCH_GRID_VAR,i,j,k),fac
-          !write(*,*)'EY',E(EY_SCRATCH_GRID_VAR,i,j,k)
-          !write(*,*)'EZ',E(EZ_SCRATCH_GRID_VAR,i,j,k)
-          !endif
+          solnData(JET_SPEC,i,j,k) = (fac - sim_smallX) + outData(JET_SPEC)*(1.0-fac)
+          solnData(ISM_SPEC,i,j,k) = sim_smallX +  outData(ISM_SPEC)*(1.0-fac)
 
        endif ! inside the nozzle
 
@@ -192,21 +132,18 @@ subroutine Heat_fillnozzle (blockID,dt,time,init_in)
     enddo
    enddo
   enddo
+  if (minval(solnData(DENS_VAR,:,:,:)) < 0.0) then
+     minijk = minloc(solnData(DENS_VAR,:,:,:))
+     write(*,'(i4, a, e11.3, 3i4)') blockID, ' min dens =', minval(solnData(DENS_VAR,:,:,:)), minijk
+     write(*,'(a, 3es11.3)') '(x,y,z) =', sim_xCoord(minijk(1)), sim_yCoord(minijk(2)), sim_zCoord(minijk(3))
+  endif
 
   deallocate(sim_xCoord)
   deallocate(sim_yCoord)
   deallocate(sim_zCoord)
-  !deallocate(sim_xCoordf)
-  !deallocate(sim_yCoordf)
-  !deallocate(sim_zCoordf)
 
-  call Eos_wrapped(MODE_DENS_PRES, blkLimitsGC, blockID)
-
+  call Eos_wrapped(MODE_DENS_PRES, blkLimits, blockID)
   call Grid_releaseBlkPtr(blockID,solnData,CENTER)
-  !call Grid_releaseBlkPtr(blockID,solnFaceXData,FACEX)
-  !call Grid_releaseBlkPtr(blockID,solnFaceYData,FACEY)
-  !call Grid_releaseBlkPtr(blockID,solnFaceZData,FACEZ)
-  !call Grid_releaseBlkPtr(blockID,E,SCRATCH)
 
   return
 

@@ -12,7 +12,6 @@ sim_densityCoreR= 6.2E22
 
 #	Jet properties
 sim_powerJet	= 1.0E45
-#sim_rhoJet		= 1.67E-25
 sim_velJet		= 3.0E9			# 3.0E9 = 0.1 c
 sim_outflowRatio= 0.05
 sim_gammaJet	= 1.6666
@@ -37,7 +36,6 @@ derefine_jetR= 0.01
 
 zTorInj		 = 3.75E21
 rFeatherIn	 = 3.0E20
-rFeatherOut  = 3.0E20
 zFeather	 = 1.5E21
 
 initGeometry = "cylindrical"
@@ -51,12 +49,13 @@ nozzleLinVelY = 0.0
 nozzleLinVelZ = 0.0
 
 
-dtinit  = 1E7
-dtmin	= 1E5
-dtmax	= 1E12
-smlrho  = 1E-30
-smallp  = 1E-14
-smalle  = 1E13
+dtinit  = 1.0E7
+dtmin	= 1.0E5
+dtmax	= 1.0E12
+smlrho  = 1.0E-30
+smallp  = 1.0E-14
+smalle  = 1.0E13
+smallx  = 1.0E-10
 #gr_sanitizeDataMode = 3
 gr_sanitizeVerbosity = 4
 eintSwitch			 = 1.e-4
