@@ -62,7 +62,7 @@ subroutine Simulation_initBlock(blockID)
   integer :: nozzle=1
   real :: radius, length, sig, distance, theta
   real, dimension(3) :: cellvec, plnvec, jetvec, rvec, phivec, velvec, voutvec
-  real :: r2, bf, rout
+  real :: r2, bf, rout, rmix
 
 !===============================================================================
 
@@ -88,8 +88,8 @@ subroutine Simulation_initBlock(blockID)
   rho_zone = sim_rhoAmbient
   pres_zone = sim_pAmbient
 
-  velx_zone = sim_windVel
-  vely_zone = 0.0
+  velx_zone = 0.0
+  vely_zone = sim_windVel
   velz_zone = 0.0
 
 
@@ -139,6 +139,7 @@ subroutine Simulation_initBlock(blockID)
   bf = sim(nozzle)%rFeatherOut
   r2 = sim(nozzle)%radius
   rout = r2 + bf
+  rmix = rout + sim(nozzle)%rFeatherMix
 
   ! Initialize the nozzle
   do k = blkLimits(LOW,KAXIS), blkLimits(HIGH,KAXIS)
@@ -148,15 +149,15 @@ subroutine Simulation_initBlock(blockID)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
        ! inside the nozzle
-       if ((radius.le.rout)&
+       if ((radius.le.rmix)&
            .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
           fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
           vel = sim(nozzle)%velocity&
-                !*0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
+                *0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
                 *sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
                     !*coshat(radius-0.5*(r2+2.0*bf), 0.5*(r2+bf), bf, 1.0)
-                    *0.5*(1.0+cos(PI*( min(0.0, max(-1.0,(radius-r2)/r2)) )))
+                    *0.5*(1.0+cos(PI*( max(-1.0, min(0.0,(radius-rout)/bf)) )))
 
           velvec = vel*jetvec + voutvec &
                    + sim(nozzle)%linVel + cross(sim(nozzle)%angVel,rvec*distance)
@@ -164,7 +165,7 @@ subroutine Simulation_initBlock(blockID)
        endif
        ! cylindrical initial cavity
        if (sim(nozzle)%initGeometry == 'cylindrical') then
-          if ((radius.le.rout)&
+          if ((radius.le.rmix)&
               .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
              ! inside the extended nozzle and feather
              fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
@@ -174,7 +175,7 @@ subroutine Simulation_initBlock(blockID)
           endif
        ! spherical initial cavity
        else
-          if (distance.le.2.0*max( rout, (sim(nozzle)%length+sim(nozzle)%zFeather) ) ) then
+          if (distance.le.2.0*max( rmix, (sim(nozzle)%length+sim(nozzle)%zFeather) ) ) then
              fac = taperSph(nozzle, 0.5*distance, 1.0, 0.0)
           else
              fac = 0.0

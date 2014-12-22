@@ -72,8 +72,8 @@ subroutine Simulation_init()
   call RuntimeParameters_get('nozzleHalfL', sim(nozzle)%length)
   call RuntimeParameters_get('zTorInj', sim(nozzle)%zTorInj)
   call RuntimeParameters_get('rFeatherIn', sim(nozzle)%rFeatherIn)
-  !call RuntimeParameters_get('rFeatherOut', sim(nozzle)%rFeatherOut)
-  sim(nozzle)%rFeatherOut = gr_minCellSize*NGUARD
+  call RuntimeParameters_get('rFeatherOut', sim(nozzle)%rFeatherOut)
+  sim(nozzle)%rFeatherMix = gr_minCellSize*NGUARD
   call RuntimeParameters_get('zFeather', sim(nozzle)%zFeather)
   call RuntimeParameters_get('initGeometry', sim(nozzle)%initGeometry)
   call RuntimeParameters_get('derefine_z1', sim(nozzle)%derefine_z1)

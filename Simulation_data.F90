@@ -35,7 +35,7 @@ module Simulation_data
       integer :: lrefine_0
       real :: power, pressure, density, velocity, gamma, mach
       real :: deltaP, deltaRho
-      real :: rFeatherIn, rFeatherOut, zFeather
+      real :: rFeatherIn, rFeatherOut, rFeatherMix, zFeather
       real :: beta, helicity
       !TODO: tOn, tOff
       real :: bphi, bz, tOn, tOff, timeMHDon
@@ -76,19 +76,20 @@ contains
 
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: r, var_in, var_out
-    real :: r1, r2, rout
+    real :: r1, r2, rout, rmix
     real :: taperR
     r1 = sim(nozzle)%rFeatherIn
     r2 = sim(nozzle)%radius
     rout = sim(nozzle)%radius + sim(nozzle)%rFeatherOut
+    rmix = sim(nozzle)%radius + sim(nozzle)%rFeatherOut + sim(nozzle)%rFeatherMix
 
     if (r.ge.0.0 .and. r.lt.r1) then
       taperR = (-2*r**3/r1**3 + 3*r**2/r1**2)*var_in
-    else if (r.ge.r1 .and. r.lt.r2) then
+    else if (r.ge.r1 .and. r.lt.rout) then
       taperR = 1.0*var_in
-    else if (r.ge.r2 .and. r.lt.rout) then
-      taperR = (-2*(rout-r)**3/(rout-r2)**3 &
-      + 3*(rout-r)**2/(rout-r2)**2)*(var_in-var_out) + var_out
+    else if (r.ge.rout .and. r.lt.rmix) then
+      taperR = (-2*(rmix-r)**3/(rmix-rout)**3 &
+      + 3*(rmix-r)**2/(rmix-rout)**2)*(var_in-var_out) + var_out
     else
       taperR = var_out
     end if
@@ -99,17 +100,17 @@ contains
 
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: z, var_in, var_out
-    real :: zout, zjet
+    real :: zmix, zjet
     real :: taperL
     zjet = sim(nozzle)%length
-    zout = zjet + sim(nozzle)%zFeather
+    zmix = zjet + sim(nozzle)%zFeather
 
     ! z part
     if (abs(z).ge.0.0 .and. abs(z).lt.zjet) then
       taperL = 1.0*var_in
-    else if (abs(z).ge.zjet .and. abs(z).lt.zout) then
-      taperL = (-2*(zout-abs(z))**3/(zout-zjet)**3 &
-      + 3*(zout-abs(z))**2/(zout-zjet)**2)*(var_in-var_out) + var_out
+    else if (abs(z).ge.zjet .and. abs(z).lt.zmix) then
+      taperL = (-2*(zmix-abs(z))**3/(zmix-zjet)**3 &
+      + 3*(zmix-abs(z))**2/(zmix-zjet)**2)*(var_in-var_out) + var_out
     else
       taperL = var_out
     end if
@@ -120,30 +121,31 @@ contains
   ! Taper function for both R and z direction
   ! For radial direction, variable could have 3 values: center, inside, and outside
   !
-  ! 0          rFeatherIn       radius         radius+rFeatherOut
-  ! 0               r1                r2                   rout
-  ! |   center       |       inside    |    outside          |
-  ! |   var_cen      |       var_in    |    var_out          |
+  ! 0          rFeatherIn           radius         radius+rFeatherOut    ..+FeatherMix
+  ! 0               r1                r2                   rout             mix
+  ! |   center       |       inside    |    outside          |               |
+  ! |<--var_cen      |<--------------- var_in -------------->|     var_out-->|
 
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: r, z, var_cen, var_in, var_out
-    real :: r1, r2, rout, zout, zjet, var_zcen, var_zin
+    real :: r1, r2, rout, rmix, zmix, zjet, var_zcen, var_zin
     real :: taper
     r1 = sim(nozzle)%rFeatherIn
     r2 = sim(nozzle)%radius
     rout = sim(nozzle)%radius + sim(nozzle)%rFeatherOut
+    rmix = sim(nozzle)%radius + sim(nozzle)%rFeatherOut + sim(nozzle)%rFeatherMix
     zjet = sim(nozzle)%length
-    zout = zjet + sim(nozzle)%zFeather
+    zmix = zjet + sim(nozzle)%zFeather
 
     ! z part
     if (abs(z).ge.0.0 .and. abs(z).lt.zjet) then
       var_zin = 1.0*var_in
       var_zcen = 1.0*var_cen
-    else if (abs(z).ge.zjet .and. abs(z).lt.zout) then
-      var_zin = (-2*(zout-abs(z))**3/(zout-zjet)**3 &
-      + 3*(zout-abs(z))**2/(zout-zjet)**2)*(var_in-var_out) + var_out
-      var_zcen = (-2*(zout-abs(z))**3/(zout-zjet)**3 &
-      + 3*(zout-abs(z))**2/(zout-zjet)**2)*(var_cen-var_out) + var_out
+    else if (abs(z).ge.zjet .and. abs(z).lt.zmix) then
+      var_zin = (-2*(zmix-abs(z))**3/(zmix-zjet)**3 &
+      + 3*(zmix-abs(z))**2/(zmix-zjet)**2)*(var_in-var_out) + var_out
+      var_zcen = (-2*(zmix-abs(z))**3/(zmix-zjet)**3 &
+      + 3*(zmix-abs(z))**2/(zmix-zjet)**2)*(var_cen-var_out) + var_out
     else
       var_zin = var_out
       var_zcen = var_out
@@ -152,11 +154,11 @@ contains
     ! radial part
     if (r.ge.0.0 .and. r.lt.r1) then
       taper = (-2*r**3/r1**3 + 3*r**2/r1**2)*(var_zin-var_zcen) + var_zcen
-    else if (r.ge.r1 .and. r.lt.r2) then
+    else if (r.ge.r1 .and. r.lt.rout) then
       taper = 1.0*var_zin
-    else if (r.ge.r2 .and. r.lt.rout) then
-      taper = (-2*(rout-r)**3/(rout-r2)**3 &
-      + 3*(rout-r)**2/(rout-r2)**2)*(var_zin-var_out) + var_out
+    else if (r.ge.rout .and. r.lt.rmix) then
+      taper = (-2*(rmix-r)**3/(rmix-rout)**3 &
+      + 3*(rmix-r)**2/(rmix-rout)**2)*(var_zin-var_out) + var_out
     else
       taper = var_out
     endif
@@ -167,17 +169,17 @@ contains
 
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: r, var_in, var_out
-    real :: r2, rout
+    real :: rout, rmix
     real :: taperSph
-    r2 = max(sim(nozzle)%radius, sim(nozzle)%length)
-    rout = max( (sim(nozzle)%radius+sim(nozzle)%rFeatherOut),&
+    rout = max(sim(nozzle)%radius+sim(nozzle)%rFeatherOut, sim(nozzle)%length)
+    rmix = max( (sim(nozzle)%radius+sim(nozzle)%rFeatherOut+sim(nozzle)%rFeatherMix),&
                 (sim(nozzle)%length+sim(nozzle)%zFeather) )
 
-    if (r.ge.0.0 .and. r.lt.r2) then
+    if (r.ge.0.0 .and. r.lt.rout) then
       taperSph = var_in
-    else if (r.ge.r2 .and. r.lt.rout) then
-      taperSph = (-2*(rout-r)**3/(rout-r2)**3 &
-      + 3*(rout-r)**2/(rout-r2)**2)*(var_in-var_out) + var_out
+    else if (r.ge.rout .and. r.lt.rmix) then
+      taperSph = (-2*(rmix-r)**3/(rmix-rout)**3 &
+      + 3*(rmix-r)**2/(rmix-rout)**2)*(var_in-var_out) + var_out
     else
       taperSph = var_out
     endif

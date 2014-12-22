@@ -50,13 +50,13 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   logical :: gcell = .true.
   real :: Br, Bz, Bphi
   real, pointer, dimension(:,:,:,:) :: solnData
-  real, dimension(NPROP_VARS) :: outData
+  real, dimension(NPROP_VARS) :: mixData
 
   integer :: nozzle=1
-  real, dimension(3) :: cellvec, del, outvec
+  real, dimension(3) :: cellvec, del, mixvec
   real :: radius, length, sig, distance, theta, vel, fac
   real, dimension(3) :: plnvec, jetvec, rvec, phivec, voutvec, velvec
-  real :: r2, bf, rout
+  real :: r2, bf, rout, rmix
 
   call Grid_getBlkIndexLimits(blockID,blkLimits,blkLimitsGC)
   sizeX = blkLimitsGC(HIGH,IAXIS) - blkLimitsGC(LOW,IAXIS) + 1
@@ -76,6 +76,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   bf = sim(nozzle)%rFeatherOut
   r2 = sim(nozzle)%radius
   rout = r2 + bf
+  rmix = rout + sim(nozzle)%rFeatherMix;
 
   do k = blkLimits(LOW,KAXIS), blkLimits(HIGH,KAXIS)
    do j = blkLimits(LOW,JAXIS), blkLimits(HIGH,JAXIS)
@@ -83,7 +84,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
        cellvec = (/ sim_xCoord(i), sim_yCoord(j), sim_zCoord(k) /)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
-       if ((radius.le.rout).and.(abs(length).le.(sim(nozzle)%length))) then
+       if ((radius.le.rmix).and.(abs(length).le.(sim(nozzle)%length))) then
           !! inside the jet nozzle
           !!if ((radius.le.rout) .and. (abs(length).le.sim(nozzle)%length)) then
           !!    fac = 1.0
@@ -95,25 +96,25 @@ subroutine Heat_fillnozzle (blockID,dt,time)
           ! 1.0 for nozzle injection; 0.0 for flash solution
 
           ! vector to the outter boundary of the nozzle feather
-          outvec = cellvec+plnvec*(rout-radius)
-          ! outData contains the values of the variables for interpolation
-          call ht_getValueAtPoint(blockID, outvec, del, outData)
+          mixvec = cellvec+plnvec*(rmix-radius)
+          ! mixData contains the values of the variables for interpolation
+          call ht_getValueAtPoint(blockID, mixvec, del, mixData)
 
           vel = sim(nozzle)%velocity&
-                !*0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
+                *0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
                 *sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
                     !*coshat(radius-0.5*(r2+2.0*bf), 0.5*(r2+bf), bf, 1.0)
-                    *0.5*(1.0+cos(PI*( min(0.0, max(-1.0,(radius-r2)/r2)) )))
+                    *0.5*(1.0+cos(PI*( max(-1.0, min(0.0,(radius-rout)/bf)) )))
 
           velvec = vel*jetvec + voutvec &
                    + sim(nozzle)%linVel + cross(sim(nozzle)%angVel,rvec*distance)
           solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac&
-                   + outData(VELX_VAR:VELZ_VAR)*(1.0-fac)
-          solnData(DENS_VAR,i,j,k) = max(sim(nozzle)%density*fac + outData(DENS_VAR)*(1.0-fac), &
+                   + mixData(VELX_VAR:VELZ_VAR)*(1.0-fac)
+          solnData(DENS_VAR,i,j,k) = max(sim(nozzle)%density*fac + mixData(DENS_VAR)*(1.0-fac), &
                                          sim_smlrho) 
           solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac&
-                                     + outData(PRES_VAR)*(1.0-fac)
+                                     + mixData(PRES_VAR)*(1.0-fac)
 
           solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
                                      /(solnData(GAME_VAR,i,j,k)-1.0)
@@ -121,8 +122,8 @@ subroutine Heat_fillnozzle (blockID,dt,time)
                                      + 0.5*(solnData(VELX_VAR,i,j,k)**2 &
                                           + solnData(VELY_VAR,i,j,k)**2 &
                                           + solnData(VELZ_VAR,i,j,k)**2)
-          solnData(JET_SPEC,i,j,k) = (fac - sim_smallX) + outData(JET_SPEC)*(1.0-fac)
-          solnData(ISM_SPEC,i,j,k) = sim_smallX +  outData(ISM_SPEC)*(1.0-fac)
+          solnData(JET_SPEC,i,j,k) = (fac - sim_smallX) + mixData(JET_SPEC)*(1.0-fac)
+          solnData(ISM_SPEC,i,j,k) = sim_smallX +  mixData(ISM_SPEC)*(1.0-fac)
 
        endif ! inside the nozzle
 
