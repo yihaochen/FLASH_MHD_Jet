@@ -54,7 +54,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
 
   integer :: nozzle=1
   real, dimension(3) :: cellvec, del, mixvec
-  real :: radius, length, sig, distance, theta, vel, fac
+  real :: radius, length, sig, distance, theta, vel, facR, facL
   real, dimension(3) :: plnvec, jetvec, rvec, phivec, voutvec, velvec
   real :: r2, bf, rout, rmix
 
@@ -84,14 +84,16 @@ subroutine Heat_fillnozzle (blockID,dt,time)
        cellvec = (/ sim_xCoord(i), sim_yCoord(j), sim_zCoord(k) /)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
-       if ((radius.le.rmix).and.(abs(length).le.(sim(nozzle)%length))) then
+       if ((radius.le.rmix).and.&
+           (abs(length).le.(sim(nozzle)%length+sim(nozzle)%zFeatherMix))) then
           !! inside the jet nozzle
           !!if ((radius.le.rout) .and. (abs(length).le.sim(nozzle)%length)) then
           !!    fac = 1.0
           !!else
           !!    fac = 0.0
           !!endif
-          fac = taper(nozzle, radius, length, 1.0, 1.0, 0.0)
+          facR = taperR(nozzle, radius, 1.0, 0.0, zero_center=.false.)
+          facL = taperL(nozzle, length, 1.0, 0.0)
           ! smooth transition from nozzle to flash grid
           ! 1.0 for nozzle injection; 0.0 for flash solution
 
@@ -109,12 +111,14 @@ subroutine Heat_fillnozzle (blockID,dt,time)
 
           velvec = vel*jetvec + voutvec &
                    + sim(nozzle)%linVel + cross(sim(nozzle)%angVel,rvec*distance)
-          solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac&
-                   + mixData(VELX_VAR:VELZ_VAR)*(1.0-fac)
-          solnData(DENS_VAR,i,j,k) = max(sim(nozzle)%density*fac + mixData(DENS_VAR)*(1.0-fac), &
-                                         sim_smlrho) 
-          solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac&
-                                     + mixData(PRES_VAR)*(1.0-fac)
+          solnData(VELX_VAR:VELZ_VAR,i,j,k) = &
+                   (velvec*facR + mixData(VELX_VAR:VELZ_VAR)*(1.0-facR))*facL&
+                   + solnData(VELX_VAR:VELZ_VAR,i,j,k)*(1.0-facL)
+          solnData(DENS_VAR,i,j,k) = max(sim_smlrho, &
+                   (sim(nozzle)%density*facR + mixData(DENS_VAR)*(1.0-facR))*facL&
+                   + solnData(DENS_VAR,i,j,k)*(1.0-facL) ) 
+          solnData(PRES_VAR,i,j,k) = (sim(nozzle)%pressure*facR + mixData(PRES_VAR)*(1.0-facR))*facL&
+                   + solnData(PRES_VAR,i,j,k)*(1.0-facL)
 
           solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
                                      /(solnData(GAME_VAR,i,j,k)-1.0)
@@ -122,8 +126,8 @@ subroutine Heat_fillnozzle (blockID,dt,time)
                                      + 0.5*(solnData(VELX_VAR,i,j,k)**2 &
                                           + solnData(VELY_VAR,i,j,k)**2 &
                                           + solnData(VELZ_VAR,i,j,k)**2)
-          solnData(JET_SPEC,i,j,k) = (fac - sim_smallX) + mixData(JET_SPEC)*(1.0-fac)
-          solnData(ISM_SPEC,i,j,k) = sim_smallX +  mixData(ISM_SPEC)*(1.0-fac)
+          solnData(JET_SPEC,i,j,k) = max( sim_smallX, facR + mixData(JET_SPEC)*(1.0-facR) )
+          solnData(ISM_SPEC,i,j,k) = max( sim_smallX, mixData(ISM_SPEC)*(1.0-facR) )
 
        endif ! inside the nozzle
 

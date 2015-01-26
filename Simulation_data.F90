@@ -35,7 +35,7 @@ module Simulation_data
       integer :: lrefine_0
       real :: power, pressure, density, velocity, gamma, mach
       real :: deltaP, deltaRho
-      real :: rFeatherIn, rFeatherOut, rFeatherMix, zFeather
+      real :: rFeatherIn, rFeatherOut, rFeatherMix, zFeather, zFeatherMix
       real :: beta, helicity
       !TODO: tOn, tOff
       real :: bphi, bz, tOn, tOff, timeMHDon
@@ -72,19 +72,29 @@ contains
 
   end function cross
 
-  function taperR(nozzle, r, var_in, var_out)
+  function taperR(nozzle, r, var_in, var_out, zero_center)
 
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: r, var_in, var_out
+    logical, INTENT(in), optional :: zero_center
+    logical :: z_c
     real :: r1, r2, rout, rmix
     real :: taperR
+
+    z_c = .true.
+    if (present(zero_center)) z_c = zero_center
+
     r1 = sim(nozzle)%rFeatherIn
     r2 = sim(nozzle)%radius
     rout = sim(nozzle)%radius + sim(nozzle)%rFeatherOut
     rmix = sim(nozzle)%radius + sim(nozzle)%rFeatherOut + sim(nozzle)%rFeatherMix
 
     if (r.ge.0.0 .and. r.lt.r1) then
-      taperR = (-2*r**3/r1**3 + 3*r**2/r1**2)*var_in
+      if (z_c) then
+        taperR = (-2*r**3/r1**3 + 3*r**2/r1**2)*var_in
+      else
+        taperR = 1.0*var_in
+      end if
     else if (r.ge.r1 .and. r.lt.rout) then
       taperR = 1.0*var_in
     else if (r.ge.rout .and. r.lt.rmix) then
@@ -103,7 +113,7 @@ contains
     real :: zmix, zjet
     real :: taperL
     zjet = sim(nozzle)%length
-    zmix = zjet + sim(nozzle)%zFeather
+    zmix = zjet + sim(nozzle)%zFeatherMix
 
     ! z part
     if (abs(z).ge.0.0 .and. abs(z).lt.zjet) then

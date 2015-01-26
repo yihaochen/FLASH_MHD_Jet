@@ -75,6 +75,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('rFeatherOut', sim(nozzle)%rFeatherOut)
   sim(nozzle)%rFeatherMix = gr_minCellSize*NGUARD
   call RuntimeParameters_get('zFeather', sim(nozzle)%zFeather)
+  sim(nozzle)%zFeatherMix = gr_minCellSize*NGUARD
   call RuntimeParameters_get('initGeometry', sim(nozzle)%initGeometry)
   call RuntimeParameters_get('derefine_z1', sim(nozzle)%derefine_z1)
   call RuntimeParameters_get('derefine_z2', sim(nozzle)%derefine_z2)
@@ -129,6 +130,8 @@ subroutine Simulation_init()
      sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach
      write(*,'(a, 2es11.3)') '(bz, bphi)=', sim(nozzle)%bz, sim(nozzle)%bphi
      write(*,'(a, es11.3)') 'rFeatherOut:' , sim(nozzle)%rFeatherOut
+     write(*,'(a, es11.3)') 'rFeatherMix:' , sim(nozzle)%rFeatherMix
+     write(*,'(a, es11.3)') 'zFeatherMix:' , sim(nozzle)%zFeatherMix
   endif
 
 
