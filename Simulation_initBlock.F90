@@ -1,4 +1,4 @@
-!!****if* source/Simulation/SimulationMain/WindTunnel/Simulation_initBlock
+!!****if* source/Simulation/SimulationMain/magnetoHD/MHD_Jet/Simulation_initBlock
 !!
 !! NAME
 !!
@@ -13,12 +13,6 @@
 !!
 !! DESCRIPTION
 !!
-!!  Initializes fluid data (density, pressure, velocity, etc.) for
-!!  a specified block.  This version sets up the Mach 3 wind tunnel
-!!  problem.
-!!
-!!  References:  Emery, A. E., 1968, JCP, 2, 306
-!!               Woodward, P. and Colella, P., 1984, JCP, 54, 115
 !!
 !!
 !! ARGUMENTS

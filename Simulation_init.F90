@@ -62,6 +62,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('sim_powerJet', sim(nozzle)%power)
   !call RuntimeParameters_get('sim_rhoJet', sim(nozzle)%density)
   call RuntimeParameters_get('sim_velJet', sim(nozzle)%velocity)
+  call RuntimeParameters_get('sim_machJet', sim(nozzle)%mach)
   call RuntimeParameters_get('sim_outflowRatio', sim(nozzle)%outflowR)
   call RuntimeParameters_get('sim_gammaJet', sim(nozzle)%gamma)
   call RuntimeParameters_get('sim_betaJet', sim(nozzle)%beta)
@@ -75,7 +76,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('rFeatherOut', sim(nozzle)%rFeatherOut)
   sim(nozzle)%rFeatherMix = gr_minCellSize*NGUARD
   call RuntimeParameters_get('zFeather', sim(nozzle)%zFeather)
-  sim(nozzle)%zFeatherMix = gr_minCellSize*NGUARD
+  sim(nozzle)%zFeatherMix = gr_minCellSize
   call RuntimeParameters_get('initGeometry', sim(nozzle)%initGeometry)
   call RuntimeParameters_get('derefine_z1', sim(nozzle)%derefine_z1)
   call RuntimeParameters_get('derefine_z2', sim(nozzle)%derefine_z2)
@@ -96,7 +97,7 @@ subroutine Simulation_init()
      call IO_getScalar('nozzleLinVelX', sim(nozzle)%linVel(1))
      call IO_getScalar('nozzleLinVelY', sim(nozzle)%linVel(2))
      call IO_getScalar('nozzleLinVelZ', sim(nozzle)%linVel(3))
-     call IO_getScalar('nozzlet0', sim(nozzle)%t0)
+     !call IO_getScalar('nozzlet0', sim(nozzle)%t0)
 
   else
 
@@ -113,6 +114,8 @@ subroutine Simulation_init()
      call RuntimeParameters_get('nozzleLinVelX', sim(nozzle)%linVel(1))
      call RuntimeParameters_get('nozzleLinVelY', sim(nozzle)%linVel(2))
      call RuntimeParameters_get('nozzleLinVelZ', sim(nozzle)%linVel(3))
+     sim(nozzle)%density = -1.0
+     call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dt)
 
      if (sim(nozzle)%zTorInj < sim(nozzle)%length+1.5*sim(nozzle)%zFeather .and.&
         dr_globalMe==MASTER_PE) then
@@ -123,9 +126,8 @@ subroutine Simulation_init()
      endif
   endif
 
-  call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dt)
   if (dr_globalMe==MASTER_PE) then
-     write(*,'(a, es11.3)') 't0:', sim(nozzle)%t0
+     !write(*,'(a, es11.3)') 't0:', sim(nozzle)%t0
      write(*,'(a, 2es11.3, f7.2)') '(p, rho, M)=', &
      sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach
      write(*,'(a, 2es11.3)') '(bz, bphi)=', sim(nozzle)%bz, sim(nozzle)%bphi

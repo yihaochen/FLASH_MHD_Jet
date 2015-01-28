@@ -40,7 +40,7 @@ module Simulation_data
       !TODO: tOn, tOff
       real :: bphi, bz, tOn, tOff, timeMHDon
       real :: bzOld
-      real :: t0 = -1.0
+      !real :: t0 = -1.0
       !TODO: initGeometry -> sim_initGeometry
       character(len=MAX_STRING_LENGTH) :: initGeometry
 

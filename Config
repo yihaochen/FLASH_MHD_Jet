@@ -33,7 +33,8 @@ D	timeMHDon		Time when the magnetic fields are turned on
 # Jet Properties
 PARAMETER sim_powerJet		REAL    1.0E45
 PARAMETER sim_velJet		REAL	3.0E9
-PARAMETER sim_outflowRatio	REAL	0.1			[0.0...1.0]
+PARAMETER sim_machJet		REAL	20.0		[0.0...]
+PARAMETER sim_outflowRatio	REAL	0.01		[0.0...1.0]
 PARAMETER sim_gammaJet		REAL	1.6666
 PARAMETER sim_betaJet		REAL	100.0
 PARAMETER sim_helicityJet	REAL	1.0
@@ -49,9 +50,9 @@ PARAMETER nozzleVecX		REAL	0.0
 PARAMETER nozzleVecY		REAL	0.0
 PARAMETER nozzleVecZ		REAL	1.0
 PARAMETER zTorInj			REAL	3.75E21
-PARAMETER rFeatherIn		REAL	3.0E20		[0.0...]
-PARAMETER rFeatherOut  		REAL	7.5E20		[0.0...]
-PARAMETER zFeather			REAL	1.5E21		[0.0...]
+PARAMETER rFeatherIn		REAL	3.75E20		[0.0...]
+PARAMETER rFeatherOut  		REAL	1.875E20	[0.0...]
+PARAMETER zFeather			REAL	7.5E20		[0.0...]
 PARAMETER initGeometry		STRING	"cylindrical"	["cylindrical", "spherical"]
 PARAMETER nozzleAngVelX		REAL	0.0
 PARAMETER nozzleAngVelY		REAL	0.0

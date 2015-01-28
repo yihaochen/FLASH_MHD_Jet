@@ -13,15 +13,16 @@ sim_densityCoreR= 6.2E22
 #	Jet properties
 sim_powerJet	= 1.0E45
 sim_velJet		= 3.0E9			# 3.0E9 = 0.1 c
-sim_outflowRatio= 0.05
+sim_machJet		= 20.0
+sim_outflowRatio= 0.01
 sim_gammaJet	= 1.6666
 sim_betaJet		= 100.0
 sim_helicityJet = 1.0
 sim_timeMHDon	= 1.0E-11
 
 #	Nozzle Geometry
-nozzleRadius = 6.0E20	# 3.1E21 cm ~ 1 kpc
-nozzleHalfL  = 1.5E21
+nozzleRadius = 7.5E20	# 3.1E21 cm ~ 1 kpc
+nozzleHalfL  = 3.75E20
 nozzlePosX   = 0.0
 nozzlePosY   = 0.0
 nozzlePosZ   = 0.0
@@ -34,9 +35,10 @@ derefine_z2	 = 24.0
 refine_jetR  = 0.1
 derefine_jetR= 0.01
 
-zTorInj		 = 3.75E21
-rFeatherIn	 = 3.0E20
-zFeather	 = 1.5E21
+zTorInj		 = 1.5E21
+rFeatherIn	 = 3.75E20
+rFeatherOut  = 1.875E20
+zFeather	 = 7.5E20
 
 initGeometry = "cylindrical"
 
@@ -49,13 +51,12 @@ nozzleLinVelY = 0.0
 nozzleLinVelZ = 0.0
 
 
-dtinit  = 1.0E7
-dtmin	= 1.0E5
-dtmax	= 1.0E12
-smlrho  = 1.0E-30
-smallp  = 1.0E-14
-smalle  = 1.0E13
-smallx  = 1.0E-10
+smlrho  = 1E-30
+smallp  = 1E-14
+smalle  = 1E13
+dtinit  = 1E7
+dtmin	= 1E5
+dtmax	= 1E12
 #gr_sanitizeDataMode = 3
 gr_sanitizeVerbosity = 4
 eintSwitch			 = 1.e-4
@@ -129,6 +130,7 @@ plot_var_8 = "magx"
 plot_var_9 = "magy"
 plot_var_10 = "magz"
 plot_var_11 = "magp"
+plot_var_12 = "eint"
 
 
 ## -------------------------------------------------------------##
@@ -141,7 +143,7 @@ charLimiting	= .true. # Characteristic limiting vs. Primitive limiting
 
 
 #	II. RIEMANN SOLVERS:
-RiemannSolver	= "HLLC"       # LLF, HLL, HLLC, hybrid, Marquina, Roe
+RiemannSolver	= "Hybrid"       # LLF, HLL, HLLC, hybrid, Marquina, Roe
 
 
 #	III. STRONG SHOCK HANDELING SCHEME:
