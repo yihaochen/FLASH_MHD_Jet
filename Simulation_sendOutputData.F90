@@ -38,6 +38,10 @@ subroutine Simulation_sendOutputData()
   call IO_setScalar('nozzleLinVelX', sim(nozzle)%linVel(1))
   call IO_setScalar('nozzleLinVelY', sim(nozzle)%linVel(2))
   call IO_setScalar('nozzleLinVelZ', sim(nozzle)%linVel(3))
+  call IO_setScalar('nozzlePressure', sim(nozzle)%pressure)
+  call IO_setScalar('nozzleDensity', sim(nozzle)%density)
+  call IO_setScalar('nozzleBz', sim(nozzle)%bz)
+  call IO_setScalar('nozzleBphi', sim(nozzle)%bphi)
   !call IO_setScalar('nozzlet0', sim(nozzle)%t0)
   
 

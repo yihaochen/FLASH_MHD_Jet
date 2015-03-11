@@ -83,6 +83,8 @@ subroutine Simulation_init()
   call RuntimeParameters_get('refine_jetR', sim(nozzle)%refine_jetR)
   call RuntimeParameters_get('derefine_jetR', sim(nozzle)%derefine_jetR)
   call RuntimeParameters_get('lrefine_0', sim(nozzle)%lrefine_0)
+  call RuntimeParameters_get('sim_ptInitNum', sim_ptInitNum)
+  call RuntimeParameters_get('sim_ptAddPeriod', sim_ptAddPeriod)
 
   if (dr_restart) then
      call IO_getScalar('nozzlePosX', sim(nozzle)%pos(1))
@@ -97,6 +99,10 @@ subroutine Simulation_init()
      call IO_getScalar('nozzleLinVelX', sim(nozzle)%linVel(1))
      call IO_getScalar('nozzleLinVelY', sim(nozzle)%linVel(2))
      call IO_getScalar('nozzleLinVelZ', sim(nozzle)%linVel(3))
+     call IO_getScalar('nozzlePressure', sim(nozzle)%pressure)
+     call IO_getScalar('nozzleDensity', sim(nozzle)%density)
+     call IO_getScalar('nozzleBz', sim(nozzle)%bz)
+     call IO_getScalar('nozzleBphi', sim(nozzle)%bphi)
      !call IO_getScalar('nozzlet0', sim(nozzle)%t0)
 
   else

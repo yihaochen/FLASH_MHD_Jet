@@ -47,8 +47,8 @@ contains
 
     if (sim(nozzle)%density < 0.0) then
        !sim(nozzle)%t0 = (r**2*PI*2*v)**1.25*(sim_rhoAmbient*g/(g-1)/L)**0.75*0.227082
-       sim(nozzle)%density = L/PI/v**3/( 0.5*r*r*(1+1/M**2/(g-1)) + r*bf*(0.3125+1/M**2/(g-1)) &
-                             + bf*bf*(0.06056+0.29736/M**2/(g-1)) )
+       sim(nozzle)%density = 0.5*L/PI/v**3/( 0.5*r*r*(1.+1./M**2/(g-1.)) + r*bf*(0.3125+1./M**2/(g-1.)) &
+                             + bf*bf*(0.06056+0.29736/M**2/(g-1.)) )
        sim(nozzle)%pressure = v*v*sim(nozzle)%density/M**2/g
     endif
     ! Calculate the jet pressure

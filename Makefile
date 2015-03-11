@@ -13,3 +13,5 @@ Heat += Heat_fillnozzle.o\
 		ht_getValueAtPoint.o
 
 Grid += gr_markJet.o
+
+Particles += pt_getRandomPos.o

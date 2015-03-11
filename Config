@@ -1,8 +1,5 @@
-#		Configuration file for the Mach 3 wind tunnel with step
-#		problem (Emery, A. E., 1968, JCP, 2, 306; Woodward, P. and
-#		Colella, P., 1984, JCP, 54, 115)
+#		Configuration file for the MHD Jet simulation
 
-#REQUIRES Grid/GridBoundaryConditions/OneRow
 REQUIRES physics/Hydro/
 #REQUIRES physics/sourceTerms/Heat/
 REQUIRES physics/Eos/EosMain/Multigamma
@@ -12,6 +9,7 @@ REQUIRES Multispecies
 D   pAmbient        Initial ambient pressure
 D   rhoAmbient      Initial ambient density
 D	windVel			Inflow velocity (parallel to x-axis)
+D   gammaAmbient	Gamma of the ambient material
 
 PARAMETER sim_pAmbient		REAL	1.38065E-11	[0.0...]
 PARAMETER sim_rhoAmbient	REAL	1.67E-26	[0.0...]
@@ -25,6 +23,8 @@ PARAMETER sim_densityProfile STRING "uniform"	["uniform", "betacore"]
 
 D	powerJet		Power of the jet
 D	velJet			Velocity of the jet
+D	machJet			Mach number of the jet (inside the nozzle)
+D	outflowRatio	Ratio of the lateral outflow velocity to the jet velocity
 D	gammaJet		Gamma of the jet
 D	betaJet			Beta parameter of the jet (beta = P_gas / P_mag
 D	helicityJet		B_toroidal / B_poloidal ( = B_phi / B_z )
@@ -67,8 +67,30 @@ PARAMETER derefine_jetR		REAL	0.05		[0.0...]
 PARAMETER lrefine_0			INTEGER	5			[1...]
 
 
-# Enough NBOUNDARIES space for taking 12 blocks out of a 2d problem:
-#PPDEFINE NBOUNDARIES 16
+# Particles for synchrotron tracing
+PARTICLETYPE passive INITMETHOD custom MAPMETHOD quadratic ADVMETHOD custom
+REQUIRES Particles/ParticlesMain/passive
+
+#REQUESTS Particles/ParticlesMapping/meshWeighting/CIC
+REQUESTS IO/IOParticles
+REQUIRES Grid/GridParticles
+
+PARTICLEPROP TADD	REAL
+PARTICLEPROP DEN0	REAL
+PARTICLEPROP DENS	REAL
+PARTICLEPROP MAGX	REAL
+PARTICLEPROP MAGY	REAL
+PARTICLEPROP MAGZ	REAL
+PARTICLEPROP TAU	REAL
+PARTICLEPROP GAMC	REAL
+
+PARTICLEMAP TO DENS FROM VARIABLE dens
+PARTICLEMAP TO MAGX FROM VARIABLE magx
+PARTICLEMAP TO MAGY FROM VARIABLE magy
+PARTICLEMAP TO MAGZ FROM VARIABLE magz
+
+PARAMETER sim_ptInitNum		INTEGER	10			[0...]
+PARAMETER sim_ptAddPeriod	REAL	1E10		[0.0...]
 
 
 # Heat Source Term

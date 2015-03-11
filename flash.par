@@ -69,6 +69,13 @@ energyfix			 = .true.
 
 geometry = "cartesian"
 
+
+#	Particles parameters
+useParticles	= .true.
+sim_ptInitNumPt	= 10
+sim_ptAddPeriod = 1E10
+
+
 #		Size of computational volume
 
 Nblockx		= 4
