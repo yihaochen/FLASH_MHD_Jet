@@ -37,7 +37,6 @@ module Simulation_data
       real :: deltaP, deltaRho
       real :: rFeatherIn, rFeatherOut, rFeatherMix, zFeather, zFeatherMix
       real :: beta, helicity
-      !TODO: tOn, tOff
       real :: bphi, bz, tOn, tOff, timeMHDon
       real :: bzOld
       !real :: t0 = -1.0

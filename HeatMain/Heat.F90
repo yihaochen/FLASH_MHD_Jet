@@ -67,26 +67,29 @@ subroutine Heat (blockCount,blockList,dt,time)
   !endif
 
   !write(*,*) 'blockCount:', blockCount
-  do blkInd=1,blockCount
-     blockID = blockList(blkInd)
-     call Grid_getDeltas(blockID,del)
-     call Grid_getBlkIndexLimits(blockID,blkLimits,blkLimitsGC)
+  if (time.ge.sim(nozzle)%tOn .and. time.lt.sim(nozzle)%tOff) then
 
-     call Timers_start('Heat_fillnozzle')
-     call Heat_fillnozzle(blockID,dt,time)
-     call Timers_stop('Heat_fillnozzle')
+     do blkInd=1,blockCount
+        blockID = blockList(blkInd)
+        call Grid_getDeltas(blockID,del)
+        call Grid_getBlkIndexLimits(blockID,blkLimits,blkLimitsGC)
 
-  enddo
-  gcMask = .false.
-  gcMask(DENS_VAR) = .true.   
-  gcMask(PRES_VAR) = .true.   
-  gcMask(EINT_VAR) = .true.   
-  gcMask(ENER_VAR) = .true.   
-  gcMask(VELX_VAR:VELZ_VAR) = .true.
-  gcMask(JET_SPEC) = .true.   
-  gcMask(ISM_SPEC) = .true.   
-  call Grid_fillGuardCells(CENTER,ALLDIR,doEos=.true.,&
-       maskSize=NUNK_VARS,mask=gcMask)
+        call Timers_start('Heat_fillnozzle')
+        call Heat_fillnozzle(blockID,dt,time)
+        call Timers_stop('Heat_fillnozzle')
+
+     enddo
+     gcMask = .false.
+     gcMask(DENS_VAR) = .true.
+     gcMask(PRES_VAR) = .true.
+     gcMask(EINT_VAR) = .true.
+     gcMask(ENER_VAR) = .true.
+     gcMask(VELX_VAR:VELZ_VAR) = .true.
+     gcMask(JET_SPEC) = .true.
+     gcMask(ISM_SPEC) = .true.
+     call Grid_fillGuardCells(CENTER,ALLDIR,doEos=.true.,&
+          maskSize=NUNK_VARS,mask=gcMask)
+  endif
 
   return
 

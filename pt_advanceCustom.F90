@@ -43,7 +43,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   use Driver_data, ONLY : dr_simTime, dr_initialSimTime
   use Hydro_data, ONLY : hy_bref
   use Grid_interface, ONLY : Grid_mapMeshToParticles
-  use Simulation_data, ONLY : sim_ptAddPeriod
+  use Simulation_data, ONLY : sim_ptAddPeriod, sim
   
   implicit none
 
@@ -67,7 +67,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   integer,dimension(PART_ATTR_DS_SIZE, 4) :: pt_customAttrib
   integer      :: pt_newParticleNumAttrib=5
   integer,dimension(PART_ATTR_DS_SIZE, 5) :: pt_newParticleAttrib
-  integer              :: clock
+  integer              :: nozzle=1, clock
   integer,dimension(2) :: seed
   real  :: prob, rho13, A
   real, dimension(MDIM,1) ::  pos
@@ -177,40 +177,42 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
   enddo
 
-!!------------------------------------------------------------------------------
-  ! Add new particles stochastically
+  if (dr_simTime.ge.sim(nozzle)%tOn .and. dr_simTime.lt.sim(nozzle)%tOff) then
+     !!------------------------------------------------------------------------------
+     ! Add new particles stochastically when the jet is on
 
-  !write(*,'(i5, A28, i5)') pt_meshMe, 'Before addNew, pt_numLocal=', pt_numLocal
-  !write(*,'(i5, A28, i5)') pt_meshMe, 'Before addNew, p_count    =', p_count
-  call RANDOM_NUMBER(prob)
-  !write(*,'(i5, 2f9.5)') pt_meshMe, prob, 1.0/pt_meshNumProcs/sim_ptAddPeriod*dtNew
-  !write(*,'(i5, f9.5, es11.3)') pt_meshMe, prob, dtNew
-  if (prob .le. 1.0/pt_meshNumProcs/sim_ptAddPeriod*dtNew) then
-     call pt_getRandomPos(pos(:,1))
-     !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Adding a new particle at', pos(:,1)
-     call Particles_addNew(1, pos, addNewSuccess) 
-     if (addNewsuccess) then
-        !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Added a new particle at', pos(:,1)
+     !write(*,'(i5, A28, i5)') pt_meshMe, 'Before addNew, pt_numLocal=', pt_numLocal
+     !write(*,'(i5, A28, i5)') pt_meshMe, 'Before addNew, p_count    =', p_count
+     call RANDOM_NUMBER(prob)
+     !write(*,'(i5, 2f9.5)') pt_meshMe, prob, 1.0/pt_meshNumProcs/sim_ptAddPeriod*dtNew
+     !write(*,'(i5, f9.5, es11.3)') pt_meshMe, prob, dtNew
+     if (prob .le. 1.0/pt_meshNumProcs/sim_ptAddPeriod*dtNew) then
+        call pt_getRandomPos(pos(:,1))
+        !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Adding a new particle at', pos(:,1)
+        call Particles_addNew(1, pos, addNewSuccess)
+        if (addNewsuccess) then
+           !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Added a new particle at', pos(:,1)
+        end if
+     else
+         call Particles_addNew(0, pos, addNewSuccess)
      end if
-  else
-      call Particles_addNew(0, pos, addNewSuccess)
+
+     !write(*,'(i5, A28, i5)') pt_meshMe, 'After addNew, pt_numLocal=', pt_numLocal
+     !write(*,'(i5, A28, i5)') pt_meshMe, 'After addNew, p_count    =', p_count
+     do i = 1, pt_numLocal
+     ! if the particle is newly added, map the properties first
+        if (particles(DEN0_PART_PROP,i) .le. 0.0 ) then
+           call Grid_mapMeshToParticles(particles(:,i:i),&
+                part_props,BLK_PART_PROP, 1,&
+                pt_posAttrib,pt_newParticleNumAttrib,pt_newParticleAttrib,mapType)
+
+           A = 4.0/9.0*1.938486E-09*4.0*PI/hy_bref**2&
+               *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
+
+           particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + A*dtNew
+           particles(GAMC_PART_PROP,i) = 1.0 / particles(TAU_PART_PROP,i)
+        end if
+     enddo
   end if
-
-  !write(*,'(i5, A28, i5)') pt_meshMe, 'After addNew, pt_numLocal=', pt_numLocal
-  !write(*,'(i5, A28, i5)') pt_meshMe, 'After addNew, p_count    =', p_count
-  do i = 1, pt_numLocal
-  ! if the particle is newly added, map the properties first
-     if (particles(DEN0_PART_PROP,i) .le. 0.0 ) then
-        call Grid_mapMeshToParticles(particles(:,i:i),&
-             part_props,BLK_PART_PROP, 1,&
-             pt_posAttrib,pt_newParticleNumAttrib,pt_newParticleAttrib,mapType)
-
-        A = 4.0/9.0*1.938486E-09*4.0*PI/hy_bref**2&
-            *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
-            
-        particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + A*dtNew
-        particles(GAMC_PART_PROP,i) = 1.0 / particles(TAU_PART_PROP,i)
-     end if
-  enddo
   
 end subroutine pt_advanceCustom

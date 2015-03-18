@@ -507,7 +507,9 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
            halfTimeAdvance = .false.
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
 ! <- ychen 09-2014
-           call hy_uhd_electricNozzle(blockID,blkLimits,blkLimitsGC)
+           if (dr_simTime.ge.sim(nozzle)%tOn .and. dr_simTime.lt.sim(nozzle)%tOff) then
+              call hy_uhd_electricNozzle(blockID,blkLimits,blkLimitsGC)
+           endif
 ! ychen ->
            call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
         endif ! End of if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
@@ -553,7 +555,9 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
 ! <- ychen 09-2014
   !write(*,*) "*************** electricNozzle1 ***************"
-           call hy_uhd_electricNozzle(blockID,blkLimits,blkLimitsGC)
+           if (dr_simTime.ge.sim(nozzle)%tOn .and. dr_simTime.lt.sim(nozzle)%tOff) then
+              call hy_uhd_electricNozzle(blockID,blkLimits,blkLimitsGC)
+           endif
   !write(*,*) "*************** electricNozzle2 ***************"
 ! ychen ->
            !write(*,*) blockID, 'unsplit'

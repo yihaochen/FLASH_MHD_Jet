@@ -39,6 +39,8 @@ PARAMETER sim_gammaJet		REAL	1.6666
 PARAMETER sim_betaJet		REAL	100.0
 PARAMETER sim_helicityJet	REAL	1.0
 PARAMETER sim_timeMHDon		REAL	1.0E-11
+PARAMETER sim_tOn			REAL	0.0			[0.0...]
+PARAMETER sim_tOff			REAL	1.0E99		[0.0...]
 
 # Nozzle Geometry
 PARAMETER nozzleRadius		REAL	7.5E20		[0.0...]
