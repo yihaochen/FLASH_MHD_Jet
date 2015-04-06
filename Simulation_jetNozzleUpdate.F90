@@ -34,6 +34,7 @@ contains
 
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: time, dt
+    real, dimension(3) :: nutationVec
     real :: p, g, v, r, L, bf, M
 
     ! --------------------------------------------------------------------------
@@ -68,6 +69,9 @@ contains
     sim(nozzle)%bz = sqrt(2.0*sim(nozzle)%pressure/sim(nozzle)%beta/(1.0+sim(nozzle)%helicity**2))
     sim(nozzle)%bphi = sim(nozzle)%bz*sim(nozzle)%helicity
 
+
+    nutationVec = (/ sim(nozzle)%nutation, 0.0, 0.0 /)
+    sim(nozzle)%angVel = sim(nozzle)%angVel + cross(sim(nozzle)%nutation, sim(nozzle)%angVel)*dt
     ! --------------------------------------------------------------------------
     ! Update the jet nozzle position and direction according to the velocity and
     ! angular velocity.

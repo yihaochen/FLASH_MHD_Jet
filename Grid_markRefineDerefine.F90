@@ -123,8 +123,10 @@ subroutine Grid_markRefineDerefine()
   
 !<-- ychen
   do nozzle=1, NOZZLES 
+     ! Mark the jet using momentum criterion
      call gr_markJet(nozzle)
 
+     ! Mark the nozzle region (a sphere) for maximum refinement
      call Grid_markRefineSpecialized(INRADIUS, 4, (/ sim(nozzle)%pos(1), &
      sim(nozzle)%pos(2), sim(nozzle)%pos(3), &
      2.0*max(sim(nozzle)%radius, sim(nozzle)%length) /), lrefine_max )

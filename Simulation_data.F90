@@ -27,14 +27,14 @@ module Simulation_data
 #include "Simulation.h"
 
   TYPE nozzle_struct
-      real, dimension(3) :: pos, jetvec
+      real, dimension(3) :: pos, precvec, jetvec
       real, dimension(3) :: posOld, jetvecOld
       real, dimension(3) :: angVel, linVel
+      real :: nutation
       real :: radius, length, zTorInj, outflowR
       real :: derefine_z1, derefine_z2, refine_jetR, derefine_jetR
       integer :: lrefine_0
       real :: power, pressure, density, velocity, gamma, mach
-      real :: deltaP, deltaRho
       real :: rFeatherIn, rFeatherOut, rFeatherMix, zFeather, zFeatherMix
       real :: beta, helicity
       real :: bphi, bz, tOn, tOff, timeMHDon

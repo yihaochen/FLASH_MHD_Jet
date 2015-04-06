@@ -59,6 +59,7 @@ PARAMETER initGeometry		STRING	"cylindrical"	["cylindrical", "spherical"]
 PARAMETER nozzleAngVelX		REAL	0.0
 PARAMETER nozzleAngVelY		REAL	0.0
 PARAMETER nozzleAngVelZ		REAL	0.0
+PARAMETER nozzleNutation	REAL	0.0
 PARAMETER nozzleLinVelX		REAL	0.0
 PARAMETER nozzleLinVelY		REAL	0.0
 PARAMETER nozzleLinVelZ		REAL	0.0

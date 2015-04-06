@@ -87,6 +87,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('lrefine_0', sim(nozzle)%lrefine_0)
   call RuntimeParameters_get('sim_ptInitNum', sim_ptInitNum)
   call RuntimeParameters_get('sim_ptAddPeriod', sim_ptAddPeriod)
+  call RuntimeParameters_get('nozzleNutation', sim(nozzle)%nutation)
 
   if (dr_restart) then
      call IO_getScalar('nozzlePosX', sim(nozzle)%pos(1))
