@@ -37,7 +37,7 @@ module Simulation_data
       real :: power, pressure, density, velocity, gamma, mach
       real :: rFeatherIn, rFeatherOut, rFeatherMix, zFeather, zFeatherMix
       real :: beta, helicity
-      real :: bphi, bz, tOn, tOff, timeMHDon
+      real :: bphi, bz, tOn, duration, timeMHDon
       real :: bzOld
       !real :: t0 = -1.0
       !TODO: initGeometry -> sim_initGeometry

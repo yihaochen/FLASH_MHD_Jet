@@ -177,7 +177,8 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
   enddo
 
-  if (dr_simTime.ge.sim(nozzle)%tOn .and. dr_simTime.lt.sim(nozzle)%tOff) then
+  if (dr_simTime.ge.sim(nozzle)%tOn .and.&
+      dr_simTime.lt.(sim(nozzle)%tOn+sim(nozzle)%duration)) then
      !!------------------------------------------------------------------------------
      ! Add new particles stochastically when the jet is on
 

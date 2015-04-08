@@ -507,7 +507,8 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
            halfTimeAdvance = .false.
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
 ! <- ychen 09-2014
-           if (dr_simTime.ge.sim(nozzle)%tOn .and. dr_simTime.lt.sim(nozzle)%tOff) then
+           if (dr_simTime.ge.sim(nozzle)%tOn .and. &
+               dr_simTime.lt.(sim(nozzle)%tOn+sim(nozzle)%duration)) then
               call hy_uhd_electricNozzle(blockID,blkLimits,blkLimitsGC)
            endif
 ! ychen ->
@@ -555,7 +556,8 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
 ! <- ychen 09-2014
   !write(*,*) "*************** electricNozzle1 ***************"
-           if (dr_simTime.ge.sim(nozzle)%tOn .and. dr_simTime.lt.sim(nozzle)%tOff) then
+           if (dr_simTime.ge.sim(nozzle)%tOn .and.&
+               dr_simTime.lt.(sim(nozzle)%tOn+sim(nozzle)%duration)) then
               call hy_uhd_electricNozzle(blockID,blkLimits,blkLimitsGC)
            endif
   !write(*,*) "*************** electricNozzle2 ***************"

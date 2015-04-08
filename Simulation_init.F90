@@ -69,7 +69,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('sim_helicityJet', sim(nozzle)%helicity)
   call RuntimeParameters_get('sim_timeMHDon', sim(nozzle)%timeMHDon)
   call RuntimeParameters_get('sim_tOn', sim(nozzle)%tOn)
-  call RuntimeParameters_get('sim_tOff', sim(nozzle)%tOff)
+  call RuntimeParameters_get('sim_duration', sim(nozzle)%duration)
 
   call RuntimeParameters_get('nozzleRadius', sim(nozzle)%radius)
   call RuntimeParameters_get('nozzleHalfL', sim(nozzle)%length)

@@ -20,7 +20,7 @@ sim_betaJet		= 100.0
 sim_helicityJet = 1.0
 sim_timeMHDon	= 1.0E-11
 sim_tOn			= 0.0
-sim_tOff		= 1.0E99
+sim_duration	= 3.0E14
 
 #	Nozzle Geometry
 nozzleRadius = 7.5E20	# 3.1E21 cm ~ 1 kpc
