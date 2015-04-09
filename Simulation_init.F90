@@ -1,4 +1,4 @@
-!!****if* source/Simulation/SimulationMain/MHD_Jet/Simulation_init
+!!****if* source/Simulation/SimulationMain/magnetoHD/MHD_Jet/Simulation_init.F90
 !!
 !! NAME
 !!
@@ -42,6 +42,7 @@ subroutine Simulation_init()
 #include "Simulation.h"
 
   integer :: nozzle = 1
+  real :: maxPrecession
 
 
   call RuntimeParameters_get('smlrho', sim_smlrho)
@@ -70,7 +71,6 @@ subroutine Simulation_init()
   call RuntimeParameters_get('sim_timeMHDon', sim(nozzle)%timeMHDon)
   call RuntimeParameters_get('sim_tOn', sim(nozzle)%tOn)
   call RuntimeParameters_get('sim_duration', sim(nozzle)%duration)
-
   call RuntimeParameters_get('nozzleRadius', sim(nozzle)%radius)
   call RuntimeParameters_get('nozzleHalfL', sim(nozzle)%length)
   call RuntimeParameters_get('zTorInj', sim(nozzle)%zTorInj)
@@ -87,9 +87,30 @@ subroutine Simulation_init()
   call RuntimeParameters_get('lrefine_0', sim(nozzle)%lrefine_0)
   call RuntimeParameters_get('sim_ptInitNum', sim_ptInitNum)
   call RuntimeParameters_get('sim_ptAddPeriod', sim_ptAddPeriod)
+  call Runtimeparameters_get('nozzlePrecession', sim(nozzle)%precession)
+  maxPrecession = 0.2*sim(nozzle)%velocity/(1.0/sim(nozzle)%duration &
+                     *(sim(nozzle)%length+sim(nozzle)%zFeatherMix))
+
+  !if (dr_globalMe==MASTER_PE) then
+  !   write(*,'(A24,f8.3)') 'maxPrecession is', maxPrecession
+  !endif
+
+  if (sim(nozzle)%precession.gt.maxPrecession) then
+     sim(nozzle)%precession = maxPrecession
+     if (dr_globalMe==MASTER_PE) then
+        print*, '!!!!!!!!'
+        print*, 'Warning! nozzlePrecession is too large.'
+        write(*,'(A24,f8.3)') 'nozzlePrecession is now ', maxPrecession
+     endif
+  endif
+
   call RuntimeParameters_get('nozzleNutation', sim(nozzle)%nutation)
+  call Runtimeparameters_get('nozzlePrecAngle', sim(nozzle)%precangle)
 
   if (dr_restart) then
+     call IO_getScalar('coneVecX', sim(nozzle)%coneVec(1))
+     call IO_getScalar('coneVecY', sim(nozzle)%coneVec(2))
+     call IO_getScalar('coneVecZ', sim(nozzle)%coneVec(3))
      call IO_getScalar('nozzlePosX', sim(nozzle)%pos(1))
      call IO_getScalar('nozzlePosY', sim(nozzle)%pos(2))
      call IO_getScalar('nozzlePosZ', sim(nozzle)%pos(3))
@@ -110,6 +131,10 @@ subroutine Simulation_init()
 
   else
 
+     call RuntimeParameters_get('coneVecX', sim(nozzle)%coneVec(1))
+     call RuntimeParameters_get('coneVecY', sim(nozzle)%coneVec(2))
+     call RuntimeParameters_get('coneVecZ', sim(nozzle)%coneVec(3))
+     sim(nozzle)%coneVec = sim(nozzle)%coneVec/ sqrt(sum(sim(nozzle)%coneVec*sim(nozzle)%coneVec))
      call RuntimeParameters_get('nozzlePosX', sim(nozzle)%pos(1))
      call RuntimeParameters_get('nozzlePosY', sim(nozzle)%pos(2))
      call RuntimeParameters_get('nozzlePosZ', sim(nozzle)%pos(3))
@@ -117,9 +142,10 @@ subroutine Simulation_init()
      call RuntimeParameters_get('nozzleVecY', sim(nozzle)%jetvec(2))
      call RuntimeParameters_get('nozzleVecZ', sim(nozzle)%jetvec(3))
      sim(nozzle)%jetvec = sim(nozzle)%jetvec/ sqrt(sum(sim(nozzle)%jetvec*sim(nozzle)%jetvec))
-     call RuntimeParameters_get('nozzleAngVelX', sim(nozzle)%angVel(1))
-     call RuntimeParameters_get('nozzleAngVelY', sim(nozzle)%angVel(2))
-     call RuntimeParameters_get('nozzleAngVelZ', sim(nozzle)%angVel(3))
+     !call RuntimeParameters_get('nozzleAngVelX', sim(nozzle)%angVel(1))
+     !call RuntimeParameters_get('nozzleAngVelY', sim(nozzle)%angVel(2))
+     !call RuntimeParameters_get('nozzleAngVelZ', sim(nozzle)%angVel(3))
+     sim(nozzle)%angVel(:) = (/0.0, 0.0, 0.0/)
      call RuntimeParameters_get('nozzleLinVelX', sim(nozzle)%linVel(1))
      call RuntimeParameters_get('nozzleLinVelY', sim(nozzle)%linVel(2))
      call RuntimeParameters_get('nozzleLinVelZ', sim(nozzle)%linVel(3))

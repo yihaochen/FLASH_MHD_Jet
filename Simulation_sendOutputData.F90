@@ -26,6 +26,9 @@ subroutine Simulation_sendOutputData()
   
   integer :: nozzle = 1
 
+  call IO_setScalar('coneVecX', sim(nozzle)%coneVec(1))
+  call IO_setScalar('coneVecY', sim(nozzle)%coneVec(2))
+  call IO_setScalar('coneVecZ', sim(nozzle)%coneVec(3))
   call IO_setScalar('nozzlePosX', sim(nozzle)%pos(1))
   call IO_setScalar('nozzlePosY', sim(nozzle)%pos(2))
   call IO_setScalar('nozzlePosZ', sim(nozzle)%pos(3))

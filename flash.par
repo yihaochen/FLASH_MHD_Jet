@@ -31,11 +31,9 @@ nozzlePosZ   = 0.0
 nozzleVecX	 = 0.0
 nozzleVecY	 = 0.0
 nozzleVecZ	 = 1.0
-
-derefine_z1	 = 8.0
-derefine_z2	 = 24.0
-refine_jetR  = 0.1
-derefine_jetR= 0.01
+coneVecX	 = 0.0
+coneVecY	 = 0.0
+coneVecZ	 = 1.0
 
 zTorInj		 = 1.5E21
 rFeatherIn	 = 3.75E20
@@ -45,12 +43,18 @@ zFeather	 = 7.5E20
 initGeometry = "cylindrical"
 
 #	Nozzle motion
-nozzleAngVelX = 0.0
-nozzleAngVelY = 0.0
-nozzleAngVelZ = 0.0
+nozzlePrecession = 40
+nozzleNutation   = 80
+nozzlePrecAngle  = 0.2
 nozzleLinVelX = 0.0
 nozzleLinVelY = 0.0
 nozzleLinVelZ = 0.0
+
+#	Refinement Critiria
+derefine_z1	 = 8.0
+derefine_z2	 = 24.0
+refine_jetR  = 0.1
+derefine_jetR= 0.01
 
 
 smlrho  = 1E-30
@@ -74,7 +78,7 @@ geometry = "cartesian"
 
 #	Particles parameters
 useParticles	= .true.
-sim_ptInitNumPt	= 10
+sim_ptInitNum	= 10
 sim_ptAddPeriod = 1E10
 
 

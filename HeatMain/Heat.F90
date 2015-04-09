@@ -67,7 +67,7 @@ subroutine Heat (blockCount,blockList,dt,time)
   !endif
 
   !write(*,*) 'blockCount:', blockCount
-  if (time.ge.sim(nozzle)%tOn .and. time.lt.sim(nozzle)%tOn + sim(nozzle)%duration) then
+  if (time.ge.sim(nozzle)%tOn .and. time.lt.(sim(nozzle)%tOn+sim(nozzle)%duration)) then
 
      do blkInd=1,blockCount
         blockID = blockList(blkInd)

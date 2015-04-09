@@ -51,18 +51,27 @@ PARAMETER nozzlePosZ		REAL	0.0
 PARAMETER nozzleVecX		REAL	0.0
 PARAMETER nozzleVecY		REAL	0.0
 PARAMETER nozzleVecZ		REAL	1.0
+PARAMETER coneVecX		REAL	0.0
+PARAMETER coneVecY		REAL	0.0
+PARAMETER coneVecZ		REAL	1.0
 PARAMETER zTorInj			REAL	3.75E21
 PARAMETER rFeatherIn		REAL	3.75E20		[0.0...]
 PARAMETER rFeatherOut  		REAL	1.875E20	[0.0...]
 PARAMETER zFeather			REAL	7.5E20		[0.0...]
 PARAMETER initGeometry		STRING	"cylindrical"	["cylindrical", "spherical"]
-PARAMETER nozzleAngVelX		REAL	0.0
-PARAMETER nozzleAngVelY		REAL	0.0
-PARAMETER nozzleAngVelZ		REAL	0.0
-PARAMETER nozzleNutation	REAL	0.0
+
+# Nozzle motion
+#PARAMETER nozzleAngVelX		REAL	0.0
+#PARAMETER nozzleAngVelY		REAL	0.0
+#PARAMETER nozzleAngVelZ		REAL	0.0
+PARAMETER nozzleNutation	REAL	40.0			[0.0...]
+PARAMETER nozzlePrecession	REAL	80.0			[0.0...]
+PARAMETER nozzlePrecAngle	REAL	0.2			[0.0...]
 PARAMETER nozzleLinVelX		REAL	0.0
 PARAMETER nozzleLinVelY		REAL	0.0
 PARAMETER nozzleLinVelZ		REAL	0.0
+
+# Refinement Criteria
 PARAMETER derefine_z1		REAL	8.0			[0.0...]
 PARAMETER derefine_z2		REAL	24.0		[0.0...]
 PARAMETER refine_jetR		REAL	0.1			[0.0...]

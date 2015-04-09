@@ -138,5 +138,13 @@ Module Simulation_interface
      end subroutine Simulation_jetNozzleUpdate
   end interface
 
+  interface
+     subroutine Simulation_jiggle(nozzle, time, dt)
+       implicit none
+       integer, INTENT(in) :: nozzle
+       real, INTENT(in) :: time, dt
+     end subroutine Simulation_jiggle
+  end interface
+
 end Module Simulation_interface
 

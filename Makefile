@@ -1,6 +1,7 @@
 # additional files required by the jet problem
 
 Simulation += Simulation_data.o\
+			  Simulation_jiggle.o\
 			  Simulation_jetNozzleUpdate.o
 
 Hydro += hy_uhd_electricNozzle.o\

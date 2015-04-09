@@ -27,10 +27,10 @@ module Simulation_data
 #include "Simulation.h"
 
   TYPE nozzle_struct
-      real, dimension(3) :: pos, precvec, jetvec
+      real, dimension(3) :: pos, precvec, jetvec, coneVec 
       real, dimension(3) :: posOld, jetvecOld
       real, dimension(3) :: angVel, linVel
-      real :: nutation
+      real :: precession, nutation, precangle
       real :: radius, length, zTorInj, outflowR
       real :: derefine_z1, derefine_z2, refine_jetR, derefine_jetR
       integer :: lrefine_0

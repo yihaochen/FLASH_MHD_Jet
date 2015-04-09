@@ -29,6 +29,7 @@ contains
 #include "Simulation.h"
 
     use Simulation_data
+    use Simulation_interface, ONLY: Simulation_jiggle
 
     implicit none
 
@@ -38,7 +39,7 @@ contains
     real :: p, g, v, r, L, bf, M
 
     ! --------------------------------------------------------------------------
-    ! Update the hydro variables of the jet nozzle according to the wind-driven bubble solution.
+    ! Update the hydro variables of the jet nozzle (according to the wind-driven bubble solution.)
     g = sim(nozzle)%gamma
     v = sim(nozzle)%velocity
     r = sim(nozzle)%radius
@@ -70,16 +71,18 @@ contains
     sim(nozzle)%bphi = sim(nozzle)%bz*sim(nozzle)%helicity
 
 
-    nutationVec = (/ sim(nozzle)%nutation, 0.0, 0.0 /)
-    sim(nozzle)%angVel = sim(nozzle)%angVel + cross(sim(nozzle)%nutation, sim(nozzle)%angVel)*dt
     ! --------------------------------------------------------------------------
     ! Update the jet nozzle position and direction according to the velocity and
     ! angular velocity.
     sim(nozzle)%posOld = sim(nozzle)%pos
     sim(nozzle)%jetvecOld = sim(nozzle)%jetvec
 
+    if (dt.gt.0.0) then
+       call Simulation_jiggle(nozzle,  time, dt)
+    endif
+
     sim(nozzle)%pos = sim(nozzle)%pos + sim(nozzle)%linVel*dt
-    sim(nozzle)%jetvec = sim(nozzle)%jetvec + cross(sim(nozzle)%angVel, sim(nozzle)%jetvec)*dt
+    !sim(nozzle)%jetvec = sim(nozzle)%jetvec + cross(sim(nozzle)%angVel, sim(nozzle)%jetvec)*dt
 
   end subroutine sim_jetNozzleUpdate
 
