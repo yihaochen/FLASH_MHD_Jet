@@ -88,7 +88,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('sim_ptInitNum', sim_ptInitNum)
   call RuntimeParameters_get('sim_ptAddPeriod', sim_ptAddPeriod)
   call Runtimeparameters_get('nozzlePrecession', sim(nozzle)%precession)
-  maxPrecession = 0.2*sim(nozzle)%velocity/(1.0/sim(nozzle)%duration &
+  maxPrecession = 0.01*sim(nozzle)%velocity/(1.0/sim(nozzle)%duration &
                      *(sim(nozzle)%length+sim(nozzle)%zFeatherMix))
 
   !if (dr_globalMe==MASTER_PE) then

@@ -30,6 +30,7 @@ contains
 
     use Simulation_data
     use Simulation_interface, ONLY: Simulation_jiggle
+    use Timers_interface, ONLY : Timers_start, Timers_stop
 
     implicit none
 
@@ -78,7 +79,9 @@ contains
     sim(nozzle)%jetvecOld = sim(nozzle)%jetvec
 
     if (dt.gt.0.0) then
+       call Timers_start('Simulation_jiggle')
        call Simulation_jiggle(nozzle,  time, dt)
+       call Timers_stop('Simulation_jiggle')
     endif
 
     sim(nozzle)%pos = sim(nozzle)%pos + sim(nozzle)%linVel*dt
