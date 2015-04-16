@@ -59,8 +59,7 @@ subroutine pt_initPositions (blockID,success)
   integer       :: blockType,mapType
   !logical       :: IsInBlock,IsInSphere
   integer       :: part_props=NPART_PROPS
-  integer       :: nozzle=1, pt_customNumAttrib=5, clock
-  integer,dimension(2) :: seed
+  integer       :: nozzle=1, pt_customNumAttrib=5
   integer,dimension(PART_ATTR_DS_SIZE, 5) :: pt_customAttrib
 !----------------------------------------------------------------------
 
@@ -86,9 +85,6 @@ subroutine pt_initPositions (blockID,success)
   call Grid_getBlkCenterCoords(blockID, blockCenter)
   !call Grid_getDeltas(blockID, del)
 
-  call system_clock(count=clock)
-  seed = (/clock, pt_meshMe/)
-  call RANDOM_SEED(put = seed)
   do i = 1, sim_ptInitNum
      call pt_getRandomPos(pos)
 

@@ -41,9 +41,15 @@ subroutine Simulation_init()
 #include "Flash.h"
 #include "Simulation.h"
 
-  integer :: nozzle = 1
+  integer              :: nozzle=1, clock
+  integer,dimension(2) :: seed
   real :: maxPrecession
 
+
+  ! Initialize the random number generator
+  call system_clock(count=clock)
+  seed = (/clock, dr_globalMe/)
+  call RANDOM_SEED(put = seed)
 
   call RuntimeParameters_get('smlrho', sim_smlrho)
   call RuntimeParameters_get('smallp', sim_smallp)

@@ -67,8 +67,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   integer,dimension(PART_ATTR_DS_SIZE, 4) :: pt_customAttrib
   integer      :: pt_newParticleNumAttrib=5
   integer,dimension(PART_ATTR_DS_SIZE, 5) :: pt_newParticleAttrib
-  integer              :: nozzle=1, clock
-  integer,dimension(2) :: seed
+  integer              :: nozzle=1
   real  :: prob, rho13, A
   real, dimension(MDIM,1) ::  pos
   logical :: addNewSuccess

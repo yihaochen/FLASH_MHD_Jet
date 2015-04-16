@@ -103,7 +103,8 @@ subroutine Heat_fillnozzle (blockID,dt,time)
           call ht_getValueAtPoint(blockID, mixvec, del, mixData)
 
           vel = sim(nozzle)%velocity&
-                *0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
+                *( 0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
+                *(1.0-sim(nozzle)%outflowR)+sim(nozzle)%outflowR ) &
                 *sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
           voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
                     !*coshat(radius-0.5*(r2+2.0*bf), 0.5*(r2+bf), bf, 1.0)
