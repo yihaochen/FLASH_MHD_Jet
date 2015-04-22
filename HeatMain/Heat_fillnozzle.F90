@@ -76,7 +76,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   bf = sim(nozzle)%rFeatherOut
   r2 = sim(nozzle)%radius
   rout = r2 + bf
-  rmix = rout + sim(nozzle)%rFeatherMix;
+  rmix = rout + sim(nozzle)%rFeatherMix
 
   do k = blkLimits(LOW,KAXIS), blkLimits(HIGH,KAXIS)
    do j = blkLimits(LOW,JAXIS), blkLimits(HIGH,JAXIS)
@@ -94,6 +94,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
           !!endif
           facR = taperR(nozzle, radius, 1.0, 0.0, zero_center=.false.)
           facL = taperL(nozzle, length, 1.0, 0.0)
+          !facL = 1.0
           ! smooth transition from nozzle to flash grid
           ! 1.0 for nozzle injection; 0.0 for flash solution
 
@@ -103,9 +104,9 @@ subroutine Heat_fillnozzle (blockID,dt,time)
           call ht_getValueAtPoint(blockID, mixvec, del, mixData)
 
           vel = sim(nozzle)%velocity&
-                *( 0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
-                *(1.0-sim(nozzle)%outflowR)+sim(nozzle)%outflowR ) &
-                *sin(PI/2.0*min(abs(length),sim(nozzle)%length)*sig/sim(nozzle)%length)
+                !*(0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
+                !*(1.0-sim(nozzle)%outflowR)+sim(nozzle)%outflowR ) &
+                *sin(PI/2.0*min(abs(length),0.5*sim(nozzle)%length)*sig/sim(nozzle)%length/0.5)
           voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
                     !*coshat(radius-0.5*(r2+2.0*bf), 0.5*(r2+bf), bf, 1.0)
                     *0.5*(1.0+cos(PI*( max(-1.0, min(0.0,(radius-rout)/bf)) )))

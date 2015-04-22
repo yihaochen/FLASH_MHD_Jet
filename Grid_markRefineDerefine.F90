@@ -129,7 +129,7 @@ subroutine Grid_markRefineDerefine()
      ! Mark the nozzle region (a sphere) for maximum refinement
      call Grid_markRefineSpecialized(INRADIUS, 4, (/ sim(nozzle)%pos(1), &
      sim(nozzle)%pos(2), sim(nozzle)%pos(3), &
-     2.0*max(sim(nozzle)%radius, sim(nozzle)%length) /), lrefine_max )
+     3.0*max(sim(nozzle)%radius, sim(nozzle)%length) /), lrefine_max )
 
      !call gr_markCylinder(sim(nozzle)%pos, sim(nozzle)%jetvec,&
      !                     sim(nozzle)%radius, sim(nozzle)%length, lrefine_max)

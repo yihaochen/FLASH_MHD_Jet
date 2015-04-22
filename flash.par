@@ -14,6 +14,7 @@ sim_densityCoreR= 6.2E22
 sim_powerJet	= 1.0E45
 sim_velJet		= 3.0E9			# 3.0E9 = 0.1 c
 sim_machJet		= 20.0
+sim_initMachJet	= 5.0
 sim_outflowRatio= 0.01
 sim_gammaJet	= 1.6666
 sim_betaJet		= 100.0

@@ -275,10 +275,11 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
   call Timers_start('sim_jetNozzleUpdate')
   call sim_jetNozzleUpdate(nozzle, dr_simTime, dt)
   call Timers_stop('sim_jetNozzleUpdate')
-  !if (dr_globalMe==MASTER_PE .and. mod(dr_nStep,20)==0) then
-  !   write(*,'(a,2es11.3, f7.2)') '      (p, rho, M)=', &
-  !   sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach
-  !endif
+  if (dr_globalMe==MASTER_PE .and. mod(dr_nStep,20)==0) then
+     write(*,'(a,2es11.3, f7.2)') '      (p, rho, M)=', &
+     sim(nozzle)%pressure, sim(nozzle)%density,&
+     sim(nozzle)%velocity/sqrt(sim(nozzle)%gamma*sim(nozzle)%pressure/sim(nozzle)%density)
+  endif
 ! ychen ->
 
   do i=1,blockCount

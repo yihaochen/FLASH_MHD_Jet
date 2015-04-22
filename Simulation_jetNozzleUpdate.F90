@@ -37,23 +37,30 @@ contains
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: time, dt
     real, dimension(3) :: nutationVec
-    real :: p, g, v, r, L, bf, M
+    real :: p, g, v, r, L, bf, M, t1
 
     ! --------------------------------------------------------------------------
     ! Update the hydro variables of the jet nozzle (according to the wind-driven bubble solution.)
     g = sim(nozzle)%gamma
     v = sim(nozzle)%velocity
-    r = sim(nozzle)%radius
-    bf= sim(nozzle)%rFeatherOut
+    r = sim(nozzle)%radius + sim(nozzle)%rFeatherOut
+    bf= sim(nozzle)%rFeatherMix
     L = sim(nozzle)%power
-    M = sim(nozzle)%mach
 
-    if (sim(nozzle)%density < 0.0) then
+    t1 = sim(nozzle)%duration/100.0
+    !M = sim(nozzle)%mach
+    M = sim(nozzle)%initMach + (sim(nozzle)%mach-sim(nozzle)%initMach)&
+        *cos(PI*( max(-0.5, min(0.0, 0.5*(time-sim(nozzle)%tOn-t1)/t1))))
+
+
+    !if (sim(nozzle)%density < 0.0) then
        !sim(nozzle)%t0 = (r**2*PI*2*v)**1.25*(sim_rhoAmbient*g/(g-1)/L)**0.75*0.227082
+    if (time .lt. sim(nozzle)%tOn+t1) then
        sim(nozzle)%density = 0.5*L/PI/v**3/( 0.5*r*r*(1.+1./M**2/(g-1.)) + r*bf*(0.3125+1./M**2/(g-1.)) &
                              + bf*bf*(0.06056+0.29736/M**2/(g-1.)) )
        sim(nozzle)%pressure = v*v*sim(nozzle)%density/M**2/g
     endif
+    !endif
     ! Calculate the jet pressure
 
 

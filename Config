@@ -34,6 +34,7 @@ D	timeMHDon		Time when the magnetic fields are turned on
 PARAMETER sim_powerJet		REAL    1.0E45
 PARAMETER sim_velJet		REAL	3.0E9
 PARAMETER sim_machJet		REAL	20.0		[0.0...]
+PARAMETER sim_initMachJet	REAL	20.0		[0.0...]
 PARAMETER sim_outflowRatio	REAL	0.01		[0.0...1.0]
 PARAMETER sim_gammaJet		REAL	1.6666
 PARAMETER sim_betaJet		REAL	100.0

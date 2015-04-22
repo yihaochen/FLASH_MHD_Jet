@@ -85,6 +85,7 @@ subroutine ht_getValueAtPoint (blockID, pointvec, del, varData)
   !write (*,'(a, 3f11.3)') 'xyzd= ', xd, yd, zd
 
 
+  ! Interpolation
   c00(:) = solnData(:,i0,j0,k0)*(1.-xd) + solnData(:,i1,j0,k0)*xd
   c10(:) = solnData(:,i0,j1,k0)*(1.-xd) + solnData(:,i1,j1,k0)*xd
   c01(:) = solnData(:,i0,j0,k1)*(1.-xd) + solnData(:,i1,j0,k1)*xd

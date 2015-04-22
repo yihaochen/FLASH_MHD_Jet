@@ -70,6 +70,7 @@ subroutine Simulation_init()
   !call RuntimeParameters_get('sim_rhoJet', sim(nozzle)%density)
   call RuntimeParameters_get('sim_velJet', sim(nozzle)%velocity)
   call RuntimeParameters_get('sim_machJet', sim(nozzle)%mach)
+  call RuntimeParameters_get('sim_initMachJet', sim(nozzle)%initMach)
   call RuntimeParameters_get('sim_outflowRatio', sim(nozzle)%outflowR)
   call RuntimeParameters_get('sim_gammaJet', sim(nozzle)%gamma)
   call RuntimeParameters_get('sim_betaJet', sim(nozzle)%beta)
@@ -170,7 +171,9 @@ subroutine Simulation_init()
   if (dr_globalMe==MASTER_PE) then
      !write(*,'(a, es11.3)') 't0:', sim(nozzle)%t0
      write(*,'(a, 2es11.3, f7.2)') '(p, rho, M)=', &
-     sim(nozzle)%pressure, sim(nozzle)%density, sim(nozzle)%mach
+     sim(nozzle)%pressure, sim(nozzle)%density, &
+     sim(nozzle)%velocity/sqrt(sim(nozzle)%gamma*sim(nozzle)%pressure/sim(nozzle)%density)
+
      write(*,'(a, 2es11.3)') '(bz, bphi)=', sim(nozzle)%bz, sim(nozzle)%bphi
      write(*,'(a, es11.3)') 'rFeatherOut:' , sim(nozzle)%rFeatherOut
      write(*,'(a, es11.3)') 'rFeatherMix:' , sim(nozzle)%rFeatherMix
