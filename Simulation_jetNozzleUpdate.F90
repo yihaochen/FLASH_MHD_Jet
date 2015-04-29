@@ -43,8 +43,8 @@ contains
     ! Update the hydro variables of the jet nozzle (according to the wind-driven bubble solution.)
     g = sim(nozzle)%gamma
     v = sim(nozzle)%velocity
-    r = sim(nozzle)%radius + sim(nozzle)%rFeatherOut
-    bf= sim(nozzle)%rFeatherMix
+    r = sim(nozzle)%radius
+    bf= sim(nozzle)%rFeatherOut
     L = sim(nozzle)%power
 
     t1 = sim(nozzle)%duration/100.0

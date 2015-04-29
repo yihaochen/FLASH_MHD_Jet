@@ -154,7 +154,8 @@ Subroutine hy_uhd_electricNozzle(blockID, blkLimits, blkLimitsGC)
            ! dB = - (curl E) * dt
            ! ( dA/dt = -E )
            
-           ! The mixing factors are included in torvec and advect.
+           ! The mixing factors are included in torvec and advect 
+           ! (i.e. in Ar, Az, and Aphi, see hy_uhd_getA.F90).
            E(xyz,i,j,k) = E(xyz,i,j,k)*Efac + torvec(xyz) + advect(xyz)
            
         endif

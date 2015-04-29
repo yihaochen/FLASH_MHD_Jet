@@ -147,8 +147,8 @@ subroutine Simulation_initBlock(blockID)
            .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
           fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
           vel = sim(nozzle)%velocity&
-                !*(0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
-                !*(1.0-sim(nozzle)%outflowR)+sim(nozzle)%outflowR ) &
+                *(0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
+                *(1.0-sim(nozzle)%outflowR)+sim(nozzle)%outflowR ) &
                 *sin(PI/2.0*min(abs(length),0.5*sim(nozzle)%length)*sig/sim(nozzle)%length/0.5)
           voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
                     !*coshat(radius-0.5*(r2+2.0*bf), 0.5*(r2+bf), bf, 1.0)

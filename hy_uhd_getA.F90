@@ -151,6 +151,7 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
       rpol = r4+bf
       c4 = (0.25*r4**2 + c3)*(2.0*PI**2/bf) - bf
 
+      ! Toroidal field
       if (r>=0.0 .and. r<r1) then
         Az = r**4/(2*r1**3) - r**3/r1**2 + 0.5*(-r1+routTor+r2Tor)
       else if (r>=r1 .and. r<r2Tor) then
@@ -161,6 +162,7 @@ Subroutine hy_uhd_getA(nozzle,r,z,phi,Ar,Az,Aphi)
         Az = 0.0
       endif
 
+      ! Poloidal field
       if (r>=0.0 .and. r<r2) then
         Aphi = 0.5*bz0*r
       else if (r>=r2 .and. r<rout) then

@@ -41,7 +41,7 @@ rFeatherIn	 = 3.75E20
 rFeatherOut  = 1.875E20
 zFeather	 = 7.5E20
 
-initGeometry = "cylindrical"
+initGeometry = "spherical"
 
 #	Nozzle motion
 nozzlePrecession = 40
