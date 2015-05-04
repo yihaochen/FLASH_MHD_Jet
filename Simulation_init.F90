@@ -41,15 +41,14 @@ subroutine Simulation_init()
 #include "Flash.h"
 #include "Simulation.h"
 
-  integer              :: nozzle=1, clock
-  integer,dimension(2) :: seed
+  integer              :: nozzle=1
+  integer,dimension(1) :: seed
   real :: maxPrecession
 
 
   ! Initialize the random number generator
-  call system_clock(count=clock)
-  seed = (/clock, dr_globalMe/)
-  call RANDOM_SEED(put = seed)
+  !call system_clock(count=clock)
+  !seed = (/clock, dr_globalMe/)
 
   call RuntimeParameters_get('smlrho', sim_smlrho)
   call RuntimeParameters_get('smallp', sim_smallp)
@@ -135,6 +134,9 @@ subroutine Simulation_init()
      call IO_getScalar('nozzleBz', sim(nozzle)%bz)
      call IO_getScalar('nozzleBphi', sim(nozzle)%bphi)
      !call IO_getScalar('nozzlet0', sim(nozzle)%t0)
+     call IO_getScalar('randomSeed', seed(1))
+     call RANDOM_SEED(put=seed)
+
 
   else
 
@@ -158,6 +160,8 @@ subroutine Simulation_init()
      call RuntimeParameters_get('nozzleLinVelZ', sim(nozzle)%linVel(3))
      sim(nozzle)%density = -1.0
      call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dt)
+     call RuntimeParameters_get('randomSeed', seed(1))
+     call RANDOM_SEED(put=seed)
 
      if (sim(nozzle)%zTorInj < sim(nozzle)%length+1.5*sim(nozzle)%zFeather .and.&
         dr_globalMe==MASTER_PE) then

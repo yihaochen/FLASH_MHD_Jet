@@ -57,6 +57,7 @@ derefine_z2	 = 24.0
 refine_jetR  = 0.1
 derefine_jetR= 0.01
 
+randomSeed = 6511
 
 smlrho  = 1E-30
 smallp  = 1E-14

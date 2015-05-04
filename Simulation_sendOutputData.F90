@@ -25,6 +25,7 @@ subroutine Simulation_sendOutputData()
 #include "Simulation.h"
   
   integer :: nozzle = 1
+  integer, DIMENSION(1) :: seed
 
   call IO_setScalar('coneVecX', sim(nozzle)%coneVec(1))
   call IO_setScalar('coneVecY', sim(nozzle)%coneVec(2))
@@ -45,6 +46,8 @@ subroutine Simulation_sendOutputData()
   call IO_setScalar('nozzleDensity', sim(nozzle)%density)
   call IO_setScalar('nozzleBz', sim(nozzle)%bz)
   call IO_setScalar('nozzleBphi', sim(nozzle)%bphi)
+  call RANDOM_SEED(get=seed)
+  call IO_setScalar('randomSeed', seed(1))
   !call IO_setScalar('nozzlet0', sim(nozzle)%t0)
   
 

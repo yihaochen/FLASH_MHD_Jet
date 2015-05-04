@@ -11,6 +11,7 @@ D   rhoAmbient      Initial ambient density
 D	windVel			Inflow velocity (parallel to x-axis)
 D   gammaAmbient	Gamma of the ambient material
 
+# Background Properties
 PARAMETER sim_pAmbient		REAL	1.38065E-11	[0.0...]
 PARAMETER sim_rhoAmbient	REAL	1.67E-26	[0.0...]
 PARAMETER sim_windVel		REAL	0.0
@@ -19,7 +20,6 @@ PARAMETER sim_bzAmbient		REAL	0.0
 PARAMETER sim_densityBeta	REAL	2.0
 PARAMETER sim_densityCoreR	REAL	6.2E23		[0.0...]
 PARAMETER sim_densityProfile STRING "uniform"	["uniform", "betacore"]
-
 
 D	powerJet		Power of the jet
 D	velJet			Velocity of the jet
@@ -79,6 +79,8 @@ PARAMETER refine_jetR		REAL	0.1			[0.0...]
 PARAMETER derefine_jetR		REAL	0.05		[0.0...]
 PARAMETER lrefine_0			INTEGER	5			[1...]
 
+# Random number generator seed
+PARAMETER randomSeed		INTEGER 6511		[0...]
 
 # Particles for synchrotron tracing
 PARTICLETYPE passive INITMETHOD custom MAPMETHOD quadratic ADVMETHOD custom

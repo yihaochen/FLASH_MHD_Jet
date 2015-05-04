@@ -9,6 +9,7 @@ subroutine pt_getRandomPos(pos)
 
 #include "constants.h"  
 #include "Flash.h"
+#include "Flash_mpi.h"
 #include "Particles.h"
 
   !real, dimension(MDIM), INTENT(IN) :: del
@@ -16,15 +17,18 @@ subroutine pt_getRandomPos(pos)
   real, dimension(MDIM), INTENT(OUT) :: pos
   real, dimension(MDIM) :: rxvec, ryvec
   real          :: r, theta, z
-  integer       :: nozzle=1
+  integer       :: nozzle=1, ierr
 
   rxvec = cross(sim(nozzle)%jetvec, (/ 0.0, sim_smallx, 1.0 /))
   rxvec = rxvec / sqrt(sum(rxvec(:)*rxvec(:)))
   ryvec = cross(sim(nozzle)%jetvec, rxvec)
 
   call RANDOM_NUMBER(r)
+  call MPI_Bcast(r,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
   call RANDOM_NUMBER(theta)
+  call MPI_Bcast(theta,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
   call RANDOM_NUMBER(z)
+  call MPI_Bcast(z,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
   
   ! take square root of r to ensure uniform random distribution on the disk
   r = sqrt(r)*(sim(nozzle)%radius+sim(nozzle)%rFeatherOut)

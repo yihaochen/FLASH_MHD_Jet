@@ -41,7 +41,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
     real, dimension(3) :: phihat,thetahat, jprime, jetaxis
     real, save :: thetajet, phijet
     real :: vphi, vtheta, dv, sigma, rn, psi, dummyn
-    integer :: ierr, intdummy
+    integer :: ierr
     logical, save :: first_call=.true.
     real :: svr, radius, f, wigglerad
     real, dimension(3) :: rvec, vr
