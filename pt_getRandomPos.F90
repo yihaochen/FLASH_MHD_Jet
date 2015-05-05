@@ -1,6 +1,6 @@
 
 
-subroutine pt_getRandomPos(pos)
+subroutine pt_getRandomPos(nAdd, pos)
 
   use Particles_data, ONLY : pt_meshMe
   use Simulation_data, ONLY : sim, sim_smallx, cross
@@ -14,34 +14,37 @@ subroutine pt_getRandomPos(pos)
 
   !real, dimension(MDIM), INTENT(IN) :: del
   real :: del=0.01
-  real, dimension(MDIM), INTENT(OUT) :: pos
+  integer, INTENT(IN)   :: nAdd
+  real, dimension(MDIM,nAdd), INTENT(OUT) :: pos
   real, dimension(MDIM) :: rxvec, ryvec
   real          :: r, theta, z
-  integer       :: nozzle=1, ierr
+  integer       :: i, nozzle=1, ierr
 
   rxvec = cross(sim(nozzle)%jetvec, (/ 0.0, sim_smallx, 1.0 /))
   rxvec = rxvec / sqrt(sum(rxvec(:)*rxvec(:)))
   ryvec = cross(sim(nozzle)%jetvec, rxvec)
 
-  call RANDOM_NUMBER(r)
-  call MPI_Bcast(r,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
-  call RANDOM_NUMBER(theta)
-  call MPI_Bcast(theta,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
-  call RANDOM_NUMBER(z)
-  call MPI_Bcast(z,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
-  
-  ! take square root of r to ensure uniform random distribution on the disk
-  r = sqrt(r)*(sim(nozzle)%radius+sim(nozzle)%rFeatherOut)
-  theta = theta*2.0*PI
-  z = z - 0.5
-  if (z .lt. 0.0) then
-      z = (-1.0+z*del)*sim(nozzle)%length
-  else
-      z = ( 1.0+z*del)*sim(nozzle)%length
-  endif
+  do i = 1, nAdd
+     call RANDOM_NUMBER(r)
+     call RANDOM_NUMBER(theta)
+     call RANDOM_NUMBER(z)
+     !call MPI_Bcast(r,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
+     !call MPI_Bcast(theta,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
+     !call MPI_Bcast(z,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
+     
+     ! take square root of r to ensure uniform random distribution on the disk
+     r = sqrt(r)*(sim(nozzle)%radius+sim(nozzle)%rFeatherOut)
+     theta = theta*2.0*PI
+     z = z - 0.5
+     if (z .lt. 0.0) then
+         z = (-1.0+z*del)*sim(nozzle)%length
+     else
+         z = ( 1.0+z*del)*sim(nozzle)%length
+     endif
 
-  pos = sim(nozzle)%pos &
-        + sim(nozzle)%jetvec*z&
-        + r*(rxvec*cos(theta) + ryvec*sin(theta))
+     pos(:,i) = sim(nozzle)%pos &
+                + sim(nozzle)%jetvec*z&
+                + r*(rxvec*cos(theta) + ryvec*sin(theta))
+  enddo
 
 end subroutine pt_getRandomPos

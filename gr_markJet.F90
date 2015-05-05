@@ -45,7 +45,7 @@ subroutine gr_markJet(nozzle)
 ! Local data
 
   real, dimension(MDIM) :: blockCenter, blockSize
-  integer               :: b, lrefine_0
+  integer               :: b, lrefine_0, blk_resolution
   integer,dimension(2,MDIM) :: blkLimits,blkLimitsGC
 
   real :: radius, length, sig, distance, theta, vel, fac, pmax
@@ -54,54 +54,82 @@ subroutine gr_markJet(nozzle)
 
   lrefine_0 = sim(nozzle)%lrefine_0
 
+  blk_resolution = 64
   if((gr_geometry == CARTESIAN)) then
      do b = 1, lnblocks
         if(nodetype(b) == LEAF) then
            blockCenter(:) = coord(:,b)
+           ! block size after refinement
            blockSize(:) = 0.5*bsize(:,b)
 
-           call Grid_getBlkIndexLimits(b,blkLimits,blkLimitsGC)
-           call Grid_getBlkPtr(b, solnDataGC, CENTER)
-           ! Exclude the guard cells
-           solnData => solnDataGC(:, blkLimits(LOW ,IAXIS):blkLimits(HIGH,IAXIS),&
-                                     blkLimits(LOW ,JAXIS):blkLimits(HIGH,JAXIS),&
-                                     blkLimits(LOW ,KAXIS):blkLimits(HIGH,KAXIS) )
-           call Grid_releaseBlkPtr(b, solnDataGC, CENTER)
-           pmax = maxval(solnData(JET_SPEC,:,:,:)*solnData(DENS_VAR,:,:,:)*&
-                         abs(solnData(VELX_VAR,:,:,:)*jetvec(1)+&
-                             solnData(VELY_VAR,:,:,:)*jetvec(2)+&
-                             solnData(VELZ_VAR,:,:,:)*jetvec(3)) )
+           !call hy_uhd_jetNozzleGeometry(nozzle,blockCenter,radius,length,distance,&
+           !                              sig,theta,jetvec,rvec,plnvec,phivec)
 
-           call hy_uhd_jetNozzleGeometry(nozzle,blockCenter,radius,length,distance,&
-                                         sig,theta,jetvec,rvec,plnvec,phivec)
+           length = sum( sim(nozzle)%coneVec(:)&
+                         *( blockCenter(:) - sim(nozzle)%pos(:) ))
+           radius = sqrt(sum( (blockCenter(:) - sim(nozzle)%pos(:) &
+                               - length*sim(nozzle)%coneVec)**2 ))
 
+           if ( abs(length)/maxval(blockSize) > blk_resolution ) then
+              if (lrefine(b) > 1 ) then
+                 refine(b)   = .false.
+                 derefine(b) = .true.
+              else
+                 refine(b) = .false.
+              endif
+           else if ( abs(length)/maxval(blockSize) > blk_resolution/2 ) then
+              refine(b) = .false.
+           endif
+           if ( radius/maxval(blockSize) > blk_resolution/2 ) then
+              if (lrefine(b) > 1 ) then
+                 refine(b)   = .false.
+                 derefine(b) = .true.
+              else
+                 refine(b) = .false.
+              endif
+           else if ( radius/maxval(blockSize) > blk_resolution/4 ) then
+              refine(b) = .false.
+           endif
            ! Decrease the maximum refine level when away from the nozzle
-           if (abs(length) < sim(nozzle)%derefine_z1*sim(nozzle)%length) then
+           !if (abs(length) < sim(nozzle)%derefine_z1*sim(nozzle)%length) then
               if (lrefine(b) > lrefine_0 ) then
                  refine(b)   = .false.
                  derefine(b) = .true.
               else if (lrefine(b) == lrefine_0) then
                  refine(b) = .false.
               endif
-           endif
-           if (abs(length) >= sim(nozzle)%derefine_z1*sim(nozzle)%length) then
-              if (lrefine(b) >= lrefine_0 ) then
-                 refine(b)   = .false.
-                 derefine(b) = .true.
-              else if (lrefine(b) == lrefine_0-1) then
-                 refine(b) = .false.
-              endif
-           endif
+           !endif
+           !if (abs(length) >= sim(nozzle)%derefine_z1*sim(nozzle)%length) then
+           !   if (lrefine(b) >= lrefine_0 ) then
+           !      refine(b)   = .false.
+           !      derefine(b) = .true.
+           !   else if (lrefine(b) == lrefine_0-1) then
+           !      refine(b) = .false.
+           !   endif
+           !endif
 
-           if (abs(length) >= sim(nozzle)%derefine_z2*sim(nozzle)%length) then
-              if (lrefine(b) >= lrefine_0-1 ) then
-                 refine(b)   = .false.
-                 derefine(b) = .true.
-              else if (lrefine(b) == lrefine_0-2) then
-                 refine(b) = .false.
-              endif
-           endif
+           !if (abs(length) >= sim(nozzle)%derefine_z2*sim(nozzle)%length) then
+           !   if (lrefine(b) >= lrefine_0-1 ) then
+           !      refine(b)   = .false.
+           !      derefine(b) = .true.
+           !   else if (lrefine(b) == lrefine_0-2) then
+           !      refine(b) = .false.
+           !   endif
+           !endif
            
+
+           ! Calculate the maximum jet momentum in the block
+           call Grid_getBlkIndexLimits(b,blkLimits,blkLimitsGC)
+           call Grid_getBlkPtr(b, solnDataGC, CENTER)
+           ! Exclude the guard cells!
+           solnData => solnDataGC(:, blkLimits(LOW ,IAXIS):blkLimits(HIGH,IAXIS),&
+                                     blkLimits(LOW ,JAXIS):blkLimits(HIGH,JAXIS),&
+                                     blkLimits(LOW ,KAXIS):blkLimits(HIGH,KAXIS) )
+           call Grid_releaseBlkPtr(b, solnDataGC, CENTER)
+           pmax = maxval(solnData(JET_SPEC,:,:,:)*solnData(DENS_VAR,:,:,:)*&
+                         abs(solnData(VELX_VAR,:,:,:)*sim(nozzle)%coneVec(1)+&
+                             solnData(VELY_VAR,:,:,:)*sim(nozzle)%coneVec(2)+&
+                             solnData(VELZ_VAR,:,:,:)*sim(nozzle)%coneVec(3)) )
 
            ! Force maximum refine level for the jet using momentum
            if (pmax >= sim(nozzle)%refine_jetR*sim(nozzle)%velocity*sim(nozzle)%density) then

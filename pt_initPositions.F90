@@ -92,7 +92,7 @@ subroutine pt_initPositions (blockID,success)
      isInBlock = (maxval(abs(pos-blockCenter) - 0.5*blockSize) < 0.0)
      !write(*,'(4es11.3)') maxval(abs(pos-blockCenter)), blockSize
      ! If it is, keep it; otherwise discard it.
-      if (IsInBlock) then
+     if (IsInBlock) then
         pt_ind = pt_ind + 1
         particles(BLK_PART_PROP,pt_ind) = real(blockID)
         particles(PROC_PART_PROP,pt_ind) = real(pt_meshMe)
@@ -104,7 +104,7 @@ subroutine pt_initPositions (blockID,success)
         !particles(VELY_PART_PROP,pt_ind)  = 0.0
         !print *, "pt_initPositions, particle pos are ", particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind) 
         !write(*,'(3i4, 3es11.3)') pt_meshMe, pt_ind,i, pos
-      endif
+     endif
 
 
 

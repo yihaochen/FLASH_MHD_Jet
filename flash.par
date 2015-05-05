@@ -1,8 +1,8 @@
 #	Parameters for initial model
 #	Ambient pressure and density and inflow velocity.
 
-sim_pAmbient	= 1.38065E-11	# erg/cm3 for 10^4 K gas
-sim_rhoAmbient	= 1.67E-26		# g/cm3 = N particles/cm3 * 1.67E-24
+sim_pAmbient	= 4.0E-10		# erg/cm3
+sim_rhoAmbient	= 8.3E-26		# g/cm3 = N particles/cm3 * 1.67E-24
 sim_windVel     = 0.0
 sim_gammaAmbient = 1.6666
 sim_bzAmbient	= 0.0 #1.8623E-6

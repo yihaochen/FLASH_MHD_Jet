@@ -38,9 +38,9 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   use Particles_data, ONLY: pt_numLocal, pt_maxPerProc, &
        useParticles, pt_typeInfo, &
        pt_gcMaskForAdvance, pt_gcMaskSizeForAdvance, pt_meshMe, &
-       pt_posAttrib, pt_velNumAttrib,pt_velAttrib
+       pt_posAttrib, pt_velNumAttrib,pt_velAttrib, pt_meshNumProcs
 
-  use Driver_data, ONLY : dr_simTime, dr_initialSimTime
+  use Driver_data, ONLY : dr_simTime, dr_initialSimTime, dr_globalMe
   use Hydro_data, ONLY : hy_bref
   use Grid_interface, ONLY : Grid_mapMeshToParticles
   use Simulation_data, ONLY : sim_ptAddPeriod, sim
@@ -58,7 +58,6 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
   integer       :: i,particleTypes
   
-  integer,dimension(MAXBLOCKS, 1) :: perBlk
   real          :: jumpx,jumpy,jumpz
   real,allocatable :: origVel(:,:)
   integer :: part_props=NPART_PROPS
@@ -68,7 +67,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   integer,dimension(PART_ATTR_DS_SIZE, 4) :: pt_customAttrib
   integer      :: pt_newParticleNumAttrib=5
   integer,dimension(PART_ATTR_DS_SIZE, 5) :: pt_newParticleAttrib
-  integer      :: nozzle=1, ierr
+  integer      :: nozzle=1, ierr, nAdd
   real         :: prob, rho13, A
   real, dimension(MDIM,1) ::  pos
   logical      :: addNewSuccess
@@ -114,8 +113,8 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
         if(NDIM >2) then
            jumpz = dtNew * particles(VELZ_PART_PROP,i)
            particles(POSZ_PART_PROP,i) = particles(POSZ_PART_PROP,i) + jumpz
-        end if
-     end if
+        endif
+     endif
 
   enddo
 
@@ -184,20 +183,30 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
      !write(*,'(i5, A28, i5)') pt_meshMe, 'Before addNew, pt_numLocal=', pt_numLocal
      !write(*,'(i5, A28, i5)') pt_meshMe, 'Before addNew, p_count    =', p_count
-     call RANDOM_NUMBER(prob)
-     call MPI_Bcast(prob,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
-     !write(*,'(i5, 2f9.5)') pt_meshMe, prob, 1.0/pt_meshNumProcs/sim_ptAddPeriod*dtNew
-     !write(*,'(i5, f9.5, es11.3)') pt_meshMe, prob, dtNew
-     if (prob .le. 1.0/sim_ptAddPeriod*dtNew) then
-        call pt_getRandomPos(pos(:,1))
-        !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Adding a new particle at', pos(:,1)
-        call Particles_addNew(1, pos, addNewSuccess)
-        if (addNewsuccess) then
-           !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Added a new particle at', pos(:,1)
-        end if
+     if (dr_globalMe==MASTER_PE) then
+
+        call RANDOM_NUMBER(prob)
+        !call MPI_Bcast(prob,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
+
+        !write(*,'(i5, 2f9.5)') pt_meshMe, prob, 1.0/sim_ptAddPeriod*dtNew
+        !write(*,'(i5, f9.5, es11.3)') pt_meshMe, prob, dtNew
+        nAdd = int(1.0/sim_ptAddPeriod*dtNew)
+        if (prob .le. 1.0/sim_ptAddPeriod*dtNew-nAdd) then
+           nAdd = nAdd+1
+        endif
+        if (nAdd .gt. 0) then
+           call pt_getRandomPos(nAdd, pos)
+           !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Adding a new particle at', pos(:,1)
+           call Particles_addNew(nAdd, pos, addNewSuccess)
+           !if (addNewsuccess) then
+           !   write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Added a new particle at', pos(:,1)
+           !endif
+        else
+            call Particles_addNew(0, pos, addNewSuccess)
+        endif
      else
-         call Particles_addNew(0, pos, addNewSuccess)
-     end if
+        call Particles_addNew(0, pos, addNewSuccess)
+     endif
 
      !write(*,'(i5, A28, i5)') pt_meshMe, 'After addNew, pt_numLocal=', pt_numLocal
      !write(*,'(i5, A28, i5)') pt_meshMe, 'After addNew, p_count    =', p_count
@@ -213,8 +222,8 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
            particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + A*dtNew
            particles(GAMC_PART_PROP,i) = 1.0 / particles(TAU_PART_PROP,i)
-        end if
+        endif
      enddo
-  end if
+  endif
   
 end subroutine pt_advanceCustom
