@@ -8,7 +8,9 @@ sim_gammaAmbient = 1.6666
 sim_bzAmbient	= 0.0 #1.8623E-6
 sim_densityProfile = "betacore"
 sim_densityBeta = 2.0
-sim_densityCoreR= 6.2E22
+sim_rCore		= 6.2E22
+
+useGravity = .true.
 
 #	Jet properties
 sim_powerJet	= 1.0E45

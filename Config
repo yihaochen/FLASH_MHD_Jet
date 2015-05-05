@@ -1,9 +1,11 @@
 #		Configuration file for the MHD Jet simulation
 
-REQUIRES physics/Hydro/
+REQUIRES physics/Hydro/HydroMain/unsplit/MHD_StaggeredMesh
 #REQUIRES physics/sourceTerms/Heat/
 REQUIRES physics/Eos/EosMain/Multigamma
 REQUIRES Multispecies
+REQUIRES physics/Gravity/GravityMain/PointMass
+
 
 
 D   pAmbient        Initial ambient pressure
@@ -18,7 +20,7 @@ PARAMETER sim_windVel		REAL	0.0
 PARAMETER sim_gammaAmbient	REAL	1.6666
 PARAMETER sim_bzAmbient		REAL	0.0
 PARAMETER sim_densityBeta	REAL	2.0
-PARAMETER sim_densityCoreR	REAL	6.2E23		[0.0...]
+PARAMETER sim_rCore			REAL	6.2E23		[0.0...]
 PARAMETER sim_densityProfile STRING "uniform"	["uniform", "betacore"]
 
 D	powerJet		Power of the jet
@@ -117,3 +119,6 @@ PARAMETER useHeat			BOOLEAN TRUE
 # Two Species for tracing jet and ISM components
 SPECIES ISM
 SPECIES JET
+
+# Gravity
+#PARAMETER useGravity		BOOLEAN TRUE

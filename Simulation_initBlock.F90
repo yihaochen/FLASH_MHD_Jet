@@ -43,7 +43,7 @@ subroutine Simulation_initBlock(blockID)
 
   real :: rho_zone, velx_zone, vely_zone, velz_zone, pres_zone, &
        ener_zone, ekin_zone, eint_zone
-  real :: densityBG
+  real :: densityBG, pressureBG
   real :: vel, fac
 
 
@@ -176,13 +176,16 @@ subroutine Simulation_initBlock(blockID)
              fac = 0.0
           endif
        endif
-       if (sim_densityProfile == "uniform") then
+       if (sim_densityProfile =="betacore") then
+          densityBG = sim_rhoAmbient*(1 + (distance/sim_rCore)**2)**(-sim_densityBeta)
+          pressureBG = sim_pAmbient*densityBG/sim_rhoAmbient
+       else
+          ! univerom background density
           densityBG = sim_rhoAmbient
-       else if (sim_densityProfile =="betacore") then
-          densityBG = sim_rhoAmbient*(1 + (distance/sim_densityCoreR)**2)**(-sim_densityBeta)
+          pressureBG = sim_pAmbient
        endif
        solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + densityBG*(1.0-fac)
-       solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + sim_pAmbient*(1.0-fac)
+       solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + pressureBG*(1.0-fac)
        solnData(JET_SPEC,i,j,k) = fac
        solnData(ISM_SPEC,i,j,k) = 1.0-fac
        solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
