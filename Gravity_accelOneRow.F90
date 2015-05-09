@@ -65,7 +65,7 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
   real,allocatable,dimension(:) ::xCenter,yCenter,zCenter
   integer, dimension(LOW:HIGH,MDIM):: blkLimits, blkLimitsGC
 #endif
-  real :: r, rt
+  real :: r2, rt
 
   integer :: sizeX,sizeY,sizez
 
@@ -109,10 +109,10 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
      rt = yCenter(j)*yCenter(j) + zCenter(k)*zCenter(k) 
 
      do ii = 1, numCells
-        r=xCenter(ii)*xCenter(ii) + rt
-        !if (r.lt.sim_rCut**2) then
+        r2=xCenter(ii)*xCenter(ii) + rt
+        !if (r2.lt.sim_rCut**2) then
            grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
-                (1.0 + r/sim_rCore**2)*xCenter(ii)/sim_rCore**2
+                (1.0 + r2/sim_rCore**2)*xCenter(ii)/sim_rCore**2
         !else
         !   grav(ii) = 0.
         !endif
@@ -123,10 +123,10 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
      rt = xCenter(j)*xCenter(j) + zCenter(k)*zCenter(k) 
 
      do ii = 1, numCells
-        r=yCenter(ii)*yCenter(ii) + rt
-        !if (r.lt.sim_rCut**2) then
+        r2=yCenter(ii)*yCenter(ii) + rt
+        !if (r2.lt.sim_rCut**2) then
            grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
-                (1.0 + r/sim_rCore**2)*yCenter(ii)/sim_rCore**2
+                (1.0 + r2/sim_rCore**2)*yCenter(ii)/sim_rCore**2
         !else
         !   grav(ii) = 0.
         !endif
@@ -137,10 +137,10 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
      rt = xCenter(j)*xCenter(j) + yCenter(k)*yCenter(k) 
 
      do ii = 1, numCells
-        r=zCenter(ii)*zCenter(ii) + rt
-        !if (r.lt.sim_rCut**2) then
+        r2=zCenter(ii)*zCenter(ii) + rt
+        !if (r2.lt.sim_rCut**2) then
            grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
-                (1.0 + r/sim_rCore**2)*zCenter(ii)/sim_rCore**2
+                (1.0 + r2/sim_rCore**2)*zCenter(ii)/sim_rCore**2
         !else
         !   grav(ii)=0.
         !endif
