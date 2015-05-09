@@ -75,7 +75,6 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
 !==============================================================================
 
   if (.NOT.useGravity) return
-
   j=pos(1)
   k=pos(2)
 #ifndef FIXEDBLOCKSIZE
@@ -112,7 +111,7 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
      do ii = 1, numCells
         r=xCenter(ii)*xCenter(ii) + rt
         !if (r.lt.sim_rCut**2) then
-           grav(ii) = -2.*sim_pAmbient/sim_rhoAmbient/&
+           grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
                 (1.0 + r/sim_rCore**2)*xCenter(ii)/sim_rCore**2
         !else
         !   grav(ii) = 0.
@@ -126,7 +125,7 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
      do ii = 1, numCells
         r=yCenter(ii)*yCenter(ii) + rt
         !if (r.lt.sim_rCut**2) then
-           grav(ii) = -2.*sim_pAmbient/sim_rhoAmbient/&
+           grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
                 (1.0 + r/sim_rCore**2)*yCenter(ii)/sim_rCore**2
         !else
         !   grav(ii) = 0.
@@ -140,7 +139,7 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
      do ii = 1, numCells
         r=zCenter(ii)*zCenter(ii) + rt
         !if (r.lt.sim_rCut**2) then
-           grav(ii) = -2.*sim_pAmbient/sim_rhoAmbient/&
+           grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
                 (1.0 + r/sim_rCore**2)*zCenter(ii)/sim_rCore**2
         !else
         !   grav(ii)=0.

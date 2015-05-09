@@ -43,7 +43,7 @@ subroutine Simulation_initBlock(blockID)
 
   real :: rho_zone, velx_zone, vely_zone, velz_zone, pres_zone, &
        ener_zone, ekin_zone, eint_zone
-  real :: densityBG, pressureBG
+  real :: densityBG, pressureBG, rhoCut, pCut
   real :: vel, fac
 
 
@@ -77,7 +77,7 @@ subroutine Simulation_initBlock(blockID)
   call Grid_getBlkPtr(blockID,solnFaceZData,FACEZ)
   
 
-! In this problem the initial conditions are spatially uniform.
+  ! Initial conditions are spatially uniform.
   
   rho_zone = sim_rhoAmbient
   pres_zone = sim_pAmbient
@@ -130,6 +130,10 @@ subroutine Simulation_initBlock(blockID)
   solnFaceYdata(MAG_FACE_VAR,:,:,:) = 0.0
   solnFaceZdata(MAG_FACE_VAR,:,:,:) = sim_bzAmbient
 
+  rhoCut = sim_rhoAmbient*(1.0 + (sim_rCut/sim_rCore)**2)**(-1.5*sim_densityBeta)
+  ! isothermal atmosphere
+  pCut = sim_pAmbient*rhoCut/sim_rhoAmbient
+
   bf = sim(nozzle)%rFeatherOut
   r2 = sim(nozzle)%radius
   rout = r2 + bf
@@ -146,17 +150,17 @@ subroutine Simulation_initBlock(blockID)
        if ((radius.le.rmix)&
            .and.(abs(length).le.2.0*(sim(nozzle)%length+sim(nozzle)%zFeather))) then
           fac = taper(nozzle, radius, 0.5*length, 1.0, 1.0, 0.0)
-          vel = sim(nozzle)%velocity&
-                *(0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
-                *(1.0-sim(nozzle)%outflowR)+sim(nozzle)%outflowR ) &
-                *sin(PI/2.0*min(abs(length),0.5*sim(nozzle)%length)*sig/sim(nozzle)%length/0.5)
-          voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
-                    !*coshat(radius-0.5*(r2+2.0*bf), 0.5*(r2+bf), bf, 1.0)
-                    *0.5*(1.0+cos(PI*( max(-1.0, min(0.0,(radius-rout)/bf)) )))
+          !vel = sim(nozzle)%velocity&
+          !      *(0.5*(1.0+cos(PI*(max(0.0, min(1.0, (radius-r2)/bf)))))&
+          !      *(1.0-sim(nozzle)%outflowR)+sim(nozzle)%outflowR ) &
+          !      *sin(PI/2.0*min(abs(length),0.5*sim(nozzle)%length)*sig/sim(nozzle)%length/0.5)
+          !voutvec = sim(nozzle)%outflowR*sim(nozzle)%velocity*plnvec&
+          !          !*coshat(radius-0.5*(r2+2.0*bf), 0.5*(r2+bf), bf, 1.0)
+          !          *0.5*(1.0+cos(PI*( max(-1.0, min(0.0,(radius-rout)/bf)) )))
 
-          velvec = vel*jetvec + voutvec &
-                   + sim(nozzle)%linVel + cross(sim(nozzle)%angVel,rvec*distance)
-          solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac + solnData(VELX_VAR:VELZ_VAR,i,j,k)*(1.0-fac)
+          !velvec = vel*jetvec + voutvec &
+          !         + sim(nozzle)%linVel + cross(sim(nozzle)%angVel,rvec*distance)
+          !solnData(VELX_VAR:VELZ_VAR,i,j,k) = velvec*fac + solnData(VELX_VAR:VELZ_VAR,i,j,k)*(1.0-fac)
        endif
        ! cylindrical initial cavity
        if (sim(nozzle)%initGeometry == 'cylindrical') then
@@ -177,19 +181,25 @@ subroutine Simulation_initBlock(blockID)
           endif
        endif
        if (sim_densityProfile =="betacore") then
-          densityBG = sim_rhoAmbient*(1 + (distance/sim_rCore)**2)**(-sim_densityBeta)
-          pressureBG = sim_pAmbient*densityBG/sim_rhoAmbient
+          if (distance < sim_rCut) then
+             densityBG = sim_rhoAmbient*(1.0 + (distance/sim_rCore)**2)**(-1.5*sim_densityBeta)
+             ! isothermal atmosphere
+             pressureBG = sim_pAmbient*densityBG/sim_rhoAmbient
+          else
+             densityBG = rhoCut
+             pressureBG = pCut
+          endif
        else
-          ! univerom background density
+          ! uniform background density and pressure
           densityBG = sim_rhoAmbient
           pressureBG = sim_pAmbient
        endif
        solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + densityBG*(1.0-fac)
        solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + pressureBG*(1.0-fac)
-       solnData(JET_SPEC,i,j,k) = fac
-       solnData(ISM_SPEC,i,j,k) = 1.0-fac
-       solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
-                                  /(solnData(GAME_VAR,i,j,k)-1.0)
+       solnData(JET_SPEC,i,j,k) = max(sim_smallx, fac)
+       solnData(ISM_SPEC,i,j,k) = max(sim_smallx, 1.0-fac)
+       solnData(EINT_VAR,i,j,k) = max(sim_smalle, solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
+                                  /(solnData(GAME_VAR,i,j,k)-1.0))
        solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)+&
                              0.5*(solnData(VELX_VAR,i,j,k)**2 +&
                                   solnData(VELY_VAR,i,j,k)**2 +&

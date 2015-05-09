@@ -61,10 +61,10 @@ subroutine Simulation_init()
   call RuntimeParameters_get('sim_gammaAmbient', sim_gamma)
   call RuntimeParameters_get('sim_bzAmbient', sim_bzAmbient)
   call RuntimeParameters_get('sim_densityProfile', sim_densityProfile)
-  if (sim_densityProfile == "betacore") then
-     call RuntimeParameters_get('sim_densityBeta', sim_densityBeta)
-     call RuntimeParameters_get('sim_rCore', sim_rCore)
-  endif
+  call RuntimeParameters_get('sim_rCore', sim_rCore)
+  call RuntimeParameters_get('sim_densityBeta', sim_densityBeta)
+  sim_rCut = sim_rCore*sqrt((max(sim_smlrho/sim_rhoAmbient, &
+             sim_smallp/sim_pAmbient))**(-2./3./sim_densityBeta)-1.0 )
   call RuntimeParameters_get('sim_powerJet', sim(nozzle)%power)
   !call RuntimeParameters_get('sim_rhoJet', sim(nozzle)%density)
   call RuntimeParameters_get('sim_velJet', sim(nozzle)%velocity)
@@ -134,8 +134,8 @@ subroutine Simulation_init()
      call IO_getScalar('nozzleBz', sim(nozzle)%bz)
      call IO_getScalar('nozzleBphi', sim(nozzle)%bphi)
      !call IO_getScalar('nozzlet0', sim(nozzle)%t0)
-     !call IO_getScalar('randomSeed', seed(1))
-     call RuntimeParameters_get('randomSeed', seed(1))
+     call IO_getScalar('randomSeed', seed(1))
+     !call RuntimeParameters_get('randomSeed', seed(1))
      call RANDOM_SEED(put=seed)
 
 
@@ -183,6 +183,7 @@ subroutine Simulation_init()
      write(*,'(a, es11.3)') 'rFeatherOut:' , sim(nozzle)%rFeatherOut
      write(*,'(a, es11.3)') 'rFeatherMix:' , sim(nozzle)%rFeatherMix
      write(*,'(a, es11.3)') 'zFeatherMix:' , sim(nozzle)%zFeatherMix
+     write(*,'(a, es11.3)') 'sim_rCut:' , sim_rCut
   endif
 
 

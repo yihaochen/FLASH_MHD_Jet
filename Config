@@ -1,10 +1,12 @@
 #		Configuration file for the MHD Jet simulation
 
+REQUIRES Grid/GridBoundaryConditions/Flash2HSE
 REQUIRES physics/Hydro/HydroMain/unsplit/MHD_StaggeredMesh
-#REQUIRES physics/sourceTerms/Heat/
+REQUIRES physics/sourceTerms/Heat/HeatMain
+DEFAULT HeatMain
 REQUIRES physics/Eos/EosMain/Multigamma
-REQUIRES Multispecies
 REQUIRES physics/Gravity/GravityMain/PointMass
+REQUIRES Multispecies
 
 
 
@@ -111,7 +113,6 @@ PARAMETER sim_ptAddPeriod	REAL	1E10		[0.0...]
 
 
 # Heat Source Term
-DEFAULT HeatMain
 D	useHeat   runtime control for turning the heat on or off
 PARAMETER useHeat			BOOLEAN TRUE
 
