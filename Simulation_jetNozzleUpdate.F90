@@ -31,6 +31,7 @@ contains
     use Simulation_data
     use Simulation_interface, ONLY: Simulation_jiggle
     use Timers_interface, ONLY : Timers_start, Timers_stop
+    use Driver_data, ONLY : dr_globalMe, dr_nStep, dr_restart
 
     implicit none
 
@@ -38,6 +39,12 @@ contains
     real, INTENT(in) :: time, dt
     real, dimension(3) :: nutationVec
     real :: p, g, v, r, L, bf, M, t1
+
+    integer :: funit = 99, isFirst = 1
+    integer :: ioStat
+
+    character (len=13), save :: nozzleVecFName
+    nozzleVecFName = 'nozzleVec.dat'
 
     ! --------------------------------------------------------------------------
     ! Update the hydro variables of the jet nozzle (according to the wind-driven bubble solution.)
@@ -89,6 +96,45 @@ contains
        call Timers_start('Simulation_jiggle')
        call Simulation_jiggle(nozzle,  time, dt)
        call Timers_stop('Simulation_jiggle')
+
+       ! Write the jet nozzle vectors to file.
+       if (dr_globalMe  == MASTER_PE) then
+
+          ! create the file from scratch if it is a not a restart simulation,
+          ! otherwise append to the end of the file
+
+          !No mater what, we are opening the file. Check to see if already there
+          ioStat = 0
+          open(funit, file=trim(nozzleVecFName), position='APPEND', status='OLD', iostat=ioStat)
+          if(ioStat .NE. 0) then
+             !print *, 'FILE FOUND'
+             open(funit, file=trim(nozzleVecFName), position='APPEND')
+          endif
+
+          if (isFirst .EQ. 1 .AND. (.NOT. dr_restart .or. ioStat .NE. 0)) then
+             write (funit, 10)   &
+                  '#step      ', &
+                  'time                     ', &
+                  'nozzleVecX               ', &
+                  'nozzleVecY               ', &
+                  'nozzleVecZ               ', &
+                  'nozzleAngVelX            ', &
+                  'nozzleAngVelY            ', &
+                  'nozzleAngVelZ            '
+10           format (2X, 1(a10, :, 1X), 10(a25, :, 1X))
+
+          else if(isFirst .EQ. 1) then
+             write (funit, 11)
+11           format('# simulation restarted')
+          endif
+
+          ! Write the global sums to the file.
+          write (funit, 12) dr_nstep, time, sim(nozzle)%jetvec, sim(nozzle)%angVel
+12        format (1X, 1(I10, :, 1X), 10(es25.18, :, 1X))
+
+          close (funit)          ! Close the file.
+          isFirst = 0
+       endif
     endif
 
     sim(nozzle)%pos = sim(nozzle)%pos + sim(nozzle)%linVel*dt
