@@ -46,6 +46,7 @@ subroutine Heat (blockCount,blockList,dt,time)
   use Driver_data, ONLY : dr_globalMe, dr_nStep
   use Simulation_data
   use Timers_interface, ONLY : Timers_start, Timers_stop
+  use Heat_data, ONLY : nPtProc, pos
   implicit none
 
 #include "constants.h"
@@ -60,6 +61,11 @@ subroutine Heat (blockCount,blockList,dt,time)
 
   integer :: blockID, blkInd, nozzle=1
 
+  integer :: nPtNoz
+  real,allocatable,dimension(:,:) ::  posNoz,pos_tmp
+  real    :: prob
+  logical      :: addNewSuccess
+
   !call calc_jet(nozzle, time)
   !if (dr_globalMe==MASTER_PE .and. mod(dr_nStep,20)==0) then
   !   write(*,'(a,2es11.3, f7.2)') '      (p, rho, M)=', &
@@ -67,6 +73,9 @@ subroutine Heat (blockCount,blockList,dt,time)
   !endif
 
   !write(*,*) 'blockCount:', blockCount
+  nPtProc=0
+  !allocate(pos(nPtProc,MDIM))
+  !write(*,*) '[Heat] nPtProc:', nPtProc
   if (time.ge.sim(nozzle)%tOn .and. time.lt.(sim(nozzle)%tOn+sim(nozzle)%duration)) then
 
      do blkInd=1,blockCount
@@ -89,6 +98,56 @@ subroutine Heat (blockCount,blockList,dt,time)
      gcMask(ISM_SPEC) = .true.
      call Grid_fillGuardCells(CENTER,ALLDIR,doEos=.true.,&
           maskSize=NUNK_VARS,mask=gcMask)
+
+     !write(*,*) '[Heat2] nPtProc:', nPtProc
+     ! Add new particles at the surfaces of the nozzle
+     if (dr_globalMe==MASTER_PE) then
+
+        call RANDOM_NUMBER(prob)
+        !call MPI_Bcast(prob,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
+
+        !write(*,'(A6, 2f9.5)') 'prob', prob, 1.0/sim_ptAddPeriod*dt
+        !write(*,'(i5, f9.5, es11.3)') pt_meshMe, prob, dtNew
+        nPtNoz = int(1.0/sim_ptAddPeriod*dt)
+        if (prob .le. 1.0/sim_ptAddPeriod*dt-nPtNoz) then
+           nPtNoz = nPtNoz+1
+        endif
+        if (nPtNoz .gt. 0) then
+           allocate(posNoz(nPtNoz,MDIM))
+           call pt_getRandomPos(nPtNoz, posNoz)
+           !write(*,*) '[Heat] posNoz', posNoz
+
+           allocate(pos_tmp(nPtProc+nPtNoz,MDIM))
+           if (nPtProc.gt.0) then
+              pos_tmp(:nPtProc,:) = pos
+           endif
+           call move_alloc(pos_tmp, pos)
+           pos(nPtProc+1:nPtProc+nPtNoz,:) = posNoz(:,:)
+           !write(*,*) '[Heat] pos', size(pos), pos
+           nPtProc = nPtProc + nPtNoz
+           !write(*,'(A14, i3, A20, 3es11.3)') '[Heat] Adding', nPtProc, 'new particle at', pos(1,:)
+           call Particles_addNew(nPtProc, pos, addNewSuccess)
+           !write(*,*) '[Heat masterpe addNew finished] pos', pos
+           !if (addNewsuccess) then
+           !   write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Added a new particle at', pos(:,1)
+           !endif
+           deallocate(posNoz)
+        else
+            !write(*,*) '[Heat] no pos', nPtProc, pos
+            call Particles_addNew(nPtProc, pos, addNewSuccess)
+            !write(*,*) '[Heat] no pos2'
+        endif
+     else
+        !write(*,*) '[Heat] not masterpe', nPtProc, pos
+        call Particles_addNew(nPtProc, pos, addNewSuccess)
+        !write(*,*) '[Heat] not masterpe2'
+     endif
+
+     !deallocate(pos)
+
+
+     !write(*,'(i5, A28, i5)') pt_meshMe, 'After addNew, pt_numLocal=', pt_numLocal
+     !write(*,'(i5, A28, i5)') pt_meshMe, 'After addNew, p_count    =', p_count
   endif
 
   return

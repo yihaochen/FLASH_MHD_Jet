@@ -93,6 +93,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('lrefine_0', sim(nozzle)%lrefine_0)
   call RuntimeParameters_get('sim_ptInitNum', sim_ptInitNum)
   call RuntimeParameters_get('sim_ptAddPeriod', sim_ptAddPeriod)
+  call RuntimeParameters_get('sim_ptAddVolume', sim_ptAddVolume)
   call Runtimeparameters_get('nozzlePrecession', sim(nozzle)%precession)
   maxPrecession = 0.01*sim(nozzle)%velocity/(1.0/sim(nozzle)%duration &
                      *(sim(nozzle)%length+sim(nozzle)%zFeatherMix))

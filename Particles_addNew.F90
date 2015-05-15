@@ -57,7 +57,7 @@ subroutine Particles_addNew (count, pos, success)
 #include "Flash_mpi.h"
 
   integer, INTENT(in) :: count
-  real, optional, dimension(MDIM,count), intent(IN)::pos
+  real, optional, dimension(count,MDIM), intent(IN)::pos
   logical, intent(OUT) :: success
 
   integer :: i, tagOffset, ierr, effCount
@@ -101,7 +101,7 @@ subroutine Particles_addNew (count, pos, success)
         !write(*,*) pt_meshMe, 'present(pos)'
         do i = 1,effCount
            particles(POSX_PART_PROP:POSZ_PART_PROP,pt_numLocal+i)=&
-                pos(IAXIS:KAXIS,i)
+                pos(i,IAXIS:KAXIS)
         end do
         
         pt_numLocal=pt_numLocal+effCount
@@ -110,9 +110,13 @@ subroutine Particles_addNew (count, pos, success)
              pt_numLocal,pt_indexList,pt_indexCount,coords_in_blk)
 
         !write(*,*) pt_meshMe, 'moveParticles - finished'
-        !write(*,*) pt_meshMe, 'mapMeshToParticles'
      else
         pt_numLocal=pt_numLocal+effCount
+        !write(*,*) pt_meshMe, 'moveParticles'
+        call Grid_moveParticles(particles,NPART_PROPS,pt_maxPerProc,&
+             pt_numLocal,pt_indexList,pt_indexCount,coords_in_blk)
+
+        !write(*,*) pt_meshMe, 'moveParticles - finished'
      end if
      if (.NOT. success) then
 98      format('Particles_addNew for',I6,' particles failed')

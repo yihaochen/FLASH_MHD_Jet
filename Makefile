@@ -10,7 +10,8 @@ Hydro += hy_uhd_electricNozzle.o\
 		 hy_uhd_getA.o\
 		 hy_uhd_getAOld.o
 
-Heat += Heat_fillnozzle.o\
+Heat += Heat_data.o\
+		Heat_fillnozzle.o\
 		ht_getValueAtPoint.o
 
 Grid += gr_markJet.o

@@ -34,7 +34,7 @@ subroutine pt_initPositions (blockID,success)
 
   use Particles_data, ONLY:  pt_numLocal, particles,&
       pt_posAttrib,pt_velNumAttrib, pt_velAttrib,pt_typeInfo, pt_meshMe,&
-      pt_meshNumProcs
+      pt_meshNumProcs, pt_newParticleNumAttrib, pt_newParticleAttrib
        
 
   use Grid_interface, ONLY : Grid_getBlkBoundBox, Grid_mapMeshToParticles, &
@@ -59,20 +59,7 @@ subroutine pt_initPositions (blockID,success)
   integer       :: blockType,mapType
   !logical       :: IsInBlock,IsInSphere
   integer       :: part_props=NPART_PROPS
-  integer       :: nozzle=1, pt_customNumAttrib=5
-  integer,dimension(PART_ATTR_DS_SIZE, 5) :: pt_customAttrib
 !----------------------------------------------------------------------
-
-  pt_customAttrib(PART_DS_IND,1)=DEN0_PART_PROP
-  pt_customAttrib(GRID_DS_IND,1)=DENS_VAR
-  pt_customAttrib(PART_DS_IND,2)=DENS_PART_PROP
-  pt_customAttrib(GRID_DS_IND,2)=DENS_VAR
-  pt_customAttrib(PART_DS_IND,3)=MAGX_PART_PROP
-  pt_customAttrib(GRID_DS_IND,3)=MAGX_VAR
-  pt_customAttrib(PART_DS_IND,4)=MAGY_PART_PROP
-  pt_customAttrib(GRID_DS_IND,4)=MAGY_VAR
-  pt_customAttrib(PART_DS_IND,5)=MAGZ_PART_PROP
-  pt_customAttrib(GRID_DS_IND,5)=MAGZ_VAR
 
   !       Initialization now done in Particles_init.
   
@@ -164,7 +151,7 @@ subroutine pt_initPositions (blockID,success)
   ! Map the custom fields onto the partitcles
   call Grid_mapMeshToParticles(particles,&
        part_props,BLK_PART_PROP, pt_numLocal,&
-       pt_posAttrib,pt_customNumAttrib,pt_customAttrib,mapType)
+       pt_posAttrib,pt_newParticleNumAttrib,pt_newParticleAttrib,mapType)
 
   success=.true.
 

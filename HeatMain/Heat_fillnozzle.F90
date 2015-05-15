@@ -35,6 +35,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   !use Hydro_data, ONLY: hy_unsplitEosMode
   use Eos_interface, ONLY : Eos_wrapped
   use Simulation_data
+  use Heat_data, ONLY : pos, nPtProc
   implicit none
 
 #include "constants.h"
@@ -57,6 +58,11 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   real :: radius, length, sig, distance, theta, vel, facR, facL
   real, dimension(3) :: plnvec, jetvec, rvec, phivec, voutvec, velvec
   real :: r2, bf, rout, rmix
+  integer      :: iPart, nAdd
+  real         :: prob, pAdd, cellVolume
+  real,dimension(MDIM) :: rand_xyz
+  real,allocatable,dimension(:,:) ::  pos_tmp
+  logical      :: addNewSuccess
 
   call Grid_getBlkIndexLimits(blockID,blkLimits,blkLimitsGC)
   sizeX = blkLimitsGC(HIGH,IAXIS) - blkLimitsGC(LOW,IAXIS) + 1
@@ -66,6 +72,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   allocate(sim_yCoord(sizeY),stat=istat)
   allocate(sim_zCoord(sizeZ),stat=istat)
   call Grid_getDeltas(blockID, del)
+  cellVolume = del(IAXIS)*del(JAXIS)*del(KAXIS)
   
   call Grid_getCellCoords(IAXIS,blockID,CENTER,gcell, sim_xCoord, sizeX)
   call Grid_getCellCoords(JAXIS,blockID,CENTER,gcell, sim_yCoord, sizeY)
@@ -78,10 +85,43 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   rout = r2 + bf
   rmix = rout + sim(nozzle)%rFeatherMix
 
+  !write(*,*) '[Heat_fillnozzle] nPtProc', nPtProc
+  pAdd = dt/sim_ptAddPeriod*cellVolume/sim_ptAddVolume
+  !write(*,*) '[Heat_fillnozzle] maxval(SHOK)', maxval(solnData(SHOK_VAR,:,:,:))
+  !write(*,*) '[Heat_fillnozzle] prob', prob, pAdd
   do k = blkLimits(LOW,KAXIS), blkLimits(HIGH,KAXIS)
    do j = blkLimits(LOW,JAXIS), blkLimits(HIGH,JAXIS)
     do i = blkLimits(LOW,IAXIS), blkLimits(HIGH,IAXIS)
        cellvec = (/ sim_xCoord(i), sim_yCoord(j), sim_zCoord(k) /)
+
+       if (solnData(SHOK_VAR,i,j,k) .gt. sim_smallx) then
+          call RANDOM_NUMBER(prob)
+          nAdd = int(pAdd*solnData(SHOK_VAR,i,j,k))
+          if (prob .le. pAdd*solnData(SHOK_VAR,i,j,k)-nAdd) then
+             nAdd = nAdd+1
+          endif
+          if (nAdd .gt. 0) then
+             !write(*,*) '[Heat_fillnozzle] Adding', nAdd, 'particles'
+             allocate(pos_tmp(nPtProc+nAdd,MDIM))
+             if (nPtProc.gt.0) then
+                pos_tmp(:nPtProc,:) = pos
+             endif
+             !pos_tmp is copied to posPt and then deallocated.
+             call move_alloc(pos_tmp, pos)
+             do iPart = nPtProc+1, nPtProc+nAdd
+                call RANDOM_NUMBER(rand_xyz)
+                pos(iPart,:) = cellvec + del*(rand_xyz-0.5)
+             enddo
+             nPtProc = nPtProc+nAdd
+             !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Adding a new particle at', posPt(:,1)
+             !call Particles_addNew(nAdd, posPt, addNewSuccess)
+             !if (addNewsuccess) then
+             !   write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Added a new particle at', posPt(:,1)
+             !endif
+             !deallocate(posPt)
+          endif
+       endif
+
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
        if ((radius.le.rmix).and.&

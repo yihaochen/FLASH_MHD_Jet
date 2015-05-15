@@ -15,7 +15,7 @@ subroutine pt_getRandomPos(nAdd, pos)
   !real, dimension(MDIM), INTENT(IN) :: del
   real :: del=0.01
   integer, INTENT(IN)   :: nAdd
-  real, dimension(MDIM,nAdd), INTENT(OUT) :: pos
+  real, dimension(nAdd,MDIM), INTENT(OUT) :: pos
   real, dimension(MDIM) :: rxvec, ryvec
   real          :: r, theta, z
   integer       :: i, nozzle=1, ierr
@@ -28,9 +28,6 @@ subroutine pt_getRandomPos(nAdd, pos)
      call RANDOM_NUMBER(r)
      call RANDOM_NUMBER(theta)
      call RANDOM_NUMBER(z)
-     !call MPI_Bcast(r,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
-     !call MPI_Bcast(theta,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
-     !call MPI_Bcast(z,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
      
      ! take square root of r to ensure uniform random distribution on the disk
      r = sqrt(r)*(sim(nozzle)%radius+sim(nozzle)%rFeatherOut)
@@ -42,7 +39,7 @@ subroutine pt_getRandomPos(nAdd, pos)
          z = ( 1.0+z*del)*sim(nozzle)%length
      endif
 
-     pos(:,i) = sim(nozzle)%pos &
+     pos(i,:) = sim(nozzle)%pos &
                 + sim(nozzle)%jetvec*z&
                 + r*(rxvec*cos(theta) + ryvec*sin(theta))
   enddo

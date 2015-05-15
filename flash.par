@@ -84,6 +84,7 @@ geometry = "cartesian"
 useParticles	= .true.
 sim_ptInitNum	= 10
 sim_ptAddPeriod = 1E10
+sim_ptAddVolume	= 1E63
 
 
 #		Size of computational volume
@@ -100,14 +101,14 @@ zmax		=  9.6E22
 
 #		Boundary conditions
 
-xl_boundary_type = "outflow"
-xr_boundary_type = "outflow"
+xl_boundary_type = "hydrostatic-f2+nvdiode"
+xr_boundary_type = "hydrostatic-f2+nvdiode"
 
-yl_boundary_type = "outflow"
-yr_boundary_type = "outflow"
+yl_boundary_type = "hydrostatic-f2+nvdiode"
+yr_boundary_type = "hydrostatic-f2+nvdiode"
 
-zl_boundary_type = "outflow"
-zr_boundary_type = "outflow"
+zl_boundary_type = "hydrostatic-f2+nvdiode"
+zr_boundary_type = "hydrostatic-f2+nvdiode"
 
 
 #	Simulation (grid, time, I/O) parameters
