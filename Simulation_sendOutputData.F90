@@ -46,8 +46,7 @@ subroutine Simulation_sendOutputData()
   call IO_setScalar('nozzleDensity', sim(nozzle)%density)
   call IO_setScalar('nozzleBz', sim(nozzle)%bz)
   call IO_setScalar('nozzleBphi', sim(nozzle)%bphi)
-  call RANDOM_SEED(get=seed)
-  call IO_setScalar('randomSeed', seed(1))
+  call IO_setScalar('randomSeed', sim(nozzle)%randSeed(1))
   !call IO_setScalar('nozzlet0', sim(nozzle)%t0)
   
 

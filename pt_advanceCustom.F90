@@ -66,7 +66,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   integer :: mapType 
   
   integer      :: nozzle=1
-  real         :: rho13, A
+  real         :: rho13, A, prob
 !!------------------------------------------------------------------------------
   
   !write(*,'(i5, A28, i5)') pt_meshMe, '[pt_advance], pt_numLocal=', pt_numLocal
@@ -93,6 +93,14 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
            particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + A*dtNew
            particles(GAMC_PART_PROP,i) = 1.0 / particles(TAU_PART_PROP,i)
+           call RANDOM_NUMBER(prob)
+           if (prob.lt.particles(JET_PART_PROP,i)) then
+              particles(JET_PART_PROP,i) = 1.0
+           else
+              particles(JET_PART_PROP,i) = 0.0
+           endif
+
+
         endif
      enddo
 

@@ -47,6 +47,7 @@ subroutine Heat (blockCount,blockList,dt,time)
   use Simulation_data
   use Timers_interface, ONLY : Timers_start, Timers_stop
   use Heat_data, ONLY : nPtProc, pos
+  use Particles_data, ONLY : pt_randSeed
   implicit none
 
 #include "constants.h"
@@ -78,6 +79,7 @@ subroutine Heat (blockCount,blockList,dt,time)
   !write(*,*) '[Heat] nPtProc:', nPtProc
   if (time.ge.sim(nozzle)%tOn .and. time.lt.(sim(nozzle)%tOn+sim(nozzle)%duration)) then
 
+     call RANDOM_SEED(put=pt_randSeed)
      do blkInd=1,blockCount
         blockID = blockList(blkInd)
         call Grid_getDeltas(blockID,del)
@@ -142,6 +144,7 @@ subroutine Heat (blockCount,blockList,dt,time)
         call Particles_addNew(nPtProc, pos, addNewSuccess)
         !write(*,*) '[Heat] not masterpe2'
      endif
+     call RANDOM_SEED(get=pt_randSeed)
 
      !deallocate(pos)
 

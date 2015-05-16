@@ -30,6 +30,7 @@ module Simulation_data
       real, dimension(3) :: pos, precvec, jetvec, coneVec 
       real, dimension(3) :: posOld, jetvecOld
       real, dimension(3) :: angVel, linVel
+      integer, dimension(1) :: randSeed
       real :: precession, nutation, precangle
       real :: radius, length, zTorInj, outflowR
       real :: derefine_z1, derefine_z2, refine_jetR, derefine_jetR

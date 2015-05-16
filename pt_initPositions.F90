@@ -29,19 +29,19 @@
 
 
 subroutine pt_initPositions (blockID,success)
-   
+
 !  use Particles_data
 
   use Particles_data, ONLY:  pt_numLocal, particles,&
       pt_posAttrib,pt_velNumAttrib, pt_velAttrib,pt_typeInfo, pt_meshMe,&
       pt_meshNumProcs, pt_newParticleNumAttrib, pt_newParticleAttrib
-       
+
 
   use Grid_interface, ONLY : Grid_getBlkBoundBox, Grid_mapMeshToParticles, &
                              Grid_getBlkPhysicalSize, Grid_getBlkCenterCoords, &
                              Grid_getDeltas
   use Driver_data, ONLY : dr_initialSimTime
-  
+
   use Simulation_data
 
   implicit none
@@ -52,7 +52,7 @@ subroutine pt_initPositions (blockID,success)
   integer, INTENT(in) :: blockID
   logical,intent(OUT) :: success
 
-  integer       :: i
+  integer       :: i, k, nozzle=1
   integer, save :: pt_ind
   logical       :: IsInBlock
   real, dimension(3) :: blockSize, blockCenter, del, pos
@@ -62,9 +62,10 @@ subroutine pt_initPositions (blockID,success)
 !----------------------------------------------------------------------
 
   !       Initialization now done in Particles_init.
-  
-  !        Particle slot number
+
+
   !print *, "pt_initPositions"
+  !        Particle slot number
   pt_ind = pt_numLocal
 
   ! Location of block faces
@@ -72,71 +73,54 @@ subroutine pt_initPositions (blockID,success)
   call Grid_getBlkCenterCoords(blockID, blockCenter)
   !call Grid_getDeltas(blockID, del)
 
-  do i = 1, sim_ptInitNum
-     call pt_getRandomPos(pos)
+  !do i = 1, sim_ptInitNum
+  !   call pt_getRandomPos(pos)
 
-     ! Check if particle is in this block 
+  !   ! Check if particle is in this block
+  !   isInBlock = (maxval(abs(pos-blockCenter) - 0.5*blockSize) < 0.0)
+  !   !write(*,'(4es11.3)') maxval(abs(pos-blockCenter)), blockSize
+  !   ! If it is, keep it; otherwise discard it.
+  !   if (IsInBlock) then
+  !      pt_ind = pt_ind + 1
+  !      particles(BLK_PART_PROP,pt_ind) = real(blockID)
+  !      particles(PROC_PART_PROP,pt_ind) = real(pt_meshMe)
+  !      particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind)  = pos
+  !      particles(TAG_PART_PROP,pt_ind)   = pt_ind + pt_meshMe*pt_meshNumProcs
+  !      particles(TADD_PART_PROP,pt_ind)  = dr_initialSimTime
+  !      particles(TAU_PART_PROP,pt_ind)   = 0.0
+  !      !particles(VELX_PART_PROP,pt_ind)  = 0.0
+  !      !particles(VELY_PART_PROP,pt_ind)  = 0.0
+  !      !print *, "pt_initPositions, particle pos are ", particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind)
+  !      !write(*,'(3i4, 3es11.3)') pt_meshMe, pt_ind,i, pos
+  !   endif
+  !enddo
+
+  !print *, "pt_initPositions begin loop"
+  do k = -1, 1, 2
+     pos = sim(nozzle)%pos+sim_smallx*sim(nozzle)%radius&
+           + sim(nozzle)%jetvec*sim(nozzle)%length*0.9999*k
+     ! Check if particle is in this block
      isInBlock = (maxval(abs(pos-blockCenter) - 0.5*blockSize) < 0.0)
-     !write(*,'(4es11.3)') maxval(abs(pos-blockCenter)), blockSize
+     write(*,'(i4, es11.3)') pt_meshMe, maxval(abs(pos-blockCenter) - 0.5*blockSize)
      ! If it is, keep it; otherwise discard it.
      if (IsInBlock) then
-        pt_ind = pt_ind + 1
-        particles(BLK_PART_PROP,pt_ind) = real(blockID)
-        particles(PROC_PART_PROP,pt_ind) = real(pt_meshMe)
-        particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind)  = pos
-        particles(TAG_PART_PROP,pt_ind)   = pt_ind + pt_meshMe*pt_meshNumProcs
-        particles(TADD_PART_PROP,pt_ind)  = dr_initialSimTime
-        particles(TAU_PART_PROP,pt_ind)   = 0.0
-        !particles(VELX_PART_PROP,pt_ind)  = 0.0
-        !particles(VELY_PART_PROP,pt_ind)  = 0.0
-        !print *, "pt_initPositions, particle pos are ", particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind) 
-        !write(*,'(3i4, 3es11.3)') pt_meshMe, pt_ind,i, pos
+       pt_ind = pt_ind + 1
+       particles(BLK_PART_PROP,pt_ind) = real(blockID)
+       particles(PROC_PART_PROP,pt_ind) = real(pt_meshMe)
+       particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind)  = pos
+       if (k.eq.-1) then
+          particles(TAG_PART_PROP,pt_ind) = 1
+       else
+          particles(TAG_PART_PROP,pt_ind) = 2
+       endif
+       particles(TADD_PART_PROP,pt_ind)  = dr_initialSimTime
+       particles(TAU_PART_PROP,pt_ind)   = 0.0
+       !particles(VELX_PART_PROP,pt_ind)  = 0.0
+       !particles(VELY_PART_PROP,pt_ind)  = 0.0
+       !print *, "pt_initPositions, particle pos are ", particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind)
      endif
 
-
-
-
   enddo
-  !delTheta = 2.0*PI / sim_ptnumTheta
-
-  !rxvec = cross(sim(nozzle)%jetvec, (/ 0.0, sim_smallx, 1.0 /))
-  !rxvec = rxvec / sqrt(sum(rxvec(:)*rxvec(:)))
-  !ryvec = cross(sim(nozzle)%jetvec, rxvec)
-  !print *, "pt_initPositions begin loop and sim_ptnumTheta is", sim_ptnumTheta
-  !do k = -1, 1, 2
-  ! do j = 0, 1
-  !    if (j == 0) then
-  !       imax = 1
-  !    else
-  !       imax = sim_ptnumTheta
-  !    endif
-
-  !    do i = 0, imax-1
-  !       pos = sim(nozzle)%pos+sim_smallx&
-  !             + sim(nozzle)%jetvec*sim(nozzle)%length*0.9999*k&
-  !             + sim(nozzle)%radius*0.9999*j*(rxvec*cos(delTheta*i) + ryvec*sin(delTheta*i))
-  !       ! Check if particle is in this block 
-  !       isInBlock = (maxval(abs(pos-blockCenter) - 0.5*blockSize) < 0.0)
-  !       !write(*,'(4es11.3)') maxval(abs(pos-blockCenter)), blockSize
-  !       ! If it is, keep it; otherwise discard it.
-  !        if (IsInBlock) then
-  !          pt_ind = pt_ind + 1
-  !          particles(BLK_PART_PROP,pt_ind) = real(blockID)
-  !          particles(PROC_PART_PROP,pt_ind) = real(pt_meshMe)
-#ifdef MASS_PART_PROP
-  !          particles(MASS_PART_PROP,pt_ind) = 1.
-#endif
-  !          particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind)  = pos
-  !          particles(TAG_PART_PROP,pt_ind)   = real((k+1)/2*(sim_ptnumTheta+1)+j+i)
-  !          !particles(VELX_PART_PROP,pt_ind)  = 0.0
-  !          !particles(VELY_PART_PROP,pt_ind)  = 0.0
-  !          !print *, "pt_initPositions, particle pos are ", particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind) 
-  !          write(*,'(5i4, 3es11.3)') pt_meshMe, pt_ind,i,j,k, pos
-  !        endif
-
-  !    enddo
-  ! enddo
-  !enddo  
 
 
   !       Setting the particle database local number of particles
@@ -159,7 +143,7 @@ subroutine pt_initPositions (blockID,success)
   return
 
 !----------------------------------------------------------------------
-  
+
 end subroutine pt_initPositions
 
 

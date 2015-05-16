@@ -34,6 +34,7 @@ subroutine Simulation_init()
   use Driver_data, ONLY : dr_globalMe, dr_simTime, dr_dt, dr_restart
   use Grid_data, ONLY : gr_minCellSize
   use IO_interface, ONLY :  IO_getScalar
+  use Particles_data, ONLY : pt_randSeed, pt_meshMe
   !use Grid_data, ONLY : gr_smallrho
 
   implicit none
@@ -41,14 +42,13 @@ subroutine Simulation_init()
 #include "Flash.h"
 #include "Simulation.h"
 
-  integer              :: nozzle=1
-  integer,dimension(1) :: seed
-  real :: maxPrecession
+  integer :: nozzle=1, clock
+  real    :: maxPrecession
 
 
   ! Initialize the random number generator
-  !call system_clock(count=clock)
-  !seed = (/clock, dr_globalMe/)
+  call system_clock(count=clock)
+  pt_randSeed = (/clock, pt_meshMe/)
 
   call RuntimeParameters_get('smlrho', sim_smlrho)
   call RuntimeParameters_get('smallp', sim_smallp)
@@ -135,9 +135,7 @@ subroutine Simulation_init()
      call IO_getScalar('nozzleBz', sim(nozzle)%bz)
      call IO_getScalar('nozzleBphi', sim(nozzle)%bphi)
      !call IO_getScalar('nozzlet0', sim(nozzle)%t0)
-     call IO_getScalar('randomSeed', seed(1))
-     !call RuntimeParameters_get('randomSeed', seed(1))
-     call RANDOM_SEED(put=seed)
+     call IO_getScalar('randomSeed', sim(nozzle)%randSeed(1))
 
 
   else
@@ -162,8 +160,7 @@ subroutine Simulation_init()
      call RuntimeParameters_get('nozzleLinVelZ', sim(nozzle)%linVel(3))
      sim(nozzle)%density = -1.0
      call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dt)
-     call RuntimeParameters_get('randomSeed', seed(1))
-     call RANDOM_SEED(put=seed)
+     call RuntimeParameters_get('randomSeed', sim(nozzle)%randSeed(1))
 
      if (sim(nozzle)%zTorInj < sim(nozzle)%length+1.5*sim(nozzle)%zFeather .and.&
         dr_globalMe==MASTER_PE) then

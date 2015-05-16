@@ -135,7 +135,7 @@ pt_velPredAttrib(:,:)=1
 ! <- ychen 05-2015
   ! Initializations for customized particle attributes
   ! pt_newParticleAttrib is used to map the variables after new particles are added
-  pt_newParticleNumAttrib=5
+  pt_newParticleNumAttrib=6
   allocate(pt_newParticleAttrib(PART_ATTR_DS_SIZE,pt_newParticleNumAttrib))
   pt_newParticleAttrib(PART_DS_IND,1)=DEN0_PART_PROP
   pt_newParticleAttrib(GRID_DS_IND,1)=DENS_VAR
@@ -147,6 +147,8 @@ pt_velPredAttrib(:,:)=1
   pt_newParticleAttrib(GRID_DS_IND,4)=MAGY_VAR
   pt_newParticleAttrib(PART_DS_IND,5)=MAGZ_PART_PROP
   pt_newParticleAttrib(GRID_DS_IND,5)=MAGZ_VAR
+  pt_newParticleAttrib(PART_DS_IND,6)=JET_PART_PROP
+  pt_newParticleAttrib(GRID_DS_IND,6)=JET_SPEC
 
   ! Additional variables mapped to the particle
   pt_customNumAttrib=4

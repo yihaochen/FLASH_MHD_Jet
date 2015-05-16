@@ -6,7 +6,7 @@
 !!
 !! SYNOPSIS
 !!
-!!  Simulation_jiggle(  integer (IN) :: nozzle, 
+!!  Simulation_jiggle(  integer (IN) :: nozzle,
 !!                      real    (IN) :: time,
 !!                      real    (IN) :: dt      )
 !!
@@ -27,7 +27,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
     use Simulation_data
 
     implicit none
-    
+
 #include "constants.h"
 #include "Flash.h"
 #include "Flash_mpi.h"
@@ -36,7 +36,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
     integer, INTENT(IN) :: nozzle
     real, INTENT(in) :: time, dt
     !! -----------------------------------------------------
-    
+
     real, dimension(3), save :: ex, ey, ez, exprime, eyprime, ezprime, v, r, rcart
     real, dimension(3) :: phihat,thetahat, jprime, jetaxis
     real, save :: thetajet, phijet
@@ -45,7 +45,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
     logical, save :: first_call=.true.
     real :: svr, radius, f, wigglerad
     real, dimension(3) :: rvec, vr
-   
+
     !! End of data declaration ***********************************************
 
     if (first_call) then
@@ -75,7 +75,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
 
        eyprime(:)=cross(ezprime(:), exprime(:))
        eyprime(:)=eyprime/sqrt(sum(eyprime(:)**2))
-      
+
 
        ! precession axis in simulation coordinates
        rcart(:)=sim(nozzle)%jetvec(:)
@@ -94,7 +94,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        else
           phijet=PI
        endif
-       
+
        ! base vectors in precession cone coordinates
        phihat(:)=cross(ez(:),r(:))
        if (sum(phihat(:)**2).gt.0) then
@@ -109,18 +109,18 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        v(:) = [sum(exprime(:)*sim(nozzle)%angVel(:)), &
             sum(eyprime(:)*sim(nozzle)%angVel(:)), &
             sum(ezprime(:)*sim(nozzle)%angVel(:))]
-       
+
        !sim(nozzle)%jetvec(:)=ezprime(:)
        !sim(nozzle)%jetvec_old(:)=sim(nozzle)%jetvec(:)
        first_call=.false.
-              
+
     endif
 
 
     ! initializing?
     !if (time.ge.sim(nozzle)%tOn .and. &
     !     time.lt.(sim(nozzle)%tOn + dt)) then
-    !   
+    !
     !   ! Initialize jet vector
     !   sim(nozzle)%switch=.true.
 
@@ -141,10 +141,10 @@ subroutine Simulation_jiggle( nozzle, time, dt )
     !   write(*,*)'jiggle  2: ',sim(nozzle)%pos
     !endif
 
-       
+
        ! Initialize jet vector
        !sim(nozzle)%switch=.true.
-       
+
        phihat(:)=cross(ez(:),r(:))
        if (sqrt(sum(phihat(:)**2)).gt.0) then
           phihat=phihat/sqrt(sum(phihat(:)**2))
@@ -157,33 +157,35 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        ! Now express velocity in new coordinate system
        vphi=sum(v(:)*phihat(:))
        vtheta=sum(v(:)*thetahat(:))
-       
+
        ! Random walk step
        sigma=2.0*PI*exp(-(thetajet/sim(nozzle)%precangle)**4)
+       call RANDOM_SEED(put=sim(nozzle)%randSeed)
        call RANDOM_NUMBER(rn)
        call MPI_Bcast(rn,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
+       call RANDOM_SEED(get=sim(nozzle)%randSeed)
        ! taper precession cone
        psi=(rn - 0.5)*sigma - PI/2.0
-       
+
        dv = sim(nozzle)%nutation*sqrt(dt/sim(nozzle)%duration)
        ! Add to velocity
        vphi=vphi + dv*cos(psi)
        vtheta=vtheta + dv*sin(psi)
-       
+
        ! And normalize
        dummyn=sqrt(vphi**2 + vtheta**2)
        if (dummyn.gt.0.0) then
           vphi=vphi/dummyn
           vtheta=vtheta/dummyn
        endif
-       
+
        ! New velocity in coordinates relative to cone axis
        v(:)=vphi*phihat(:) + vtheta*thetahat(:)
 
        ! Now move jet axis and normalize
        r(:)=r(:) + v(:)*sim(nozzle)%precession*dt/sim(nozzle)%duration
        r(:)=r(:)/sqrt(sum(r(:)**2))
-       
+
        ! Finally, calculate new angles
        thetajet=acos(r(3))
        if (abs(r(1)).gt.0.or.abs(r(2)).gt.0) then
@@ -198,7 +200,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
             sin(phijet)*sin(thetajet),cos(thetajet)]
        jetaxis(:)=exprime(:)*jprime(1) + &
             eyprime(:)*jprime(2) + ezprime(:)*jprime(3)
-       
+
        ! sim(nozzle)%theta and sim(nozzle)%phi are measured in simulations coordinates
        !sim(nozzle)%theta=acos(jetaxis(3)/sqrt(sum(jetaxis(:)**2)))
        !if (jetaxis(2).gt.-sqrt(jetaxis(1)**2 + jetaxis(2)**2)) then
@@ -207,11 +209,11 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        !else
        !   sim(nozzle)%phi=pi
        !endif
-       
+
        ! angular velocity for precession
        sim(nozzle)%angVel(:)=&
             cross(jetaxis(:),sim(nozzle)%jetvec(:))/dt
-       
+
        ! move this to jiggle
        !sim(nozzle)%vec_old(:)=sim(nozzle)%jetvec(:)
        sim(nozzle)%jetvec(:)=jetaxis(:)
@@ -223,7 +225,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
 
     !else
     !   sim(nozzle)%switch=.false.
-    endif    
+    endif
 
 
 end subroutine Simulation_jiggle

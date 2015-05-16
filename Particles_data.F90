@@ -92,9 +92,10 @@ module Particles_data
 
 ! <- ychen 05-2015
   integer, save        :: pt_customNumAttrib
-  integer, allocatable, dimension(:,:) :: pt_customAttrib
+  integer, allocatable, dimension(:,:), save :: pt_customAttrib
   integer, save        :: pt_newParticleNumAttrib
-  integer, allocatable, dimension(:,:) :: pt_newParticleAttrib
+  integer, allocatable, dimension(:,:), save :: pt_newParticleAttrib
+  integer, dimension(2), save        :: pt_randSeed
 ! ychen ->
   
 

@@ -120,8 +120,9 @@ contains
                   'nozzleVecZ               ', &
                   'nozzleAngVelX            ', &
                   'nozzleAngVelY            ', &
-                  'nozzleAngVelZ            '
-10           format (2X, 1(a10, :, 1X), 10(a25, :, 1X))
+                  'nozzleAngVelZ            ', &
+                  'randSeed  '
+10           format (2X, 1(a10, :, 1X), 7(a25, :, 1X), 1(a10, :, 1X))
 
           else if(isFirst .EQ. 1) then
              write (funit, 11)
@@ -129,8 +130,8 @@ contains
           endif
 
           ! Write the global sums to the file.
-          write (funit, 12) dr_nstep, time, sim(nozzle)%jetvec, sim(nozzle)%angVel
-12        format (1X, 1(I10, :, 1X), 10(es25.18, :, 1X))
+          write (funit, 12) dr_nstep, time, sim(nozzle)%jetvec, sim(nozzle)%angVel, sim(nozzle)%randSeed
+12        format (1X, 1(I10, :, 1X), 7(es25.18, :, 1X), 1(I10, :, 1X))
 
           close (funit)          ! Close the file.
           isFirst = 0
