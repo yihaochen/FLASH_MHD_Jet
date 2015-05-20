@@ -10,19 +10,22 @@ REQUIRES Multispecies
 
 
 
-D   pAmbient        Initial ambient pressure
-D   rhoAmbient      Initial ambient density
+D   rhoCore			Initial ambient density
+D	mu				Mean molecular weight
 D	windVel			Inflow velocity (parallel to x-axis)
-D   gammaAmbient	Gamma of the ambient material
+D   gammaICM		Gamma of the ambient material
 
 # Background Properties
-PARAMETER sim_pAmbient		REAL	1.38065E-11	[0.0...]
-PARAMETER sim_rhoAmbient	REAL	1.67E-26	[0.0...]
+PARAMETER sim_Tcore			REAL	3.48E7	[0.0...]
+PARAMETER sim_Tout			REAL	7.42E7	[0.0...]
+PARAMETER sim_rhoCore		REAL	9.6E-26	[0.0...]
+PARAMETER sim_mu			REAL	0.61	[0.5...2.0]
 PARAMETER sim_windVel		REAL	0.0
-PARAMETER sim_gammaAmbient	REAL	1.6666
+PARAMETER sim_gammaICM		REAL	1.6666
 PARAMETER sim_bzAmbient		REAL	0.0
 PARAMETER sim_densityBeta	REAL	2.0
-PARAMETER sim_rCore			REAL	6.2E23		[0.0...]
+PARAMETER sim_rCore			REAL	8.1E22		[0.0...]
+PARAMETER sim_rCoreT		REAL	1.85E23		[0.0...]
 PARAMETER sim_densityProfile STRING "uniform"	["uniform", "betacore"]
 
 D	powerJet		Power of the jet
@@ -112,7 +115,7 @@ PARTICLEMAP TO MAGZ FROM VARIABLE magz
 
 
 PARAMETER sim_ptInitNum		INTEGER	10			[0...]
-PARAMETER sim_ptAddPeriod	REAL	2E9		[0.0...]
+PARAMETER sim_ptAddPeriod	REAL	1E9			[0.0...]
 PARAMETER sim_ptAddVolume	REAL	1E66		[0.0...]
 
 

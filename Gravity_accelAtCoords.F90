@@ -49,6 +49,7 @@ subroutine Gravity_accelAtCoords (numPoints, iCoords,jCoords,kCoords, accelDir,&
 
   use Gravity_data, ONLY: grv_ptxpos, grv_ptypos, grv_ptzpos, grv_factor, &
        useGravity
+  use PhysicalConstants_interface, ONLY:  PhysicalConstants_get
   use Simulation_data
 
   implicit none
@@ -69,16 +70,17 @@ subroutine Gravity_accelAtCoords (numPoints, iCoords,jCoords,kCoords, accelDir,&
 #else
   real,allocatable,dimension(:) ::xCenter,yCenter,zCenter
 #endif
-  real :: r2
+  real :: r, gasConst
 
   integer :: ii, nozzle=1
 
 !==============================================================================
-  if (.NOT.useGravity) then
+  if (.NOT.useGravity .or. sim_densityProfile=="uniform") then
      accel(1:numPoints) = 0.0
      return
   end if
 
+  call PhysicalConstants_get("ideal gas constant", gasConst)
 #ifndef FIXEDBLOCKSIZE
   allocate(xCenter(numPoints))
   allocate(yCenter(numPoints))
@@ -110,29 +112,47 @@ subroutine Gravity_accelAtCoords (numPoints, iCoords,jCoords,kCoords, accelDir,&
 
   if (accelDir .eq. IAXIS) then                       ! x-component
      do ii = 1, numPoints
-        r2 = xCenter(ii)*xCenter(ii) + yCenter(ii)*yCenter(ii)  + zCenter(ii)*zCenter(ii) 
-
-        accel(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
-                    (1.0 + r2/sim_rCore**2)*xCenter(ii)/sim_rCore**2
+        r=sqrt(xCenter(ii)*xCenter(ii) + yCenter(ii)*yCenter(ii) + zCenter(ii)*zCenter(ii))
+        accel(ii) = gasConst/sim_mu*xCenter(ii)&
+                    ! Density derivative
+                    *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                    ! Temperature profile
+                    *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                    /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                    ! Temperature derivative
+                    +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                    /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
 
      end do
 
   else if (accelDir .eq. JAXIS) then          ! y-component
 
      do ii = 1, numPoints
-        r2 = xCenter(ii)*xCenter(ii) + yCenter(ii)*yCenter(ii)  + zCenter(ii)*zCenter(ii) 
-
-        accel(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
-                    (1.0 + r2/sim_rCore**2)*yCenter(ii)/sim_rCore**2
+        r=sqrt(xCenter(ii)*xCenter(ii) + yCenter(ii)*yCenter(ii) + zCenter(ii)*zCenter(ii))
+        accel(ii) = gasConst/sim_mu*yCenter(ii)&
+                    ! Density derivative
+                    *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                    ! Temperature profile
+                    *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                    /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                    ! Temperature derivative
+                    +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                    /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
      end do
 
   else if (accelDir .eq. KAXIS) then          ! z-component
 
      do ii = 1, numPoints
-        r2 = xCenter(ii)*xCenter(ii) + yCenter(ii)*yCenter(ii)  + zCenter(ii)*zCenter(ii) 
-
-        accel(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
-                    (1.0 + r2/sim_rCore**2)*zCenter(ii)/sim_rCore**2
+        r=sqrt(xCenter(ii)*xCenter(ii) + yCenter(ii)*yCenter(ii) + zCenter(ii)*zCenter(ii))
+        accel(ii) = gasConst/sim_mu*zCenter(ii)&
+                    ! Density derivative
+                    *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                    ! Temperature profile
+                    *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                    /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                    ! Temperature derivative
+                    +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                    /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
      end do
 
   end if

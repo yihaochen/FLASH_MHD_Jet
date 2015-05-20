@@ -26,6 +26,7 @@ subroutine Simulation_initBlock(blockID)
 
   use Grid_interface, ONLY : Grid_getBlkIndexLimits, &
     Grid_getBlkPtr, Grid_releaseBlkPtr, Grid_getCellCoords
+  use PhysicalConstants_interface, ONLY:  PhysicalConstants_get
   use Logfile_interface, ONLY : Logfile_stamp
   use Simulation_data
   use Driver_data, ONLY : dr_simTime, dr_dtInit
@@ -41,9 +42,9 @@ subroutine Simulation_initBlock(blockID)
         solnFaceXData, solnFaceYData, solnFaceZData
 
 
-  real :: rho_zone, velx_zone, vely_zone, velz_zone, pres_zone, &
-       ener_zone, ekin_zone, eint_zone
-  real :: densityBG, pressureBG, rhoCut, pCut
+  real :: rho_zone, velx_zone, vely_zone, velz_zone, temp_zone, &
+       ener_zone, ekin_zone, eint_zone, gasConst
+  real :: densityBG, tempBG, rhoCut
   real :: vel, fac
 
 
@@ -78,9 +79,11 @@ subroutine Simulation_initBlock(blockID)
   
 
   ! Initial conditions are spatially uniform.
+
+  call PhysicalConstants_get("ideal gas constant", gasConst)
   
-  rho_zone = sim_rhoAmbient
-  pres_zone = sim_pAmbient
+  rho_zone = sim_rhoCore
+  temp_zone = sim_Tcore
 
   velx_zone = 0.0
   vely_zone = sim_windVel
@@ -103,17 +106,19 @@ subroutine Simulation_initBlock(blockID)
 
   ! store the variables in the block's unk data
   solnData(DENS_VAR,:,:,:) = rho_zone
-  solnData(PRES_VAR,:,:,:) = pres_zone
+  solnData(TEMP_VAR,:,:,:) = temp_zone
   solnData(GAMC_VAR,:,:,:) = sim_gamma
-  solnData(GAME_VAR,:,:,:) = sim_gamma
+  solnData(GAMC_VAR,:,:,:) = sim_gamma
   solnData(VELX_VAR,:,:,:) = velx_zone
   solnData(VELY_VAR,:,:,:) = vely_zone
   solnData(VELZ_VAR,:,:,:) = velz_zone
 
 #ifdef EINT_VAR
   !solnData(EINT_VAR,:,:,:) = eint_zone
-  solnData(EINT_VAR,:,:,:) = solnData(PRES_VAR,:,:,:)/solnData(DENS_VAR,:,:,:)&
-                                     /(solnData(GAME_VAR,:,:,:)-1.0)
+  !solnData(EINT_VAR,:,:,:) = solnData(PRES_VAR,:,:,:)/solnData(DENS_VAR,:,:,:)&
+  !                                   /(solnData(GAMC_VAR,:,:,:)-1.0)
+  solnData(EINT_VAR,:,:,:) = gasConst*solnData(TEMP_VAR,:,:,:)&
+                             /(solnData(GAMC_VAR,:,:,:)-1.0)/sim_mu
 #endif
   !solnData(ENER_VAR,:,:,:) = ener_zone
   solnData(ENER_VAR,:,:,:) = solnData(EINT_VAR,:,:,:)+&
@@ -130,9 +135,7 @@ subroutine Simulation_initBlock(blockID)
   solnFaceYdata(MAG_FACE_VAR,:,:,:) = 0.0
   solnFaceZdata(MAG_FACE_VAR,:,:,:) = sim_bzAmbient
 
-  rhoCut = sim_rhoAmbient*(1.0 + (sim_rCut/sim_rCore)**2)**(-1.5*sim_densityBeta)
-  ! isothermal atmosphere
-  pCut = sim_pAmbient*rhoCut/sim_rhoAmbient
+  rhoCut = sim_rhoCore*(1.0 + (sim_rCut/sim_rCore)**2)**(-1.5*sim_densityBeta)
 
   bf = sim(nozzle)%rFeatherOut
   r2 = sim(nozzle)%radius
@@ -140,9 +143,9 @@ subroutine Simulation_initBlock(blockID)
   rmix = rout + sim(nozzle)%rFeatherMix
 
   ! Initialize the nozzle
-  do k = blkLimits(LOW,KAXIS), blkLimits(HIGH,KAXIS)
-   do j = blkLimits(LOW,JAXIS), blkLimits(HIGH,JAXIS)
-    do i = blkLimits(LOW,IAXIS), blkLimits(HIGH,IAXIS)
+  do k = blkLimitsGC(LOW,KAXIS), blkLimitsGC(HIGH,KAXIS)
+   do j = blkLimitsGC(LOW,JAXIS), blkLimitsGC(HIGH,JAXIS)
+    do i = blkLimitsGC(LOW,IAXIS), blkLimitsGC(HIGH,IAXIS)
        cellvec = (/ xCoord(i), yCoord(j), zCoord(k) /)
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&
                                      sig,theta,jetvec,rvec,plnvec,phivec)
@@ -181,33 +184,36 @@ subroutine Simulation_initBlock(blockID)
           endif
        endif
        if (sim_densityProfile =="betacore") then
-          if (distance < sim_rCut) then
-             densityBG = sim_rhoAmbient*(1.0 + (distance/sim_rCore)**2)**(-1.5*sim_densityBeta)
-             ! isothermal atmosphere
-             pressureBG = sim_pAmbient*densityBG/sim_rhoAmbient
-          else
-             densityBG = rhoCut
-             pressureBG = pCut
-          endif
+          ! beta model for the density profile
+          densityBG = sim_rhoCore*(1.0 + (distance/sim_rCore)**2)**(-1.5*sim_densityBeta)
+          ! isothermal atmosphere
+          tempBG = sim_Tout*(1.0+(distance/sim_rCoreT)**3)&
+                       /(sim_Tout/sim_Tcore+(distance/sim_rCoreT)**3)
        else
           ! uniform background density and pressure
-          densityBG = sim_rhoAmbient
-          pressureBG = sim_pAmbient
+          densityBG = sim_rhoCore
+          tempBG = sim_Tcore
        endif
        solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + densityBG*(1.0-fac)
-       solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac + pressureBG*(1.0-fac)
+       solnData(TEMP_VAR,i,j,k) = sim(nozzle)%pressure/sim(nozzle)%density/gasConst*sim_mu*fac &
+                                  + tempBG*(1.0-fac)
        solnData(JET_SPEC,i,j,k) = max(sim_smallx, fac)
        solnData(ISM_SPEC,i,j,k) = max(sim_smallx, 1.0-fac)
-       solnData(EINT_VAR,i,j,k) = max(sim_smalle, solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
-                                  /(solnData(GAME_VAR,i,j,k)-1.0))
-       solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)+&
-                             0.5*(solnData(VELX_VAR,i,j,k)**2 +&
-                                  solnData(VELY_VAR,i,j,k)**2 +&
-                                  solnData(VELZ_VAR,i,j,k)**2)
+       !solnData(EINT_VAR,i,j,k) = max(sim_smalle, solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
+       !                           /(solnData(GAMC_VAR,i,j,k)-1.0))
+       !solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)+&
+       !                      0.5*(solnData(VELX_VAR,i,j,k)**2 +&
+       !                           solnData(VELY_VAR,i,j,k)**2 +&
+       !                           solnData(VELZ_VAR,i,j,k)**2)
     enddo
    enddo
   enddo
 
+  call Eos_wrapped(MODE_DENS_TEMP, blkLimitsGC, blockID, CENTER)
+  solnData(ENER_VAR,:,:,:) = solnData(EINT_VAR,:,:,:)+&
+                        0.5*(solnData(VELX_VAR,:,:,:)**2 +&
+                             solnData(VELY_VAR,:,:,:)**2 +&
+                             solnData(VELZ_VAR,:,:,:)**2)
   call Grid_releaseBlkPtr(blockID, solnData, CENTER)
   call Grid_releaseBlkPtr(blockID,solnFaceXData,FACEX)
   call Grid_releaseBlkPtr(blockID,solnFaceYData,FACEY)

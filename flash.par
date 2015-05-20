@@ -7,7 +7,7 @@ sim_windVel     = 0.0
 sim_gammaAmbient = 1.6666
 sim_bzAmbient	= 0.0 #1.8623E-6
 sim_densityProfile = "betacore"
-sim_densityBeta = 2.0
+sim_densityBeta = 0.6
 sim_rCore		= 6.2E22
 
 useGravity = .true.
@@ -83,21 +83,22 @@ geometry = "cartesian"
 #	Particles parameters
 useParticles	= .true.
 sim_ptInitNum	= 10
-sim_ptAddPeriod = 1E10
-sim_ptAddVolume	= 1E63
+sim_ptAddPeriod = 1E9
+sim_ptAddVolume	= 1E66
+pt_maxPerProc	= 10000
 
 
 #		Size of computational volume
 
-Nblockx		= 4
-Nblocky		= 4
-Nblockz		= 8
-xmin		= -4.8E22		# 3.1E21 cm ~ 1 kpc
-xmax		=  4.8E22
-ymin		= -4.8E22
-ymax		=  4.8E22
-zmin		= -9.6E22
-zmax		=  9.6E22
+Nblockx		= 8
+Nblocky		= 8
+Nblockz		= 16
+xmin		= -7.72E23		# 3.1E21 cm ~ 1 kpc
+xmax		=  7.72E23
+ymin		= -7.72E23
+ymax		=  7.72E23
+zmin		= -1.544E24
+zmax		=  1.544E24
 
 #		Boundary conditions
 
@@ -117,14 +118,11 @@ cfl				= 0.2
 tmax            = 1.0E14
 nend            = 20000
 
-lrefine_max			= 6
-lrefine_0			= 5
-refine_var_1		= "dens"
+lrefine_max			= 9
+lrefine_0			= 8
+refine_var_1		= "pres"
 refine_cutoff_1		= 0.9
 derefine_cutoff_1	= 0.7
-refine_var_2		= "pres"
-refine_cutoff_2		= 0.9
-derefine_cutoff_2	= 0.7
 #refine_var_3		= "magp"
 #refine_cutoff_3		= 0.9
 #derefine_cutoff_3	= 0.7
@@ -135,7 +133,9 @@ checkpointFileIntervalTime  = 5.0E12
 checkpointFileNumber        = 0
 
 plotFileIntervalTime		= 1.0E12
+particleFileIntervalTime	= 1.0E12
 plotFileNumber              = 0
+particleFileNumber			= 0
 
 plot_var_1 = "dens"
 plot_var_2 = "pres"
@@ -149,6 +149,7 @@ plot_var_9 = "magy"
 plot_var_10 = "magz"
 plot_var_11 = "magp"
 plot_var_12 = "eint"
+plot_var_13 = "shok"
 
 
 ## -------------------------------------------------------------##

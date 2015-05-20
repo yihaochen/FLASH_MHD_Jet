@@ -41,6 +41,7 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
   use Gravity_data, ONLY: useGravity
   use Grid_interface, ONLY : Grid_getBlkIndexLimits, &
     Grid_getCellCoords
+  use PhysicalConstants_interface, ONLY:  PhysicalConstants_get
   use Simulation_data
 
   implicit none
@@ -65,7 +66,7 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
   real,allocatable,dimension(:) ::xCenter,yCenter,zCenter
   integer, dimension(LOW:HIGH,MDIM):: blkLimits, blkLimitsGC
 #endif
-  real :: r2, rt
+  real :: r, rt, gasConst
 
   integer :: sizeX,sizeY,sizez
 
@@ -74,7 +75,8 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
 
 !==============================================================================
 
-  if (.NOT.useGravity) return
+  if (.NOT.useGravity .or. sim_densityProfile=="uniform") return
+  call PhysicalConstants_get("ideal gas constant", gasConst)
   j=pos(1)
   k=pos(2)
 #ifndef FIXEDBLOCKSIZE
@@ -109,10 +111,19 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
      rt = yCenter(j)*yCenter(j) + zCenter(k)*zCenter(k) 
 
      do ii = 1, numCells
-        r2=xCenter(ii)*xCenter(ii) + rt
+        r=sqrt(xCenter(ii)*xCenter(ii) + rt)
+        grav(ii) = gasConst/sim_mu*xCenter(ii)&
+                   ! Density derivative
+                   *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                   ! Temperature profile
+                   *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                   /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                   ! Temperature derivative
+                   +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                   /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
         !if (r2.lt.sim_rCut**2) then
-           grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
-                (1.0 + r2/sim_rCore**2)*xCenter(ii)/sim_rCore**2
+           !grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoCore/&
+           !     (1.0 + r2/sim_rCore**2)*xCenter(ii)/sim_rCore**2
         !else
         !   grav(ii) = 0.
         !endif
@@ -123,10 +134,19 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
      rt = xCenter(j)*xCenter(j) + zCenter(k)*zCenter(k) 
 
      do ii = 1, numCells
-        r2=yCenter(ii)*yCenter(ii) + rt
+        r=sqrt(yCenter(ii)*yCenter(ii) + rt)
+        grav(ii) = gasConst/sim_mu*yCenter(ii)&
+                   ! Density derivative
+                   *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                   ! Temperature profile
+                   *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                   /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                   ! Temperature derivative
+                   +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                   /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
         !if (r2.lt.sim_rCut**2) then
-           grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
-                (1.0 + r2/sim_rCore**2)*yCenter(ii)/sim_rCore**2
+           !grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoCore/&
+           !     (1.0 + r2/sim_rCore**2)*yCenter(ii)/sim_rCore**2
         !else
         !   grav(ii) = 0.
         !endif
@@ -137,10 +157,19 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
      rt = xCenter(j)*xCenter(j) + yCenter(k)*yCenter(k) 
 
      do ii = 1, numCells
-        r2=zCenter(ii)*zCenter(ii) + rt
+        r=sqrt(zCenter(ii)*zCenter(ii) + rt)
+        grav(ii) = gasConst/sim_mu*zCenter(ii)&
+                   ! Density derivative
+                   *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                   ! Temperature profile
+                   *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                   /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                   ! Temperature derivative
+                   +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                   /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
         !if (r2.lt.sim_rCut**2) then
-           grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoAmbient/&
-                (1.0 + r2/sim_rCore**2)*zCenter(ii)/sim_rCore**2
+           !grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoCore/&
+           !     (1.0 + r2/sim_rCore**2)*zCenter(ii)/sim_rCore**2
         !else
         !   grav(ii)=0.
         !endif

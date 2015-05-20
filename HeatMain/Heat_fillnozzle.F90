@@ -162,12 +162,8 @@ subroutine Heat_fillnozzle (blockID,dt,time)
           solnData(PRES_VAR,i,j,k) = (sim(nozzle)%pressure*facR + mixData(PRES_VAR)*(1.0-facR))*facL&
                    + solnData(PRES_VAR,i,j,k)*(1.0-facL)
 
-          solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
-                                     /(solnData(GAME_VAR,i,j,k)-1.0)
-          solnData(ENER_VAR,i,j,k) = solnData(EINT_VAR,i,j,k)&
-                                     + 0.5*(solnData(VELX_VAR,i,j,k)**2 &
-                                          + solnData(VELY_VAR,i,j,k)**2 &
-                                          + solnData(VELZ_VAR,i,j,k)**2)
+          !solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
+          !                           /(solnData(GAMC_VAR,i,j,k)-1.0)
           solnData(JET_SPEC,i,j,k) = max( sim_smallX, facR + mixData(JET_SPEC)*(1.0-facR) )
           solnData(ISM_SPEC,i,j,k) = max( sim_smallX, mixData(ISM_SPEC)*(1.0-facR) )
 
@@ -189,7 +185,11 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   deallocate(sim_yCoord)
   deallocate(sim_zCoord)
 
-  call Eos_wrapped(MODE_DENS_PRES, blkLimits, blockID)
+  call Eos_wrapped(MODE_DENS_PRES, blkLimits, blockID, CENTER)
+  solnData(ENER_VAR,:,:,:) = solnData(EINT_VAR,:,:,:)&
+                             + 0.5*(solnData(VELX_VAR,:,:,:)**2 &
+                                  + solnData(VELY_VAR,:,:,:)**2 &
+                                  + solnData(VELZ_VAR,:,:,:)**2)
   call Grid_releaseBlkPtr(blockID,solnData,CENTER)
 
   return

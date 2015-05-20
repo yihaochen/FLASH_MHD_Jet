@@ -101,7 +101,7 @@ subroutine pt_initPositions (blockID,success)
            + sim(nozzle)%jetvec*sim(nozzle)%length*0.9999*k
      ! Check if particle is in this block
      isInBlock = (maxval(abs(pos-blockCenter) - 0.5*blockSize) < 0.0)
-     write(*,'(i4, es11.3)') pt_meshMe, maxval(abs(pos-blockCenter) - 0.5*blockSize)
+     !write(*,'(i4, es11.3)') pt_meshMe, maxval(abs(pos-blockCenter) - 0.5*blockSize)
      ! If it is, keep it; otherwise discard it.
      if (IsInBlock) then
        pt_ind = pt_ind + 1

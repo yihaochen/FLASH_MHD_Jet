@@ -61,7 +61,7 @@ contains
 
 
     !if (sim(nozzle)%density < 0.0) then
-       !sim(nozzle)%t0 = (r**2*PI*2*v)**1.25*(sim_rhoAmbient*g/(g-1)/L)**0.75*0.227082
+       !sim(nozzle)%t0 = (r**2*PI*2*v)**1.25*(sim_rhoCore*g/(g-1)/L)**0.75*0.227082
     if (time .lt. sim(nozzle)%tOn+t1) then
        sim(nozzle)%density = 0.5*L/PI/v**3/( 0.5*r*r*(1.+1./M**2/(g-1.)) + r*bf*(0.3125+1./M**2/(g-1.)) &
                              + bf*bf*(0.06056+0.29736/M**2/(g-1.)) )
@@ -72,13 +72,13 @@ contains
 
 
     !sim(nozzle)%pressure = (max(time,sim(nozzle)%t0))**(-0.8)&
-    !                       *0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
+    !                       *0.305454*sim_rhoCore**0.6*((g-1)/g*L)**0.4
     !sim(nozzle)%density = 2.0/v/v*(L/(r**2*PI*2*v) - g/(g-1)*sim(nozzle)%pressure)
     !sim(nozzle)%density = max(gr_smallrho, sim(nozzle)%density)
     !sim(nozzle)%mach = v/sqrt(g*sim(nozzle)%pressure/sim(nozzle)%density)
 
     !sim(nozzle)%deltaP = ( (max(time,t0))**(-0.8)-(max(time-dt,t0))**(-0.8) )&
-    !                       *0.305454*sim_rhoAmbient**0.6*((g-1)/g*L)**0.4
+    !                       *0.305454*sim_rhoCore**0.6*((g-1)/g*L)**0.4
     !sim(nozzle)%deltaRho = -2.0/v/v*(g/(g-1)*sim(nozzle)%deltaP)
 
     sim(nozzle)%bzOld = sim(nozzle)%bz

@@ -50,8 +50,8 @@ module Simulation_data
 
   type(nozzle_struct), save, dimension(NOZZLES) :: sim
 
-  real,save :: sim_pAmbient, sim_rhoAmbient, sim_windVel, sim_bzAmbient
-  real,save :: sim_densityBeta, sim_rCore, sim_rCut
+  real,save :: sim_Tcore, sim_Tout, sim_rhoCore, sim_windVel, sim_bzAmbient
+  real,save :: sim_densityBeta, sim_rCore, sim_rCoreT, sim_rCut, sim_mu
   real,save :: sim_gamma, sim_smallp, sim_smallX, sim_smlrho, sim_smalle
   real,save,allocatable,dimension(:) :: sim_xcoord
   real,save,allocatable,dimension(:) :: sim_ycoord
@@ -62,7 +62,6 @@ module Simulation_data
   integer,save :: sim_ptInitNum
   real,save :: sim_ptAddPeriod, sim_ptAddVolume
   character(len=MAX_STRING_LENGTH) :: sim_densityProfile
-
 
 contains
 

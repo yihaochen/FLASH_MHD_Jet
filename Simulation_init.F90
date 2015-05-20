@@ -19,10 +19,6 @@
 !!
 !! PARAMETERS
 !!
-!!  sim_pAmbient    Initial ambient pressure
-!!  sim_rhoAmbient  Initial ambient density
-!!  sim_windVel     Inflow velocity (parallel to x-axis)
-!!  gamma           the Gamma EOS thing
 !!
 !!***
 
@@ -55,16 +51,19 @@ subroutine Simulation_init()
   call RuntimeParameters_get('smalle', sim_smalle)
   call RuntimeParameters_get('smallx', sim_smallx)
 
-  call RuntimeParameters_get('sim_pAmbient', sim_pAmbient)
-  call RuntimeParameters_get('sim_rhoAmbient', sim_rhoAmbient)
+  !call RuntimeParameters_get('sim_pAmbient', sim_pAmbient)
+  call RuntimeParameters_get('sim_Tcore', sim_Tcore)
+  call RuntimeParameters_get('sim_Tout', sim_Tout)
+  call RuntimeParameters_get('sim_rhoCore', sim_rhoCore)
+  call RuntimeParameters_get('sim_mu', sim_mu)
   call RuntimeParameters_get('sim_windVel', sim_windVel)
-  call RuntimeParameters_get('sim_gammaAmbient', sim_gamma)
+  call RuntimeParameters_get('sim_gammaICM', sim_gamma)
   call RuntimeParameters_get('sim_bzAmbient', sim_bzAmbient)
   call RuntimeParameters_get('sim_densityProfile', sim_densityProfile)
   call RuntimeParameters_get('sim_rCore', sim_rCore)
+  call RuntimeParameters_get('sim_rCoreT', sim_rCoreT)
   call RuntimeParameters_get('sim_densityBeta', sim_densityBeta)
-  sim_rCut = sim_rCore*sqrt((max(sim_smlrho/sim_rhoAmbient, &
-             sim_smallp/sim_pAmbient))**(-2./3./sim_densityBeta)-1.0 )
+  sim_rCut = sim_rCore*sqrt((sim_smlrho/sim_rhoCore)**(-2./3./sim_densityBeta)-1.0 )
   call RuntimeParameters_get('sim_powerJet', sim(nozzle)%power)
   !call RuntimeParameters_get('sim_rhoJet', sim(nozzle)%density)
   call RuntimeParameters_get('sim_velJet', sim(nozzle)%velocity)
