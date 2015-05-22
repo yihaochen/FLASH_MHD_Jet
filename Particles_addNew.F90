@@ -39,7 +39,7 @@
 
 !!#define DEBUG_PARTICLES
 
-subroutine Particles_addNew (count, pos, success)
+subroutine Particles_addNew (count, pos, shock, success)
   
   use Particles_data, ONLY : particles, &
        pt_maxPerProc, pt_numLocal, pt_meshComm, pt_meshMe, pt_indexList, &
@@ -58,6 +58,7 @@ subroutine Particles_addNew (count, pos, success)
 
   integer, INTENT(in) :: count
   real, optional, dimension(count,MDIM), intent(IN)::pos
+  real, optional, intent(IN):: shock
   logical, intent(OUT) :: success
 
   integer :: i, tagOffset, ierr, effCount
@@ -96,6 +97,9 @@ subroutine Particles_addNew (count, pos, success)
         particles(TAG_PART_PROP,pt_numLocal+i)  = tagOffset+i
         particles(TAU_PART_PROP,pt_numLocal+i)  = 0.0
         particles(DEN0_PART_PROP,pt_numLocal+i) = -1.0
+        if (present(shock)) then
+           particles(SHOK_PART_PROP,pt_numLocal+i) = shock
+        endif
      end do
      if(present(pos)) then
         !write(*,*) pt_meshMe, 'present(pos)'

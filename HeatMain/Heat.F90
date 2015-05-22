@@ -101,8 +101,13 @@ subroutine Heat (blockCount,blockList,dt,time)
      call Grid_fillGuardCells(CENTER,ALLDIR,doEos=.true.,&
           maskSize=NUNK_VARS,mask=gcMask)
 
+     !Add shock particles
+     call Timers_start('Particles_addNew')
+     call Particles_addNew(nPtProc, pos, 1.0, addNewSuccess)
+     call Timers_stop('Particles_addNew')
      !write(*,*) '[Heat2] nPtProc:', nPtProc
      ! Add new particles at the surfaces of the nozzle
+     call Timers_start('Particles_addNew_nozzle')
      if (dr_globalMe==MASTER_PE) then
 
         call RANDOM_NUMBER(prob)
@@ -117,33 +122,20 @@ subroutine Heat (blockCount,blockList,dt,time)
         if (nPtNoz .gt. 0) then
            allocate(posNoz(nPtNoz,MDIM))
            call pt_getRandomPos(nPtNoz, posNoz)
-           !write(*,*) '[Heat] posNoz', posNoz
 
-           allocate(pos_tmp(nPtProc+nPtNoz,MDIM))
-           if (nPtProc.gt.0) then
-              pos_tmp(:nPtProc,:) = pos
-           endif
-           call move_alloc(pos_tmp, pos)
-           pos(nPtProc+1:nPtProc+nPtNoz,:) = posNoz(:,:)
-           !write(*,*) '[Heat] pos', size(pos), pos
-           nPtProc = nPtProc + nPtNoz
-           !write(*,'(A14, i3, A20, 3es11.3)') '[Heat] Adding', nPtProc, 'new particle at', pos(1,:)
-           call Particles_addNew(nPtProc, pos, addNewSuccess)
-           !write(*,*) '[Heat masterpe addNew finished] pos', pos
-           !if (addNewsuccess) then
-           !   write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Added a new particle at', pos(:,1)
-           !endif
+           call Particles_addNew(nPtNoz, posNoz, 0.0, addNewSuccess)
            deallocate(posNoz)
         else
             !write(*,*) '[Heat] no pos', nPtProc, pos
-            call Particles_addNew(nPtProc, pos, addNewSuccess)
+            call Particles_addNew(0, pos, 0.0,  addNewSuccess)
             !write(*,*) '[Heat] no pos2'
         endif
      else
         !write(*,*) '[Heat] not masterpe', nPtProc, pos
-        call Particles_addNew(nPtProc, pos, addNewSuccess)
+        call Particles_addNew(0, pos, 0.0, addNewSuccess)
         !write(*,*) '[Heat] not masterpe2'
      endif
+     call Timers_stop('Particles_addNew_nozzle')
      call RANDOM_SEED(get=pt_randSeed)
 
      !deallocate(pos)

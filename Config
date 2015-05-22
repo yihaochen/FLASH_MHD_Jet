@@ -116,7 +116,7 @@ PARTICLEMAP TO MAGZ FROM VARIABLE magz
 
 PARAMETER sim_ptInitNum		INTEGER	10			[0...]
 PARAMETER sim_ptAddPeriod	REAL	1E9			[0.0...]
-PARAMETER sim_ptAddVolume	REAL	1E66		[0.0...]
+PARAMETER sim_ptAddArea		REAL	1E44		[0.0...]
 
 
 # Heat Source Term

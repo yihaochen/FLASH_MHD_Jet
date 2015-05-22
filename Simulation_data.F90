@@ -33,7 +33,8 @@ module Simulation_data
       integer, dimension(1) :: randSeed
       real :: precession, nutation, precangle
       real :: radius, length, zTorInj, outflowR
-      real :: derefine_z1, derefine_z2, refine_jetR, derefine_jetR
+      !real :: derefine_z1, derefine_z2
+      real :: refine_jetR, derefine_jetR
       integer :: lrefine_0
       real :: power, pressure, density, velocity, gamma, mach, initMach
       real :: rFeatherIn, rFeatherOut, rFeatherMix, zFeather, zFeatherMix
@@ -60,7 +61,7 @@ module Simulation_data
   real,save,allocatable,dimension(:) :: sim_ycoordf
   real,save,allocatable,dimension(:) :: sim_zcoordf
   integer,save :: sim_ptInitNum
-  real,save :: sim_ptAddPeriod, sim_ptAddVolume
+  real,save :: sim_ptAddPeriod, sim_ptAddArea
   character(len=MAX_STRING_LENGTH) :: sim_densityProfile
 
 contains

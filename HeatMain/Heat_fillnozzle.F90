@@ -59,7 +59,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   real, dimension(3) :: plnvec, jetvec, rvec, phivec, voutvec, velvec
   real :: r2, bf, rout, rmix
   integer      :: iPart, nAdd
-  real         :: prob, pAdd, cellVolume
+  real         :: prob, pAdd, cellArea
   real,dimension(MDIM) :: rand_xyz
   real,allocatable,dimension(:,:) ::  pos_tmp
   logical      :: addNewSuccess
@@ -72,7 +72,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   allocate(sim_yCoord(sizeY),stat=istat)
   allocate(sim_zCoord(sizeZ),stat=istat)
   call Grid_getDeltas(blockID, del)
-  cellVolume = del(IAXIS)*del(JAXIS)*del(KAXIS)
+  cellArea = del(IAXIS)*del(JAXIS)*del(KAXIS)
   
   call Grid_getCellCoords(IAXIS,blockID,CENTER,gcell, sim_xCoord, sizeX)
   call Grid_getCellCoords(JAXIS,blockID,CENTER,gcell, sim_yCoord, sizeY)
@@ -86,7 +86,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   rmix = rout + sim(nozzle)%rFeatherMix
 
   !write(*,*) '[Heat_fillnozzle] nPtProc', nPtProc
-  pAdd = dt/sim_ptAddPeriod*cellVolume/sim_ptAddVolume
+  pAdd = dt/sim_ptAddPeriod*cellArea/sim_ptAddArea
   !write(*,*) '[Heat_fillnozzle] maxval(SHOK)', maxval(solnData(SHOK_VAR,:,:,:))
   !write(*,*) '[Heat_fillnozzle] prob', prob, pAdd
   do k = blkLimits(LOW,KAXIS), blkLimits(HIGH,KAXIS)
