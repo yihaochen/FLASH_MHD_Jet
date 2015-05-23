@@ -76,8 +76,6 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        eyprime(:)=cross(ezprime(:), exprime(:))
        eyprime(:)=eyprime/sqrt(sum(eyprime(:)**2))
 
-
-       ! precession axis in simulation coordinates
        rcart(:)=sim(nozzle)%jetvec(:)
 
        ! jet axis in precession cone coordinates
@@ -109,6 +107,14 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        v(:) = [sum(exprime(:)*sim(nozzle)%angVel(:)), &
             sum(eyprime(:)*sim(nozzle)%angVel(:)), &
             sum(ezprime(:)*sim(nozzle)%angVel(:))]
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'v = ', v
+       v(:) = cross(v(:), sim(nozzle)%jetvec(:))
+       if (sum(v**2).gt.0) then
+          v(:)=v(:)/sqrt(sum(v(:)**2))
+       endif
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'agV=', sim(nozzle)%angVel
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'v = ', v
+       ! v is always unity
 
        !sim(nozzle)%jetvec(:)=ezprime(:)
        !sim(nozzle)%jetvec_old(:)=sim(nozzle)%jetvec(:)
@@ -182,24 +188,28 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        ! New velocity in coordinates relative to cone axis
        v(:)=vphi*phihat(:) + vtheta*thetahat(:)
 
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'v" = ', v
        ! Now move jet axis and normalize
        r(:)=r(:) + v(:)*sim(nozzle)%precession*dt/sim(nozzle)%duration
        r(:)=r(:)/sqrt(sum(r(:)**2))
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'r = ', r
 
        ! Finally, calculate new angles
-       thetajet=acos(r(3))
-       if (abs(r(1)).gt.0.or.abs(r(2)).gt.0) then
-          phijet=2.0*atan(r(2)/&
-               (r(1) + sqrt(r(1)**2 + r(2)**2)))
-       else
-          phijet=PI
-       endif
+       !thetajet=acos(r(3))
+       !if (abs(r(1)).gt.0.or.abs(r(2)).gt.0) then
+       !   phijet=2.0*atan(r(2)/&
+       !        (r(1) + sqrt(r(1)**2 + r(2)**2)))
+       !else
+       !   phijet=PI
+       !endif
 
        ! Now express in simulation coordinates
-       jprime(:)=[cos(phijet)*sin(thetajet),&
-            sin(phijet)*sin(thetajet),cos(thetajet)]
-       jetaxis(:)=exprime(:)*jprime(1) + &
-            eyprime(:)*jprime(2) + ezprime(:)*jprime(3)
+       !jprime(:)=[cos(phijet)*sin(thetajet),&
+       !     sin(phijet)*sin(thetajet),cos(thetajet)]
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'jp= ', jprime
+       !jetaxis(:)=exprime(:)*jprime(1) + &
+       !     eyprime(:)*jprime(2) + ezprime(:)*jprime(3)
+       jetaxis(:)=exprime(:)*r(1) + eyprime(:)*r(2) + ezprime(:)*r(3)
 
        ! sim(nozzle)%theta and sim(nozzle)%phi are measured in simulations coordinates
        !sim(nozzle)%theta=acos(jetaxis(3)/sqrt(sum(jetaxis(:)**2)))
@@ -212,8 +222,9 @@ subroutine Simulation_jiggle( nozzle, time, dt )
 
        ! angular velocity for precession
        sim(nozzle)%angVel(:)=&
-            cross(jetaxis(:),sim(nozzle)%jetvec(:))/dt
+            cross(sim(nozzle)%jetvec(:),jetaxis(:))/dt
 
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'agV=', sim(nozzle)%angVel
        ! move this to jiggle
        !sim(nozzle)%vec_old(:)=sim(nozzle)%jetvec(:)
        sim(nozzle)%jetvec(:)=jetaxis(:)

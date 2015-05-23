@@ -96,6 +96,8 @@ contains
        call Timers_start('Simulation_jiggle')
        call Simulation_jiggle(nozzle,  time, dt)
        call Timers_stop('Simulation_jiggle')
+       sim(nozzle)%pos = sim(nozzle)%pos + sim(nozzle)%linVel*dt
+       !sim(nozzle)%jetvec = sim(nozzle)%jetvec + cross(sim(nozzle)%angVel, sim(nozzle)%jetvec)*dt
 
        ! Write the jet nozzle vectors to file.
        if (dr_globalMe  == MASTER_PE) then
@@ -138,8 +140,6 @@ contains
        endif
     endif
 
-    sim(nozzle)%pos = sim(nozzle)%pos + sim(nozzle)%linVel*dt
-    !sim(nozzle)%jetvec = sim(nozzle)%jetvec + cross(sim(nozzle)%angVel, sim(nozzle)%jetvec)*dt
 
   end subroutine sim_jetNozzleUpdate
 
