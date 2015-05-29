@@ -89,13 +89,13 @@ contains
     ! --------------------------------------------------------------------------
     ! Update the jet nozzle position and direction according to the velocity and
     ! angular velocity.
-    sim(nozzle)%posOld = sim(nozzle)%pos
-    sim(nozzle)%jetvecOld = sim(nozzle)%jetvec
+    !sim(nozzle)%jetvecOld = sim(nozzle)%jetvec
 
     if (dt.gt.0.0) then
        call Timers_start('Simulation_jiggle')
        call Simulation_jiggle(nozzle,  time, dt)
        call Timers_stop('Simulation_jiggle')
+       sim(nozzle)%posOld = sim(nozzle)%pos
        sim(nozzle)%pos = sim(nozzle)%pos + sim(nozzle)%linVel*dt
        !sim(nozzle)%jetvec = sim(nozzle)%jetvec + cross(sim(nozzle)%angVel, sim(nozzle)%jetvec)*dt
 

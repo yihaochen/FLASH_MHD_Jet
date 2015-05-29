@@ -37,8 +37,8 @@ subroutine Simulation_jiggle( nozzle, time, dt )
     real, INTENT(in) :: time, dt
     !! -----------------------------------------------------
 
-    real, dimension(3), save :: ex, ey, ez, exprime, eyprime, ezprime, v, r, rcart
-    real, dimension(3) :: phihat,thetahat, jprime, jetaxis
+    real, dimension(3), save :: ex, ey, ez, exprime, eyprime, ezprime, v, vprime, r, rcart
+    real, dimension(3) :: phihat,thetahat, jetaxis
     real, save :: thetajet, phijet
     real :: vphi, vtheta, dv, sigma, rn, psi, dummyn
     integer :: ierr
@@ -103,18 +103,16 @@ subroutine Simulation_jiggle( nozzle, time, dt )
 
        thetahat(:)=cross(phihat(:),r(:))
 
+       vprime(:) = sim(nozzle)%jetvec(:) - sim(nozzle)%jetvecOld(:)
        ! velocity in precession cone coordinates
-       v(:) = [sum(exprime(:)*sim(nozzle)%angVel(:)), &
-            sum(eyprime(:)*sim(nozzle)%angVel(:)), &
-            sum(ezprime(:)*sim(nozzle)%angVel(:))]
-       !if (dr_globalMe == MASTER_PE) write (*,*) 'v = ', v
-       v(:) = cross(v(:), sim(nozzle)%jetvec(:))
+       v(:) = [sum(exprime*vprime), sum(eyprime*vprime), sum(ezprime*vprime)]
+       ! v is always unity
        if (sum(v**2).gt.0) then
           v(:)=v(:)/sqrt(sum(v(:)**2))
        endif
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'v = ', v
        !if (dr_globalMe == MASTER_PE) write (*,*) 'agV=', sim(nozzle)%angVel
        !if (dr_globalMe == MASTER_PE) write (*,*) 'v = ', v
-       ! v is always unity
 
        !sim(nozzle)%jetvec(:)=ezprime(:)
        !sim(nozzle)%jetvec_old(:)=sim(nozzle)%jetvec(:)
@@ -178,17 +176,19 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        vphi=vphi + dv*cos(psi)
        vtheta=vtheta + dv*sin(psi)
 
-       ! And normalize
-       dummyn=sqrt(vphi**2 + vtheta**2)
-       if (dummyn.gt.0.0) then
-          vphi=vphi/dummyn
-          vtheta=vtheta/dummyn
-       endif
+       !dummyn=sqrt(vphi**2 + vtheta**2)
+       !if (dummyn.gt.0.0) then
+       !   vphi=vphi/dummyn
+       !   vtheta=vtheta/dummyn
+       !endif
 
        ! New velocity in coordinates relative to cone axis
        v(:)=vphi*phihat(:) + vtheta*thetahat(:)
 
-       !if (dr_globalMe == MASTER_PE) write (*,*) 'v" = ', v
+       ! And normalize
+       v(:)=v(:)/sqrt(sum(v(:)**2))
+
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'v = ', v
        ! Now move jet axis and normalize
        r(:)=r(:) + v(:)*sim(nozzle)%precession*dt/sim(nozzle)%duration
        r(:)=r(:)/sqrt(sum(r(:)**2))
@@ -223,10 +223,17 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        ! angular velocity for precession
        sim(nozzle)%angVel(:)=&
             cross(sim(nozzle)%jetvec(:),jetaxis(:))/dt
-
        !if (dr_globalMe == MASTER_PE) write (*,*) 'agV=', sim(nozzle)%angVel
+
+       ! velocity in simulation coordinates (for consistancey at restart)
+       vprime(:) = jetaxis(:)-sim(nozzle)%jetvec(:)
+       ! velocity in precession cone coordinates
+       v(:) = [sum(exprime*vprime), sum(eyprime*vprime), sum(ezprime*vprime)]
+       v(:)=v(:)/sqrt(sum(v(:)**2))
+       !if (dr_globalMe == MASTER_PE) write (*,*) 'v" = ', v
+
        ! move this to jiggle
-       !sim(nozzle)%vec_old(:)=sim(nozzle)%jetvec(:)
+       sim(nozzle)%jetvecOld(:)=sim(nozzle)%jetvec(:)
        sim(nozzle)%jetvec(:)=jetaxis(:)
 
        !if (dr_globalMe==MASTER_PE) then

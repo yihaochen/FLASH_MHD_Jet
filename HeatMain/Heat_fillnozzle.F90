@@ -72,7 +72,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   allocate(sim_yCoord(sizeY),stat=istat)
   allocate(sim_zCoord(sizeZ),stat=istat)
   call Grid_getDeltas(blockID, del)
-  cellArea = del(IAXIS)*del(JAXIS)*del(KAXIS)
+  cellArea = del(IAXIS)*del(JAXIS)
   
   call Grid_getCellCoords(IAXIS,blockID,CENTER,gcell, sim_xCoord, sizeX)
   call Grid_getCellCoords(JAXIS,blockID,CENTER,gcell, sim_yCoord, sizeY)
