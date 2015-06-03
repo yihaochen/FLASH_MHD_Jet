@@ -31,7 +31,7 @@ subroutine gr_markJet(nozzle)
   use tree, ONLY : refine, derefine, lrefine, bsize, coord, lnblocks, nodetype,&
                    lrefine_max
   use Driver_interface, ONLY : Driver_abortFlash
-  use Grid_data, ONLY : gr_geometry
+  use Grid_data, ONLY : gr_geometry, gr_smalle
   use Grid_interface, ONLY : Grid_getBlkPtr, Grid_releaseBlkPtr, Grid_getBlkIndexLimits
   use Simulation_data
 #include "constants.h"
@@ -48,7 +48,7 @@ subroutine gr_markJet(nozzle)
   integer               :: b, lrefine_0, blk_resolution
   integer,dimension(2,MDIM) :: blkLimits,blkLimitsGC
 
-  real :: radius, length, sig, distance, theta, vel, fac, pmax
+  real :: radius, length, sig, distance, theta, vel, fac, pmax, pjet, eintmin
   real, dimension(3) :: plnvec, jetvec, rvec, phivec, velvec
   real, pointer, dimension(:,:,:,:) :: solnDataGC, solnData
 
@@ -130,9 +130,11 @@ subroutine gr_markJet(nozzle)
                          abs(solnData(VELX_VAR,:,:,:)*sim(nozzle)%coneVec(1)+&
                              solnData(VELY_VAR,:,:,:)*sim(nozzle)%coneVec(2)+&
                              solnData(VELZ_VAR,:,:,:)*sim(nozzle)%coneVec(3)) )
+           pjet = sim(nozzle)%velocity*sim(nozzle)%density
+           eintmin = minval(solnData(EINT_VAR,:,:,:))
 
            ! Force maximum refine level for the jet using momentum
-           if (pmax >= sim(nozzle)%refine_jetR*sim(nozzle)%velocity*sim(nozzle)%density) then
+           if ((pmax >= sim(nozzle)%refine_jetR*pjet) .or. (eintmin <= gr_smalle)) then
               if (lrefine(b) < lrefine_max) then
                  refine(b) = .true.
                  derefine(b) = .false.
@@ -140,7 +142,7 @@ subroutine gr_markJet(nozzle)
                  derefine(b) = .false.
               endif
            endif
-           if (pmax >= sim(nozzle)%derefine_jetR*sim(nozzle)%velocity*sim(nozzle)%density) then
+           if (pmax >= sim(nozzle)%derefine_jetR*pjet) then
               if (lrefine(b) == lrefine_max) then
                  derefine(b) = .false.
               endif
