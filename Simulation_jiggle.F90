@@ -195,7 +195,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
        !if (dr_globalMe == MASTER_PE) write (*,*) 'r = ', r
 
        ! Finally, calculate new angles
-       !thetajet=acos(r(3))
+       thetajet=acos(r(3))
        !if (abs(r(1)).gt.0.or.abs(r(2)).gt.0) then
        !   phijet=2.0*atan(r(2)/&
        !        (r(1) + sqrt(r(1)**2 + r(2)**2)))

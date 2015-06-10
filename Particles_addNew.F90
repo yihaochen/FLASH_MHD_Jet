@@ -43,7 +43,7 @@ subroutine Particles_addNew (count, pos, shock, success)
   
   use Particles_data, ONLY : particles, &
        pt_maxPerProc, pt_numLocal, pt_meshComm, pt_meshMe, pt_indexList, &
-       pt_indexCount, pt_posAttrib
+       pt_indexCount, pt_posAttrib, useParticles
 
   use Logfile_interface, ONLY : Logfile_stampMessage
   use Grid_interface, ONLY : Grid_moveParticles, Grid_getListofBlocks
@@ -69,6 +69,8 @@ subroutine Particles_addNew (count, pos, shock, success)
   !integer      :: mapType=PART_MAPMETHOD
 
 !-------------------------------------------------------------------------------
+  if (.not.useParticles) return
+
   doLocal(1) = ((pt_numLocal+count).le.pt_maxPerProc)
   doLocal(2) = (.NOT. doLocal(1))
 
