@@ -48,24 +48,38 @@ contains
 
     ! --------------------------------------------------------------------------
     ! Update the hydro variables of the jet nozzle (according to the wind-driven bubble solution.)
-    g = sim(nozzle)%gamma
-    v = sim(nozzle)%velocity
-    r = sim(nozzle)%radius
-    bf= sim(nozzle)%rFeatherOut
-    L = sim(nozzle)%power
-
-    t1 = sim(nozzle)%duration/100.0
-    !M = sim(nozzle)%mach
-    M = sim(nozzle)%initMach + (sim(nozzle)%mach-sim(nozzle)%initMach)&
-        *cos(PI*( max(-0.5, min(0.0, 0.5*(time-sim(nozzle)%tOn-t1)/t1))))
-
 
     !if (sim(nozzle)%density < 0.0) then
        !sim(nozzle)%t0 = (r**2*PI*2*v)**1.25*(sim_rhoCore*g/(g-1)/L)**0.75*0.227082
+
+
+    t1 = sim(nozzle)%duration/100.0
+    ! Turn on the jet by increasing the mach number from initMach to mach.
     if (time .lt. sim(nozzle)%tOn+t1) then
+       g = sim(nozzle)%gamma
+       v = sim(nozzle)%velocity
+       r = sim(nozzle)%radius
+       bf= sim(nozzle)%rFeatherOut
+       L = sim(nozzle)%power
+
+       !M = sim(nozzle)%mach
+       M = sim(nozzle)%initMach + (sim(nozzle)%mach-sim(nozzle)%initMach)&
+           *cos(PI*( max(-0.5, min(0.0, 0.5*(time-sim(nozzle)%tOn-t1)/t1))))
+
        sim(nozzle)%density = 0.5*L/PI/v**3/( 0.5*r*r*(1.+1./M**2/(g-1.)) + r*bf*(0.3125+1./M**2/(g-1.)) &
                              + bf*bf*(0.06056+0.29736/M**2/(g-1.)) )
        sim(nozzle)%pressure = v*v*sim(nozzle)%density/M**2/g
+    endif
+
+    ! Turn off the jet by decreasing the velocity 
+    if (time .gt. sim(nozzle)%tOn+sim(nozzle)%duration-t1) then
+        sim(nozzle)%velocity = sim(nozzle)%velJet&
+        *cos(PI*( max(0.0, min(0.5, 0.5*(time-sim(nozzle)%tOn-sim(nozzle)%duration+t1)/t1))))
+        if (dr_globalMe  == MASTER_PE .and. time .lt. sim(nozzle)%tOn+sim(nozzle)%duration) then
+            write(*,*) 'v = ', sim(nozzle)%velocity
+        endif
+
+
     endif
     !endif
     ! Calculate the jet pressure

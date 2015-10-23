@@ -52,7 +52,7 @@ subroutine gr_markJet(nozzle)
   real, dimension(3) :: plnvec, jetvec, rvec, phivec, velvec
   real, pointer, dimension(:,:,:,:) :: solnDataGC, solnData
 
-  lrefine_0 = sim(nozzle)%lrefine_0
+  lrefine_0 = min(sim(nozzle)%lrefine_0, lrefine_max)
 
   blk_resolution = 64
   if((gr_geometry == CARTESIAN)) then
@@ -130,7 +130,7 @@ subroutine gr_markJet(nozzle)
                          abs(solnData(VELX_VAR,:,:,:)*sim(nozzle)%coneVec(1)+&
                              solnData(VELY_VAR,:,:,:)*sim(nozzle)%coneVec(2)+&
                              solnData(VELZ_VAR,:,:,:)*sim(nozzle)%coneVec(3)) )
-           pjet = sim(nozzle)%velocity*sim(nozzle)%density
+           pjet = sim(nozzle)%velJet*sim(nozzle)%density
            eintmin = minval(solnData(EINT_VAR,:,:,:))
 
            ! Force maximum refine level for the jet using momentum

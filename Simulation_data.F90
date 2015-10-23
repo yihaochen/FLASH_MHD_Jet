@@ -36,7 +36,7 @@ module Simulation_data
       !real :: derefine_z1, derefine_z2
       real :: refine_jetR, derefine_jetR
       integer :: lrefine_0
-      real :: power, pressure, density, velocity, gamma, mach, initMach
+      real :: power, pressure, density, velocity, velJet, gamma, mach, initMach
       real :: rFeatherIn, rFeatherOut, rFeatherMix, zFeather, zFeatherMix
       real :: beta, helicity
       real :: bphi, bz, tOn, duration, timeMHDon
