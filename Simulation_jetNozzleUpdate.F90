@@ -32,6 +32,7 @@ contains
     use Simulation_interface, ONLY: Simulation_jiggle
     use Timers_interface, ONLY : Timers_start, Timers_stop
     use Driver_data, ONLY : dr_globalMe, dr_nStep, dr_restart
+    use Hydro_data, ONLY : hy_bref
 
     implicit none
 
@@ -96,7 +97,7 @@ contains
     !sim(nozzle)%deltaRho = -2.0/v/v*(g/(g-1)*sim(nozzle)%deltaP)
 
     sim(nozzle)%bzOld = sim(nozzle)%bz
-    sim(nozzle)%bz = sqrt(2.0*sim(nozzle)%pressure/sim(nozzle)%beta/(1.0+sim(nozzle)%helicity**2))
+    sim(nozzle)%bz = sqrt(2.0*sim(nozzle)%pressure/sim(nozzle)%beta/(1.0+sim(nozzle)%helicity**2))*hy_bref
     sim(nozzle)%bphi = sim(nozzle)%bz*sim(nozzle)%helicity
 
 

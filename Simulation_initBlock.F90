@@ -30,6 +30,7 @@ subroutine Simulation_initBlock(blockID)
   use Logfile_interface, ONLY : Logfile_stamp
   use Simulation_data
   use Driver_data, ONLY : dr_simTime, dr_dtInit
+  use Hydro_data, ONLY : hy_bref
 
 
   implicit none
@@ -129,7 +130,7 @@ subroutine Simulation_initBlock(blockID)
   solndata(MAGX_VAR,:,:,:) = 0.0
   solndata(MAGY_VAR,:,:,:) = 0.0
   solndata(MAGZ_VAR,:,:,:) = sim_bzAmbient
-  solndata(MAGP_VAR,:,:,:) = max(sim_bzAmbient*sim_bzAmbient/8.0/PI, sim_smallP)
+  solndata(MAGP_VAR,:,:,:) = max((sim_bzAmbient/hy_bref))**2/2.0, sim_smallP)
 
   solnFaceXdata(MAG_FACE_VAR,:,:,:) = 0.0
   solnFaceYdata(MAG_FACE_VAR,:,:,:) = 0.0
