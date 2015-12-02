@@ -101,7 +101,8 @@ subroutine Heat (blockCount,blockList,dt,time)
      call Grid_fillGuardCells(CENTER,ALLDIR,doEos=.true.,&
           maskSize=NUNK_VARS,mask=gcMask)
 
-     !Add shock particles
+     ! Add shock particles
+     ! nPtProc and pos were updated in Heat_fillnozzle
      call Timers_start('Particles_addNew')
      call Particles_addNew(nPtProc, pos, 1.0, addNewSuccess)
      call Timers_stop('Particles_addNew')

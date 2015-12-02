@@ -76,112 +76,106 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
   mapType=pt_typeInfo(PART_MAPMETHOD,ind)
 
-  if (dr_simTime.ge.sim(nozzle)%tOn .and.&
-      dr_simTime.lt.(sim(nozzle)%tOn+sim(nozzle)%duration)) then
-     !!------------------------------------------------------------------------------
-     ! Add new particles stochastically when the jet is on
+  do i = 1, p_count
+  ! if the particle is newly added, map the properties first
+     if (particles(DEN0_PART_PROP,i) .le. 0.0 ) then
+        call Grid_mapMeshToParticles(particles(:,i:i),&
+             part_props,BLK_PART_PROP, 1,&
+             pt_posAttrib,pt_newParticleNumAttrib,pt_newParticleAttrib,mapType)
 
-     do i = 1, p_count
-     ! if the particle is newly added, map the properties first
-        if (particles(DEN0_PART_PROP,i) .le. 0.0 ) then
-           call Grid_mapMeshToParticles(particles(:,i:i),&
-                part_props,BLK_PART_PROP, 1,&
-                pt_posAttrib,pt_newParticleNumAttrib,pt_newParticleAttrib,mapType)
+        A = 4.0/9.0*1.938486E-09*4.0*PI/hy_bref**2&
+            *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
 
-           A = 4.0/9.0*1.938486E-09*4.0*PI/hy_bref**2&
-               *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
-
-           particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + A*dtNew
-           particles(GAMC_PART_PROP,i) = 1.0 / particles(TAU_PART_PROP,i)
-           call RANDOM_NUMBER(prob)
-           if (prob.lt.particles(JET_PART_PROP,i)) then
-              particles(JET_PART_PROP,i) = 1.0
-           else
-              particles(JET_PART_PROP,i) = 0.0
-           endif
-
-
+        particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + A*dtNew
+        particles(GAMC_PART_PROP,i) = 1.0 / particles(TAU_PART_PROP,i)
+        call RANDOM_NUMBER(prob)
+        if (prob.lt.particles(JET_PART_PROP,i)) then
+           particles(JET_PART_PROP,i) = 1.0
+        else
+           particles(JET_PART_PROP,i) = 0.0
         endif
-     enddo
 
-     !!------------------------------------------------------------------------------
-     ! Update the particle positions to temporary ("predicted") values
-     do i = 1, p_count
+
+     endif
+  enddo
+
+  !!------------------------------------------------------------------------------
+  ! Update the particle positions to temporary ("predicted") values
+  do i = 1, p_count
  
-        jumpx = dtNew * particles(VELX_PART_PROP,i)
-        particles(POSX_PART_PROP,i) = particles(POSX_PART_PROP,i) + jumpx
+     jumpx = dtNew * particles(VELX_PART_PROP,i)
+     particles(POSX_PART_PROP,i) = particles(POSX_PART_PROP,i) + jumpx
 
-        if(NDIM >1) then
-           jumpy = dtNew * particles(VELY_PART_PROP,i)
-           particles(POSY_PART_PROP,i) = particles(POSY_PART_PROP,i) + jumpy
-           if(NDIM >2) then
-              jumpz = dtNew * particles(VELZ_PART_PROP,i)
-              particles(POSZ_PART_PROP,i) = particles(POSZ_PART_PROP,i) + jumpz
-           endif
+     if(NDIM >1) then
+        jumpy = dtNew * particles(VELY_PART_PROP,i)
+        particles(POSY_PART_PROP,i) = particles(POSY_PART_PROP,i) + jumpy
+        if(NDIM >2) then
+           jumpz = dtNew * particles(VELZ_PART_PROP,i)
+           particles(POSZ_PART_PROP,i) = particles(POSZ_PART_PROP,i) + jumpz
         endif
+     endif
 
-     enddo
-
-
-     ! Now save the original velocity values
-     allocate(origVel(p_count,MDIM))
-     origVel(:,1) = particles(VELX_PART_PROP,1:p_count)
-     origVel(:,2) = particles(VELY_PART_PROP,1:p_count)
-     origVel(:,3) = particles(VELZ_PART_PROP,1:p_count)
-
-     ! Map the updated gas velocity field at the temporary positions to
-     ! obtain a second estimate of velocities;
-
-     call Grid_mapMeshToParticles(particles,&
-          part_props, BLK_PART_PROP, p_count,&
-          pt_posAttrib,pt_velNumAttrib,pt_velAttrib,mapType)
-
-     ! Adjust particle positions, using the second point velocities
-     do i = 1, p_count
-        particles(POSX_PART_PROP,i) =  particles(POSX_PART_PROP,i) + &
-             dtNew * 0.5*(particles(VELX_PART_PROP,i) - origVel(i,1))
-        if(NDIM>1)&
-             particles(POSY_PART_PROP,i) = particles(POSY_PART_PROP,i) + &
-             dtNew * 0.5*(particles(VELY_PART_PROP,i) - origVel(i,2))
-        if(NDIM>2)&
-             particles(POSZ_PART_PROP,i) = particles(POSZ_PART_PROP,i) + &
-             dtNew * 0.5*(particles(VELZ_PART_PROP,i) - origVel(i,3))
-     enddo
-
-     ! done with this temporary storage
-     deallocate(origVel)
+  enddo
 
 
+  ! Now save the original velocity values
+  allocate(origVel(p_count,MDIM))
+  origVel(:,1) = particles(VELX_PART_PROP,1:p_count)
+  origVel(:,2) = particles(VELY_PART_PROP,1:p_count)
+  origVel(:,3) = particles(VELZ_PART_PROP,1:p_count)
 
-     ! Map the updated gas velocity field onto the current particle positions to
-     ! obtain the updated particle velocities - for the next integration step
-     ! as well as for particle plot files etc.
+  ! Map the updated gas velocity field at the temporary positions to
+  ! obtain a second estimate of velocities;
 
-     call Grid_mapMeshToParticles(particles,&
-          part_props, BLK_PART_PROP,p_count,&
-          pt_posAttrib,pt_velNumAttrib,pt_velAttrib,mapType)
+  call Grid_mapMeshToParticles(particles,&
+       part_props, BLK_PART_PROP, p_count,&
+       pt_posAttrib,pt_velNumAttrib,pt_velAttrib,mapType)
 
-     ! Map the custom fields onto the partitcles
-     call Grid_mapMeshToParticles(particles,&
-          part_props,BLK_PART_PROP, p_count,&
-          pt_posAttrib,pt_customNumAttrib,pt_customAttrib,mapType)
+  ! Adjust particle positions, using the second point velocities
+  do i = 1, p_count
+     particles(POSX_PART_PROP,i) =  particles(POSX_PART_PROP,i) + &
+          dtNew * 0.5*(particles(VELX_PART_PROP,i) - origVel(i,1))
+     if(NDIM>1)&
+          particles(POSY_PART_PROP,i) = particles(POSY_PART_PROP,i) + &
+          dtNew * 0.5*(particles(VELY_PART_PROP,i) - origVel(i,2))
+     if(NDIM>2)&
+          particles(POSZ_PART_PROP,i) = particles(POSZ_PART_PROP,i) + &
+          dtNew * 0.5*(particles(VELZ_PART_PROP,i) - origVel(i,3))
+  enddo
 
-     ! update the synchrotron lifetime and cutoff gamma
-     do i = 1, p_count
-       rho13 = (particles(DENS_PART_PROP,i)/particles(DEN0_PART_PROP,i))**(1.0/3.0)
-       ! e^4/(me^3*c^5) = 2.907728E-9
-       ! if units == "none" (default) -> hy_bref=1.0
-       ! if units == "cgs" -> hy_bref=sqrt(4*pi)
-       A = 4.0/9.0*2.907728E-9*4.0*PI/hy_bref/hy_bref&
-           *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
-           
-       particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + rho13*A*dtNew
-       particles(GAMC_PART_PROP,i) = rho13 / particles(TAU_PART_PROP,i)
+  ! done with this temporary storage
+  deallocate(origVel)
 
-     enddo
+
+
+  ! Map the updated gas velocity field onto the current particle positions to
+  ! obtain the updated particle velocities - for the next integration step
+  ! as well as for particle plot files etc.
+
+  call Grid_mapMeshToParticles(particles,&
+       part_props, BLK_PART_PROP,p_count,&
+       pt_posAttrib,pt_velNumAttrib,pt_velAttrib,mapType)
+
+  ! Map the custom fields onto the partitcles
+  call Grid_mapMeshToParticles(particles,&
+       part_props,BLK_PART_PROP, p_count,&
+       pt_posAttrib,pt_customNumAttrib,pt_customAttrib,mapType)
+
+  ! update the synchrotron lifetime and cutoff gamma
+  do i = 1, p_count
+    rho13 = (particles(DENS_PART_PROP,i)/particles(DEN0_PART_PROP,i))**(1.0/3.0)
+    ! e^4/(me^3*c^5) = 2.907728E-9
+    ! if units == "none" (default) -> hy_bref=1.0
+    ! if units == "cgs" -> hy_bref=sqrt(4*pi)
+    A = 4.0/9.0*2.907728E-9*4.0*PI/hy_bref/hy_bref&
+        *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
+
+    particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + rho13*A*dtNew
+    particles(GAMC_PART_PROP,i) = rho13 / particles(TAU_PART_PROP,i)
+
+  enddo
 
     !write(*,'(i5, A28, i5)') pt_meshMe, '[pt_advance_end], pt_numLocal=', pt_numLocal
     !write(*,'(i5, A28, i5)') pt_meshMe, '[pt_advance_end], p_count    =', p_count
-  endif
   
 end subroutine pt_advanceCustom
