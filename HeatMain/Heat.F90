@@ -90,54 +90,58 @@ subroutine Heat (blockCount,blockList,dt,time)
         call Timers_stop('Heat_fillnozzle')
 
      enddo
-     gcMask = .false.
-     gcMask(DENS_VAR) = .true.
-     gcMask(PRES_VAR) = .true.
-     gcMask(EINT_VAR) = .true.
-     gcMask(ENER_VAR) = .true.
-     gcMask(VELX_VAR:VELZ_VAR) = .true.
-     gcMask(JET_SPEC) = .true.
-     gcMask(ISM_SPEC) = .true.
-     call Grid_fillGuardCells(CENTER,ALLDIR,doEos=.true.,&
-          maskSize=NUNK_VARS,mask=gcMask)
+     ! Add shock and jet particles when the jet is on
+     if (time.ge.(sim(nozzle)%tOn+0.01*sim(nozzle)%duration) .and. & 
+         time.lt.(sim(nozzle)%tOn+0.99*sim(nozzle)%duration)) then
+        gcMask = .false.
+        gcMask(DENS_VAR) = .true.
+        gcMask(PRES_VAR) = .true.
+        gcMask(EINT_VAR) = .true.
+        gcMask(ENER_VAR) = .true.
+        gcMask(VELX_VAR:VELZ_VAR) = .true.
+        gcMask(JET_SPEC) = .true.
+        gcMask(ISM_SPEC) = .true.
+        call Grid_fillGuardCells(CENTER,ALLDIR,doEos=.true.,&
+             maskSize=NUNK_VARS,mask=gcMask)
 
-     ! Add shock particles
-     ! nPtProc and pos were updated in Heat_fillnozzle
-     call Timers_start('Particles_addNew')
-     call Particles_addNew(nPtProc, pos, 1.0, addNewSuccess)
-     call Timers_stop('Particles_addNew')
-     !write(*,*) '[Heat2] nPtProc:', nPtProc
-     ! Add new particles at the surfaces of the nozzle
-     call Timers_start('Particles_addNew_nozzle')
-     if (dr_globalMe==MASTER_PE) then
+        ! Add shock particles
+        ! nPtProc and pos were updated in Heat_fillnozzle
+        call Timers_start('Particles_addNew')
+        call Particles_addNew(nPtProc, pos, 1.0, addNewSuccess)
+        call Timers_stop('Particles_addNew')
+        !write(*,*) '[Heat2] nPtProc:', nPtProc
+        ! Add new particles at the surfaces of the nozzle
+        call Timers_start('Particles_addNew_nozzle')
+        if (dr_globalMe==MASTER_PE) then
 
-        call RANDOM_NUMBER(prob)
-        !call MPI_Bcast(prob,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
+           call RANDOM_NUMBER(prob)
+           !call MPI_Bcast(prob,1,MPI_DOUBLE_PRECISION,MASTER_PE,MPI_COMM_WORLD,ierr)
 
-        !write(*,'(A6, 2f9.5)') 'prob', prob, 1.0/sim_ptAddPeriod*dt
-        !write(*,'(i5, f9.5, es11.3)') pt_meshMe, prob, dtNew
-        nPtNoz = int(1.0/sim_ptAddPeriod*dt)
-        if (prob .le. 1.0/sim_ptAddPeriod*dt-nPtNoz) then
-           nPtNoz = nPtNoz+1
-        endif
-        if (nPtNoz .gt. 0) then
-           allocate(posNoz(nPtNoz,MDIM))
-           call pt_getRandomPos(nPtNoz, posNoz)
+           !write(*,'(A6, 2f9.5)') 'prob', prob, 1.0/sim_ptAddPeriod*dt
+           !write(*,'(i5, f9.5, es11.3)') pt_meshMe, prob, dtNew
+           nPtNoz = int(1.0/sim_ptAddPeriod*dt)
+           if (prob .le. 1.0/sim_ptAddPeriod*dt-nPtNoz) then
+              nPtNoz = nPtNoz+1
+           endif
+           if (nPtNoz .gt. 0) then
+              allocate(posNoz(nPtNoz,MDIM))
+              call pt_getRandomPos(nPtNoz, posNoz)
 
-           call Particles_addNew(nPtNoz, posNoz, 0.0, addNewSuccess)
-           deallocate(posNoz)
+              call Particles_addNew(nPtNoz, posNoz, 0.0, addNewSuccess)
+              deallocate(posNoz)
+           else
+               !write(*,*) '[Heat] no pos', nPtProc, pos
+               call Particles_addNew(0, pos, 0.0,  addNewSuccess)
+               !write(*,*) '[Heat] no pos2'
+           endif
         else
-            !write(*,*) '[Heat] no pos', nPtProc, pos
-            call Particles_addNew(0, pos, 0.0,  addNewSuccess)
-            !write(*,*) '[Heat] no pos2'
+           !write(*,*) '[Heat] not masterpe', nPtProc, pos
+           call Particles_addNew(0, pos, 0.0, addNewSuccess)
+           !write(*,*) '[Heat] not masterpe2'
         endif
-     else
-        !write(*,*) '[Heat] not masterpe', nPtProc, pos
-        call Particles_addNew(0, pos, 0.0, addNewSuccess)
-        !write(*,*) '[Heat] not masterpe2'
+        call Timers_stop('Particles_addNew_nozzle')
+        call RANDOM_SEED(get=pt_randSeed)
      endif
-     call Timers_stop('Particles_addNew_nozzle')
-     call RANDOM_SEED(get=pt_randSeed)
 
      !deallocate(pos)
 
