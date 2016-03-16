@@ -279,6 +279,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
      write(*,'(a,2es11.3, f7.2)') '      (p, rho, M)=', &
      sim(nozzle)%pressure, sim(nozzle)%density,&
      sim(nozzle)%velocity/sqrt(sim(nozzle)%gamma*sim(nozzle)%pressure/sim(nozzle)%density)
+     write(*,'(a, 2es11.3)') '      (bz, bphi)=', sim(nozzle)%bz, sim(nozzle)%bphi
   endif
 ! ychen ->
 

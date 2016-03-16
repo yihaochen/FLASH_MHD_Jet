@@ -100,13 +100,12 @@ contains
     sim(nozzle)%bz = sqrt(2.0*sim(nozzle)%pressure/sim(nozzle)%beta/(1.0+sim(nozzle)%helicity**2))*hy_bref
     sim(nozzle)%bphi = sim(nozzle)%bz*sim(nozzle)%helicity
 
-
     ! --------------------------------------------------------------------------
     ! Update the jet nozzle position and direction according to the velocity and
     ! angular velocity.
     !sim(nozzle)%jetvecOld = sim(nozzle)%jetvec
 
-    if (dt.gt.0.0) then
+    if (dt.gt.0.0 .and. sim(nozzle)%precangle .gt. 0.0) then
        call Timers_start('Simulation_jiggle')
        call Simulation_jiggle(nozzle,  time, dt)
        call Timers_stop('Simulation_jiggle')

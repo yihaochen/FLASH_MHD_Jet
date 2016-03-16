@@ -130,7 +130,7 @@ subroutine Simulation_initBlock(blockID)
   solndata(MAGX_VAR,:,:,:) = 0.0
   solndata(MAGY_VAR,:,:,:) = 0.0
   solndata(MAGZ_VAR,:,:,:) = sim_bzAmbient
-  solndata(MAGP_VAR,:,:,:) = max((sim_bzAmbient/hy_bref))**2/2.0, sim_smallP)
+  solndata(MAGP_VAR,:,:,:) = max((sim_bzAmbient/hy_bref)**2/2.0, sim_smallP)
 
   solnFaceXdata(MAG_FACE_VAR,:,:,:) = 0.0
   solnFaceYdata(MAG_FACE_VAR,:,:,:) = 0.0
@@ -143,7 +143,7 @@ subroutine Simulation_initBlock(blockID)
   rout = r2 + bf
   rmix = rout + sim(nozzle)%rFeatherMix
 
-  ! Initialize the nozzle
+  ! Initialize the nozzle and environment
   do k = blkLimitsGC(LOW,KAXIS), blkLimitsGC(HIGH,KAXIS)
    do j = blkLimitsGC(LOW,JAXIS), blkLimitsGC(HIGH,JAXIS)
     do i = blkLimitsGC(LOW,IAXIS), blkLimitsGC(HIGH,IAXIS)
@@ -184,10 +184,12 @@ subroutine Simulation_initBlock(blockID)
              fac = 0.0
           endif
        endif
+
+       ! Background
        if (sim_densityProfile =="betacore") then
           ! beta model for the density profile
           densityBG = sim_rhoCore*(1.0 + (distance/sim_rCore)**2)**(-1.5*sim_densityBeta)
-          ! isothermal atmosphere
+          ! isothermal two-temperature atmosphere
           tempBG = sim_Tout*(1.0+(distance/sim_rCoreT)**3)&
                        /(sim_Tout/sim_Tcore+(distance/sim_rCoreT)**3)
        else

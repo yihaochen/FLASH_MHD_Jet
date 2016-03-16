@@ -137,7 +137,6 @@ subroutine Simulation_init()
      call IO_getScalar('nozzleDensity', sim(nozzle)%density)
      call IO_getScalar('nozzleBz', sim(nozzle)%bz)
      call IO_getScalar('nozzleBphi', sim(nozzle)%bphi)
-     !call IO_getScalar('nozzlet0', sim(nozzle)%t0)
      call IO_getScalar('randomSeed', sim(nozzle)%randSeed(1))
 
 
@@ -176,16 +175,15 @@ subroutine Simulation_init()
   endif
 
   if (dr_globalMe==MASTER_PE) then
-     !write(*,'(a, es11.3)') 't0:', sim(nozzle)%t0
      write(*,'(a, 2es11.3, f7.2)') '(p, rho, M)=', &
      sim(nozzle)%pressure, sim(nozzle)%density, &
      sim(nozzle)%velocity/sqrt(sim(nozzle)%gamma*sim(nozzle)%pressure/sim(nozzle)%density)
 
-     write(*,'(a, 2es11.3)') '(bz, bphi)=', sim(nozzle)%bz, sim(nozzle)%bphi
-     write(*,'(a, es11.3)') 'rFeatherOut:' , sim(nozzle)%rFeatherOut
-     write(*,'(a, es11.3)') 'rFeatherMix:' , sim(nozzle)%rFeatherMix
-     write(*,'(a, es11.3)') 'zFeatherMix:' , sim(nozzle)%zFeatherMix
-     write(*,'(a, es11.3)') 'sim_rCut:' , sim_rCut
+     !write(*,'(a, 2es11.3)') '(bz, bphi)=', sim(nozzle)%bz, sim(nozzle)%bphi
+     write(*,'(a, es11.3)') ' rFeatherOut:' , sim(nozzle)%rFeatherOut
+     write(*,'(a, es11.3)') ' rFeatherMix:' , sim(nozzle)%rFeatherMix
+     write(*,'(a, es11.3)') ' zFeatherMix:' , sim(nozzle)%zFeatherMix
+     write(*,'(a, es11.3)') ' sim_rCut:' , sim_rCut
   endif
 
 

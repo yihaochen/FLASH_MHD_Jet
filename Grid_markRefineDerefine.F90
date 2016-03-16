@@ -70,6 +70,7 @@ subroutine Grid_markRefineDerefine()
   logical,dimension(maskSize) :: gcMask
 !<-- ychen
   integer :: nozzle
+  real :: r_ref
 !--> ychen
 
   if(gr_lrefineMaxRedDoByTime) then
@@ -127,9 +128,9 @@ subroutine Grid_markRefineDerefine()
      call gr_markJet(nozzle)
 
      ! Mark the nozzle region (a sphere) for maximum refinement
+     r_ref = 3.0*max(sim(nozzle)%radius, sim(nozzle)%length)
      call Grid_markRefineSpecialized(INRADIUS, 4, (/ sim(nozzle)%pos(1), &
-     sim(nozzle)%pos(2), sim(nozzle)%pos(3), &
-     3.0*max(sim(nozzle)%radius, sim(nozzle)%length) /), lrefine_max )
+     sim(nozzle)%pos(2), sim(nozzle)%pos(3), r_ref/), lrefine_max )
 
      !call gr_markCylinder(sim(nozzle)%pos, sim(nozzle)%jetvec,&
      !                     sim(nozzle)%radius, sim(nozzle)%length, lrefine_max)
