@@ -34,7 +34,8 @@ subroutine pt_initPositions (blockID,success)
 
   use Particles_data, ONLY:  pt_numLocal, particles,&
       pt_posAttrib,pt_velNumAttrib, pt_velAttrib,pt_typeInfo, pt_meshMe,&
-      pt_meshNumProcs, pt_newParticleNumAttrib, pt_newParticleAttrib
+      pt_meshNumProcs, pt_newParticleNumAttrib, pt_newParticleAttrib,&
+      pt_numParticlesWanted
 
 
   use Grid_interface, ONLY : Grid_getBlkBoundBox, Grid_mapMeshToParticles, &
@@ -109,9 +110,9 @@ subroutine pt_initPositions (blockID,success)
        particles(PROC_PART_PROP,pt_ind) = real(pt_meshMe)
        particles(POSX_PART_PROP:POSZ_PART_PROP,pt_ind)  = pos
        if (k.eq.-1) then
-          particles(TAG_PART_PROP,pt_ind) = 1
+          particles(TAG_PART_PROP,pt_ind) = pt_numParticlesWanted + 1
        else
-          particles(TAG_PART_PROP,pt_ind) = 2
+          particles(TAG_PART_PROP,pt_ind) = pt_numParticlesWanted + 2
        endif
        particles(TADD_PART_PROP,pt_ind)  = dr_initialSimTime
        particles(TAU_PART_PROP,pt_ind)   = 0.0

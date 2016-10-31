@@ -89,6 +89,9 @@ PARAMETER lrefine_0			INTEGER	5			[1...]
 # Random number generator seed for the jiggle routine
 PARAMETER randomSeed		INTEGER 6511		[0...]
 
+# Particles for metal tracing
+PARTICLETYPE metal INITMETHOD With_Density MAPMETHOD quadratic ADVMETHOD RungeKutta
+REQUIRES Particles/ParticlesInitialization/WithDensity/CellMassBins
 # Particles for synchrotron tracing
 PARTICLETYPE passive INITMETHOD custom MAPMETHOD quadratic ADVMETHOD custom
 REQUIRES Particles/ParticlesMain/passive
@@ -117,6 +120,7 @@ PARTICLEMAP TO MAGZ FROM VARIABLE magz
 PARAMETER sim_ptInitNum		INTEGER	10			[0...]
 PARAMETER sim_ptAddPeriod	REAL	1E9			[0.0...]
 PARAMETER sim_ptAddArea		REAL	1E44		[0.0...]
+PARAMETER sim_ptMaxRadius	REAL	3.1E23		[0.0...]
 
 
 # Heat Source Term

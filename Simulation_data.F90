@@ -61,7 +61,7 @@ module Simulation_data
   real,save,allocatable,dimension(:) :: sim_ycoordf
   real,save,allocatable,dimension(:) :: sim_zcoordf
   integer,save :: sim_ptInitNum
-  real,save :: sim_ptAddPeriod, sim_ptAddArea
+  real,save :: sim_ptAddPeriod, sim_ptAddArea, sim_ptMaxRadius
   character(len=MAX_STRING_LENGTH) :: sim_densityProfile
 
 contains
