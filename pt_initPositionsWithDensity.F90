@@ -213,6 +213,7 @@ subroutine pt_initPositionsWithDensity (blockID,success)
         zpos = 0.
      endif
 
+     ! Assuming center of the grid is [0,0,0]
      if ((xpos*xpos+ypos*ypos+zpos*zpos) .LE. (sim_ptMaxRadius*sim_ptMaxRadius)) then
 
         pAdd = pAdd+1

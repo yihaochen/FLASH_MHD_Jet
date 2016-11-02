@@ -89,15 +89,15 @@ PARAMETER lrefine_0			INTEGER	5			[1...]
 # Random number generator seed for the jiggle routine
 PARAMETER randomSeed		INTEGER 6511		[0...]
 
-# Particles for metal tracing
-PARTICLETYPE metal INITMETHOD With_Density MAPMETHOD quadratic ADVMETHOD RungeKutta
-REQUIRES Particles/ParticlesInitialization/WithDensity/CellMassBins
 # Particles for synchrotron tracing
 PARTICLETYPE passive INITMETHOD custom MAPMETHOD quadratic ADVMETHOD custom
-REQUIRES Particles/ParticlesMain/passive
+# Particles for metal tracing
+PARTICLETYPE metal INITMETHOD With_Density MAPMETHOD quadratic ADVMETHOD RungeKutta
 
-#REQUESTS Particles/ParticlesMapping/meshWeighting/CIC
-REQUESTS IO/IOParticles
+REQUIRES Particles/ParticlesInitialization/WithDensity/CellMassBins
+REQUIRES Particles/ParticlesMain/passive/RungeKutta
+REQUIRES Particles/ParticlesMapping/Quadratic
+REQUIRES IO/IOParticles
 REQUIRES Grid/GridParticles
 
 PARTICLEPROP TADD	REAL
