@@ -43,7 +43,8 @@ subroutine io_ptReadParticleData()
 
   use Grid_data, ONLY : gr_globalNumBlocks
 
-  use Particles_data, ONLY : particles, pt_maxPerProc, pt_posInitialized
+  use Particles_data, ONLY : particles, pt_maxPerProc, pt_posInitialized, &
+      pt_startTagNumber
   use IO_interface, ONLY : IO_getScalar
 
 
@@ -76,6 +77,10 @@ subroutine io_ptReadParticleData()
   integer,allocatable :: fileToCurrentMap(:)
   integer :: propIndex
   character(len=24) :: propString
+!<--ychen 2016-11 added
+  integer :: maxTag, maxTagOwner
+  integer, allocatable :: localMaxTag(:)
+!-->
 
   !It is necessary to initialize localNumParticles to 0 for the 
   !Particles_putLocalNum subroutine call because localNumParticles
@@ -319,6 +324,19 @@ subroutine io_ptReadParticleData()
         
      end if !localNumBlocks > 0
   end if !(myPE == MASTER_PE)
+
+!<--ychen 2016-11 added
+  allocate(localMaxTag(io_globalNumProcs))
+  maxTag = maxval(particles(TAG_PART_PROP,:))
+  call MPI_Allgather(maxTag, 1, MPI_INTEGER, localMaxTag, 1,&
+       MPI_INTEGER, MPI_COMM_WORLD, ierr)
+  
+  pt_startTagNumber = maxval(localMaxTag)
+  !maxTagOwner = maxloc(localMaxTag, 1)-1
+  !call MPI_Bcast(maxTag, 1, MPI_INTEGER, maxTagOwner, MPI_COMM_WORLD, ierr)
+
+  deallocate(localMaxTag)
+!-->
   
 
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
