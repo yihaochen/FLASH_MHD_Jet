@@ -91,14 +91,16 @@ subroutine Particles_addNew (count, pos, shock, success)
         success = (count==0)
         effCount = 0
      end if
-     !write(*,*) pt_meshMe, 'findTagOffset'
+     !write(*,*) pt_meshMe, 'findTagOffset, effCount=', effCount
      call pt_findTagOffset(effCount,tagOffset)
+     !write(*,*) pt_meshMe, 'findTagOffset, tagOffset=', tagOffset
      do i = 1,effCount
         particles(TADD_PART_PROP,pt_numLocal+i) = dr_simTime
         particles(PROC_PART_PROP,pt_numLocal+i) = pt_meshMe
         particles(TAG_PART_PROP,pt_numLocal+i)  = tagOffset+i
         particles(TAU_PART_PROP,pt_numLocal+i)  = 0.0
         particles(DEN0_PART_PROP,pt_numLocal+i) = -1.0
+        particles(TYPE_PART_PROP,pt_numLocal+i) = PASSIVE_PART_TYPE
         if (present(shock)) then
            particles(SHOK_PART_PROP,pt_numLocal+i) = shock
         endif
@@ -118,11 +120,11 @@ subroutine Particles_addNew (count, pos, shock, success)
         !write(*,*) pt_meshMe, 'moveParticles - finished'
      else
         pt_numLocal=pt_numLocal+effCount
-        !write(*,*) pt_meshMe, 'moveParticles'
+        !write(*,*) pt_meshMe, 'else moveParticles'
         call Grid_moveParticles(particles,NPART_PROPS,pt_maxPerProc,&
              pt_numLocal,pt_indexList,pt_indexCount,coords_in_blk)
 
-        !write(*,*) pt_meshMe, 'moveParticles - finished'
+        !write(*,*) pt_meshMe, 'else moveParticles - finished'
      end if
      if (.NOT. success) then
 98      format('Particles_addNew for',I6,' particles failed')
