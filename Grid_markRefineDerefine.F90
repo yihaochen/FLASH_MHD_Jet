@@ -15,12 +15,20 @@
 !!  this routine, and uses the stub.
 !!
 !!  This routine is normally called by the implementation of
-!!  Grid_updateRefinement.
+!!  Grid_updateRefinement. It may also get called repeatedly
+!!  during the initial construction of the Grid from
+!!  Grid_initDomain.
 !!
 !! ARGUMENTS
 !!
 !!  none
-!! 
+!!
+!! SEE ALSO
+!!
+!!  Grid_updateRefinement
+!!  Grid_initDomain
+!!  gr_expandDomain
+!!
 !! NOTES
 !!
 !! Every unit uses a few unit scope variables that are

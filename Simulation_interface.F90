@@ -26,7 +26,7 @@ Module Simulation_interface
   interface
      subroutine Simulation_getRenormGroup(mscalar,group)
        implicit none
-       integer, intent(out) ::group 
+       integer, intent(out) ::group
        integer, intent(in) :: mscalar
      end subroutine Simulation_getRenormGroup
   end interface
@@ -39,13 +39,13 @@ Module Simulation_interface
      end subroutine Simulation_getVarnameType
   end interface
 
-  interface 
+  interface
      subroutine Simulation_initBlock(blockID)
        implicit none
        integer, intent(in) :: blockID
      end subroutine Simulation_initBlock
   end interface
-  
+
   interface
      subroutine Simulation_init()
        implicit none
@@ -72,11 +72,11 @@ Module Simulation_interface
      end subroutine Simulation_mapIntToStr
   end interface
 
-  interface 
+  interface
      subroutine Simulation_mapStrToInt(str,key,map)
        implicit none
        character(len=*), intent(in) :: str
-       integer, intent(out) :: key 
+       integer, intent(out) :: key
        integer, intent(in) :: map
      end subroutine Simulation_mapStrToInt
   end interface
@@ -89,10 +89,10 @@ Module Simulation_interface
 
   interface
      subroutine Simulation_mapParticlesVar(part_key, var_key, var_type)
-       implicit none 
+       implicit none
        integer, intent(in)  :: part_key
        integer, intent(out) :: var_key, var_type
-       
+
      end subroutine Simulation_mapParticlesVar
   end interface
 
@@ -121,7 +121,7 @@ Module Simulation_interface
 
   interface
      subroutine Simulation_adjustEvolution(blkcnt, blklst, nstep, dt, stime)
-       implicit none  
+       implicit none
        integer, intent(in) :: blkcnt
        integer, intent(in) :: blklst(blkcnt)
        integer, intent(in) :: nstep
@@ -129,7 +129,14 @@ Module Simulation_interface
        real, intent(in) :: stime
      end subroutine Simulation_adjustEvolution
   end interface
-  
+
+  interface
+     subroutine Simulation_freeUserArrays()
+       implicit none
+
+     end subroutine Simulation_freeUserArrays
+  end interface
+
   interface
      subroutine Simulation_jetNozzleUpdate(nozzle, time, dt)
        implicit none  
@@ -147,4 +154,3 @@ Module Simulation_interface
   end interface
 
 end Module Simulation_interface
-

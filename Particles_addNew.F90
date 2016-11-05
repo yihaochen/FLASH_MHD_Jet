@@ -43,10 +43,10 @@ subroutine Particles_addNew (count, pos, shock, success)
   
   use Particles_data, ONLY : particles, &
        pt_maxPerProc, pt_numLocal, pt_meshComm, pt_meshMe, pt_indexList, &
-       pt_indexCount, pt_posAttrib, useParticles
+       pt_indexCount, useParticles
 
   use Logfile_interface, ONLY : Logfile_stampMessage
-  use Grid_interface, ONLY : Grid_moveParticles, Grid_getListofBlocks
+  use Grid_interface, ONLY : Grid_moveParticles
   use pt_interface, ONLY : pt_findTagOffset
   use Driver_data, ONLY : dr_simTime
   implicit none
@@ -57,7 +57,7 @@ subroutine Particles_addNew (count, pos, shock, success)
 #include "Flash_mpi.h"
 
   integer, INTENT(in) :: count
-  real, optional, dimension(count,MDIM), intent(IN)::pos
+  real, optional, dimension(MDIM,count), intent(IN)::pos
   real, optional, intent(IN):: shock
   logical, intent(OUT) :: success
 
@@ -95,9 +95,9 @@ subroutine Particles_addNew (count, pos, shock, success)
      call pt_findTagOffset(effCount,tagOffset)
      !write(*,*) pt_meshMe, 'findTagOffset, tagOffset=', tagOffset
      do i = 1,effCount
-        particles(TADD_PART_PROP,pt_numLocal+i) = dr_simTime
         particles(PROC_PART_PROP,pt_numLocal+i) = pt_meshMe
         particles(TAG_PART_PROP,pt_numLocal+i)  = tagOffset+i
+        particles(TADD_PART_PROP,pt_numLocal+i) = dr_simTime
         particles(TAU_PART_PROP,pt_numLocal+i)  = 0.0
         particles(DEN0_PART_PROP,pt_numLocal+i) = -1.0
         particles(TYPE_PART_PROP,pt_numLocal+i) = PASSIVE_PART_TYPE
@@ -109,7 +109,7 @@ subroutine Particles_addNew (count, pos, shock, success)
         !write(*,*) pt_meshMe, 'present(pos)'
         do i = 1,effCount
            particles(POSX_PART_PROP:POSZ_PART_PROP,pt_numLocal+i)=&
-                pos(i,IAXIS:KAXIS)
+                pos(IAXIS:KAXIS,i)
         end do
         
         pt_numLocal=pt_numLocal+effCount

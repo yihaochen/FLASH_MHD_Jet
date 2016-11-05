@@ -86,9 +86,9 @@ module Particles_data
   integer,dimension(PART_ATTR_DS_SIZE,PT_MAX_ATTRIBUTES), save :: pt_meshVar
   integer, save        :: pt_numAttributes
   integer, save        :: pt_velNumAttrib
-  integer, dimension(PART_ATTR_DS_SIZE,MDIM) :: pt_velAttrib,pt_velPredAttrib
-  integer, dimension(MDIM) :: pt_posAttrib,pt_posPredAttrib
-  integer, dimension(PART_TYPE_INFO_SIZE,NPART_TYPES) :: pt_typeInfo
+  integer, dimension(PART_ATTR_DS_SIZE,MDIM),save :: pt_velAttrib,pt_velPredAttrib
+  integer, dimension(MDIM),save :: pt_posAttrib,pt_posPredAttrib
+  integer, dimension(PART_TYPE_INFO_SIZE,NPART_TYPES),save :: pt_typeInfo
 
 ! <- ychen 05-2015
   integer, save        :: pt_customNumAttrib

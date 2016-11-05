@@ -61,7 +61,11 @@ subroutine Driver_computeDt(nbegin, nstep, &
                           dr_redshift, dr_useRedshift,             &
                           dr_printTStepLoc,                        &
                           dr_dtSTS, dr_useSTS, dr_globalMe, dr_globalComm,&
-                          dr_dtAdvect, dr_dtDiffuse, dr_dtHeatExch
+                          dr_dtAdvect, dr_dtDiffuse,               &
+                          dr_dtMinContinue, dr_dtMinBelowAction
+  use Driver_interface, ONLY : Driver_abortFlash
+  use Logfile_interface,ONLY : Logfile_stamp
+  use IO_interface,     ONLY : IO_writeCheckpoint
   use Grid_interface, ONLY : Grid_getListOfBlocks, &
     Grid_getBlkIndexLimits, Grid_getCellCoords, Grid_getDeltas, &
     Grid_getBlkPtr, Grid_releaseBlkPtr, Grid_getSingleCellCoords
@@ -114,7 +118,7 @@ subroutine Driver_computeDt(nbegin, nstep, &
   integer, dimension(MAXBLOCKS) :: blockList
 
   real, dimension(nUnits) :: tstepOutput
-  character (len=20), DIMENSION(nUnits) :: &
+  character (len=20), save, DIMENSION(nUnits) :: &
                          limiterName, limiterNameOutput
 
   !!prepatory data structures for passing coords to timestep routines
@@ -149,14 +153,23 @@ subroutine Driver_computeDt(nbegin, nstep, &
   integer, parameter :: HYDRO=1,BURN=2,GRAV=3,HEAT=4,COOL=5,TEMP=6,&
                         PART=7,DIFF=8,COSMO=9,STIR=10,HEATXCHG=11, &
                         RADTRANS=12,STS=13,INS=14,SOLID=15
+  logical, save :: firstCall = .TRUE.
+  logical :: limitersChanged
   logical :: printToScrn
+  logical :: endRun
   real :: extraHydroInfo
-  character (len=20) :: cflNumber
+  character (len=10) :: cflNumber
+  character (len=10) :: extraHydroInfoStr
+  character (len=10*nUnits) :: tailStr
+  character (len=24) :: tailFmt
   real :: extraHydroInfoMin
+  real :: extraHydroInfoApp
+  real :: dtNewComputed
 
   ! Initializing extraHydroInfo to zero:
   extraHydroInfo = 0.
   extraHydroInfoMin = 1.e10 !temporary large fake CFL for comparison
+  extraHydroInfoApp = 1.e10 !temporary large fake CFL
 
 
   data limiterName(HYDRO) /'dt_hydro'/
@@ -171,6 +184,9 @@ subroutine Driver_computeDt(nbegin, nstep, &
   data limiterName(HEATXCHG) /'dt_HeatXchg'/
   data limiterName(RADTRANS) /'dt_RadTrans'/
   data limiterName(STS)  /'dt_STS'/
+  data limiterName(INS)  /'dt_INS'/
+  data limiterName(SOLID) /'dt_Solid'/
+  data limiterNameOutput /nUnits * ' '/
   data cflNumber  /'CFL'/
 
 
@@ -183,6 +199,7 @@ subroutine Driver_computeDt(nbegin, nstep, &
 
 
   printTStepLoc = dr_printTStepLoc
+  endRun = .FALSE.
   
   dtMinLoc(:) = 0
   lminloc(:,:) = 0
@@ -277,8 +294,12 @@ subroutine Driver_computeDt(nbegin, nstep, &
         if (extraHydroInfo <= extraHydroInfoMin) then
            extraHydroInfoMin = extraHydroInfo
         endif
+        if (lminloc(4,HYDRO) == blockList(i)) then
+           extraHydroInfoApp = extraHydroInfo
+        endif
      else !if extraHydroInfo == 0.
-        extraHydroInfoMin = extraHydroInfo
+        extraHydroInfoMin = 0.0
+        extraHydroInfoApp = 0.0
      endif
 
      call Stir_computeDt ( blockList(i),  &
@@ -379,7 +400,7 @@ subroutine Driver_computeDt(nbegin, nstep, &
      call Grid_releaseBlkPtr(blockList(i),solnData)
   enddo
 
-!!$  !! Choose the smallest CFL for screen output
+!!$  !! Choose the smallest CFL for screen output - provisional, may change below
   extraHydroInfo = 0.
   call MPI_AllReduce (extraHydroInfoMin, extraHydroInfo, 1, & 
        FLASH_REAL, MPI_MIN, dr_globalComm, error)
@@ -458,6 +479,24 @@ subroutine Driver_computeDt(nbegin, nstep, &
 
   call MPI_Bcast(dtMinLoc(1), 5, MPI_INTEGER, pgmin, dr_globalComm, error)
 
+  if (extraHydroInfo .NE. 0.0 .AND. ngmin == HYDRO) then
+  ! If the unit that determines the timestep is HYDRO, have the
+  ! processor that is determining the timestep limit broadcast the
+  ! local cfl of the zone that set the timestep (which should now be
+  ! in extraHydroInfoApp) to all processors
+     extraHydroInfo = extraHydroInfoApp
+     call MPI_Bcast(extraHydroInfo, 1, FLASH_REAL, pgmin, dr_globalComm, error)
+  end if
+
+  if (dtNew < dr_dtMinContinue) then
+     endRun = .TRUE.
+     dtNewComputed = dtNew
+     if (dr_globalMe == MASTER_PE) then
+        print*,'        About to exit, computed time step is too small:',dtNew
+     end if
+  end if
+     
+
   ! limit the timestep to increase by at most a factor of dr_tstepChangeFactor
 
   dtNew = min( dtNew, dtOld*dr_tstepChangeFactor )
@@ -516,9 +555,13 @@ subroutine Driver_computeDt(nbegin, nstep, &
   
   ! only print out the timestep from the limiters that are active
   iout = 0
+  limitersChanged = .FALSE.
   do i = 1, nUnits
      if (dtModule(1,i) /= MAX_TSTEP) then
         iout = iout + 1
+        if (.NOT.(firstCall.OR.limitersChanged)) then
+           if (limiterNameOutput(iout) .NE. limiterName(i)) limitersChanged = .TRUE.
+        end if
         tstepOutput(iout) = dtModule(1,i)
         limiterNameOutput(iout) = limiterName(i)
      endif
@@ -528,15 +571,14 @@ subroutine Driver_computeDt(nbegin, nstep, &
 
 
   printToScrn = .true.
-  if (printToScrn) then
-  if (dr_globalMe == MASTER_PE) then
+  if (printToScrn .AND. dr_globalMe == MASTER_PE) then
 
 
-  if (extraHydroInfo .eq. 0.) then
+     if (extraHydroInfo .eq. 0.) then
 
-     if (printTStepLoc) then
+        if (printTStepLoc) then
         
-        if (nstep == nbegin) then
+           if (nstep == nbegin .OR. limitersChanged) then
 
               if (.not. dr_useRedshift) then
                  write (*,803) 'n', 't', 'dt', 'x', 'y', 'z', &
@@ -569,7 +611,7 @@ subroutine Driver_computeDt(nbegin, nstep, &
            
         else
         
-           if (nstep .eq. nbegin) then
+           if (nstep .eq. nbegin .OR. limitersChanged) then
            
               if (.not. dr_useRedshift) then
                  write (*,903) 'n', 't', 'dt', (limiterNameOutput(i),i=1,iout)
@@ -601,7 +643,7 @@ subroutine Driver_computeDt(nbegin, nstep, &
      else ! elseif (extraHydroInfo .ne. 0.) then
 
         if (printTStepLoc) then
-           if (nstep == nbegin) then
+           if (nstep == nbegin .OR. limitersChanged) then
 
               if (.not. dr_useRedshift) then
                  write (*,803) 'n', 't', 'dt', 'x', 'y', 'z', &
@@ -613,28 +655,36 @@ subroutine Driver_computeDt(nbegin, nstep, &
               
            endif
         
+           if (extraHydroInfo .GE. 0.0001 .AND. extraHydroInfo .LT. 9.9995) then
+              write(extraHydroInfoStr,807) extraHydroInfo
+           else
+              write(extraHydroInfoStr,808) extraHydroInfo
+           end if
+           write (tailFmt,'(A1,I2,A)') "(",iout,"(:,1X,ES9.3),1x,A10)"
+           write (tailStr,tailFmt) (tstepOutput(i),i=1,iout), adjustl(extraHydroInfoStr)
+
            if (.not. dr_useRedshift) then
               if (.not. dr_useSTS) then
-                 write(*,801) nstep, simTime, dtNew, coords(1), coords(2), &
-                      coords(3), (tstepOutput(i),i=1,iout), extraHydroInfo
+                 write(*,805) nstep, simTime, dtNew, coords(1), coords(2), &
+                      coords(3), trim(tailStr)
               else
-                 write(*,801) nstep, simTime, max(dtNew,dr_dtSTS), coords(1), coords(2), &
-                      coords(3), (tstepOutput(i),i=1,iout), extraHydroInfo
+                 write(*,805) nstep, simTime, max(dtNew,dr_dtSTS), coords(1), coords(2), &
+                      coords(3), trim(tailStr)
               endif
 
            else
               if (.not. dr_useSTS) then
-                 write(*,802) nstep, simTime, dr_redshift, dtNew, coords(1), &
-                      coords(2), coords(3), (tstepOutput(i),i=1,iout), extraHydroInfo
+                 write(*,806) nstep, simTime, dr_redshift, dtNew, coords(1), &
+                      coords(2), coords(3), trim(tailStr)
               else
-                 write(*,802) nstep, simTime, dr_redshift, max(dtNew,dr_dtSTS), coords(1), &
-                      coords(2), coords(3), (tstepOutput(i),i=1,iout), extraHydroInfo
+                 write(*,806) nstep, simTime, dr_redshift, max(dtNew,dr_dtSTS), coords(1), &
+                      coords(2), coords(3), trim(tailStr)
               endif
            endif
            
         else
         
-           if (nstep .eq. nbegin) then
+           if (nstep .eq. nbegin .OR. limitersChanged) then
            
               if (.not. dr_useRedshift) then
                  write (*,903) 'n', 't', 'dt', (limiterNameOutput(i),i=1,iout),cflNumber
@@ -666,24 +716,40 @@ subroutine Driver_computeDt(nbegin, nstep, &
      endif
 
 
-  endif
-
-endif ! end of printToScrn
+  endif ! end of (printToScrn .and. dr_globalMe == MASTER_PE)
       
 
-801 format (1X, I7, 1x, ES10.4, 1x, ES10.4, 2x, '(', ES10.3, ', ', &
-            ES 10.3, ', ', ES10.3, ')', ' | ', 11(1X, :, ES9.3),1x,ES10.3)
+801 format (1X, I7, 1x, ES10.4, 1x, ES10.4, 2x, '(', 1P,G10.3, ', ', &
+            G 10.3, ', ', G10.3, ')', ' | ', 11(:, 1X, ES9.3))
 802 format (1X, I7, 1x, ES10.4, 1x, F8.3, 1x, ES10.4, 2x, '(', ES9.3, ', ', &
-            ES 9.3, ', ', ES9.3, ')', ' | ', 11(1X, :, ES9.3),1x,ES10.3)
+            ES 9.3, ', ', ES9.3, ')', ' | ', 11(:, 1X, ES9.3))
 803 format (1X, A7, 1x, A10, 1x, A10, 2x, '(', A10, ', ', A10, ', ', A10, ')', &
-            ' | ', 11(1X, :, A9),1x,A10)
+            ' | ', 11(:, 1X, A9),1x,A10)
 804 format (1X, A7, 1x, A10, 1x, A7, 1x, A10, 2x, '(', A9, ', ', A9, ', ', &
-         A9, ')', ' | ', 11(1X, :, A9),1x,A10)
+         A9, ')', ' | ', 11(:, 1X, A9),1x,A10)
+805 format (1X, I7, 1x, ES10.4, 1x, ES10.4, 2x, '(', 1P,G10.3, ', ', &
+            G 10.3, ', ', G10.3, ')', ' | ', A)
+806 format (1X, I7, 1x, ES10.4, 1x, F8.3, 1x, ES10.4, 2x, '(', ES9.3, ', ', &
+            ES 9.3, ', ', ES9.3, ')', ' | ', A)
+807 format (F10.7)
+808 format (ES10.3)
 
-901 format (1X, I7, 1X, ES10.4, 1x, ES10.4, ' | ', 11(1X, :, ES11.5),1x,ES10.4)
-902 format (1X, I7, 1X, ES10.4, 1x, F8.3, 1x, ES10.4, ' | ', 11(1X, :, ES11.5),1x,ES10.4)
-903 format (1X, A7, 1x, A10   , 1x, A10,    ' | ', 11(1X, :, A11),1x,A10)
-904 format (1X, A7, 1x, A10   , 1x, A7, 1x, A10,    ' | ', 11(1X, :, A11),1x,A10)
+901 format (1X, I7, 1X, ES10.4, 1x, ES10.4, ' | ', 11(:, 1X, ES11.5),1x,ES10.4)
+902 format (1X, I7, 1X, ES10.4, 1x, F8.3, 1x, ES10.4, ' | ', 11(:, 1X, ES11.5),1x,ES10.4)
+903 format (1X, A7, 1x, A10   , 1x, A10,    ' | ', 11(:, 1X, A11),1x,A10)
+904 format (1X, A7, 1x, A10   , 1x, A7, 1x, A10,    ' | ', 11(:, 1X, A11),1x,A10)
 
+  if (endRun) then
+     call Logfile_stamp(dtNewComputed, '[Driver_computeDt] Computed dtNew')
+     call Logfile_stamp(dtNew        , '[Driver_computeDt] Next dtNew would be')
+     if (dr_dtMinBelowAction==1) then
+        call Logfile_stamp( 'Writing additional checkpoint because of dr_dtMinBelowAction' , '[Driver_computeDt]')
+        call IO_writeCheckpoint()
+     end if
+     call Logfile_stamp( 'Exiting simulation because dr_dtNew < dr_dtMinContinue' , '[Driver_computeDt]')
+     call Driver_abortFlash('Computed new time step smaller than dr_dtMinContinue!')
+  end if
+
+  firstCall = .FALSE.
   return
 end subroutine Driver_computeDt

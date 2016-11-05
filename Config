@@ -2,8 +2,8 @@
 
 REQUIRES Grid/GridBoundaryConditions/Flash2HSE
 REQUIRES physics/Hydro/HydroMain/unsplit/MHD_StaggeredMesh
-REQUIRES physics/sourceTerms/Heat/HeatMain
-DEFAULT HeatMain
+#REQUIRES physics/sourceTerms/Heat/HeatMain
+#DEFAULT HeatMain
 REQUIRES physics/Eos/EosMain/Multigamma
 REQUIRES physics/Gravity/GravityMain/PointMass
 REQUIRES Multispecies
