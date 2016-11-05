@@ -91,7 +91,7 @@ subroutine Heat (blockCount,blockList,dt,time)
 
      enddo
      ! Add shock and jet particles when the jet is on
-     if (time.ge.(sim(nozzle)%tOn+0.01*sim(nozzle)%duration) .and. & 
+     if (time.ge.(sim(nozzle)%tOn) .and. & 
          time.lt.(sim(nozzle)%tOn+0.99*sim(nozzle)%duration)) then
         gcMask = .false.
         gcMask(DENS_VAR) = .true.
