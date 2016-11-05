@@ -58,6 +58,7 @@ subroutine pt_initPositionsWithDensity (blockID,success)
   real          :: xpos, ypos, zpos, xvel, yvel, zvel, radius
   integer       :: p, b, bb, i, j, k, numParticlesThisBlock, tag
   integer       :: pAdd
+  real          :: probAdditionalParticle
 
   real, dimension(:,:,:,:), pointer :: solnData
 
@@ -125,7 +126,11 @@ subroutine pt_initPositionsWithDensity (blockID,success)
      enddo
   enddo
 
-  numParticlesThisBlock = int(anint(pt_numParticlesWanted * (blockMass / pt_totalMass)))
+  ! Simple rounding would give almost no particles for very small grids
+  numParticlesThisBlock = int(pt_numParticlesWanted * (blockMass / pt_totalMass))
+  probAdditionalParticle = (pt_numParticlesWanted * (blockMass / pt_totalMass)) - numParticlesThisBlock
+  call random_number(harvest=urp)
+  if (urp .LE. probAdditionalParticle) numParticlesThisBlock = numParticlesThisBlock + 1
 
   !  Check that this requested number isn't going to blow data allocation
   success=.true.
@@ -145,10 +150,7 @@ subroutine pt_initPositionsWithDensity (blockID,success)
   allocate(mass(numCells))
   allocate(cumuMass(numCells))
 
-
   ! Initialize the particles for this block.
-
-
 
   mass = 0.0
   accu = 0.0
@@ -213,6 +215,7 @@ subroutine pt_initPositionsWithDensity (blockID,success)
         zpos = 0.
      endif
 
+     ! Allow only particles inside sim_ptMaxRadius
      ! Assuming center of the grid is [0,0,0]
      if ((xpos*xpos+ypos*ypos+zpos*zpos) .LE. (sim_ptMaxRadius*sim_ptMaxRadius)) then
 
@@ -221,7 +224,6 @@ subroutine pt_initPositionsWithDensity (blockID,success)
         pos(IAXIS)=xpos
         pos(JAXIS)=ypos
         pos(KAXIS)=zpos
-
            
         ! now set up 
         partID=pt_numLocal+pAdd
