@@ -39,7 +39,7 @@ subroutine Heat (blockCount,blockList,dt,time)
 !
 !==============================================================================
 !
-  use Grid_interface, ONLY : Grid_getBlkIndexLimits, Grid_getDeltas, Grid_fillGuardCells
+  use Grid_interface, ONLY : Grid_getBlkIndexLimits, Grid_getDeltas
   use hy_uhd_interface, ONLY : hy_uhd_staggeredDivb
   !use Hydro_data, ONLY: hy_unsplitEosMode
   !use Eos_interface, ONLY : Eos_wrapped
@@ -58,7 +58,6 @@ subroutine Heat (blockCount,blockList,dt,time)
   real,intent(IN) :: dt,time
   real, dimension(MDIM) :: del
   integer, dimension(LOW:HIGH,MDIM) :: blkLimits,blkLimitsGC
-  logical :: gcMask(NUNK_VARS)
 
   integer :: blockID, blkInd, nozzle=1
 
@@ -93,16 +92,6 @@ subroutine Heat (blockCount,blockList,dt,time)
      ! Add shock and jet particles when the jet is on
      if (time.ge.(sim(nozzle)%tOn) .and. & 
          time.lt.(sim(nozzle)%tOn+0.99*sim(nozzle)%duration)) then
-        gcMask = .false.
-        gcMask(DENS_VAR) = .true.
-        gcMask(PRES_VAR) = .true.
-        gcMask(EINT_VAR) = .true.
-        gcMask(ENER_VAR) = .true.
-        gcMask(VELX_VAR:VELZ_VAR) = .true.
-        gcMask(JET_SPEC) = .true.
-        gcMask(ISM_SPEC) = .true.
-        call Grid_fillGuardCells(CENTER,ALLDIR,doEos=.true.,&
-             maskSize=NUNK_VARS,mask=gcMask)
 
         ! Add shock particles
         ! nPtProc and pos were updated in Heat_fillnozzle
