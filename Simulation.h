@@ -1,1 +1,2 @@
 #define NOZZLES 1
+#define MAX_LINES_READ 1000

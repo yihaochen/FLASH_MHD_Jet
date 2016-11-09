@@ -1,4 +1,4 @@
-!!****if* source/Simulation/SimulationMain/MHD_Jet/Simulation_jetNozzleUpdate
+!!****if* source/Simulation/SimulationMain/magnetoHD/MHD_Jet/Simulation_jetNozzleUpdate
 !!
 !! NAME
 !!  Simulation_jetNozzleUpdate
@@ -31,14 +31,13 @@ contains
     use Simulation_data
     use Simulation_interface, ONLY: Simulation_jiggle
     use Timers_interface, ONLY : Timers_start, Timers_stop
-    use Driver_data, ONLY : dr_globalMe, dr_nStep, dr_restart
+    use Driver_data, ONLY : dr_nStep, dr_restart
     use Hydro_data, ONLY : hy_bref
 
     implicit none
 
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: time, dt
-    real, dimension(3) :: nutationVec
     real :: p, g, v, R, L, bf, M, t1, h, x
 
     integer :: funit = 99, isFirst = 1
@@ -80,7 +79,7 @@ contains
     if (time .gt. sim(nozzle)%tOn+sim(nozzle)%duration-t1) then
         sim(nozzle)%velocity = sim(nozzle)%velJet&
         *cos(PI*( max(0.0, min(0.5, 0.5*(time-sim(nozzle)%tOn-sim(nozzle)%duration+t1)/t1))))
-        if (dr_globalMe  == MASTER_PE .and. time .lt. sim(nozzle)%tOn+sim(nozzle)%duration) then
+        if (sim_meshMe  == MASTER_PE .and. time .lt. sim(nozzle)%tOn+sim(nozzle)%duration) then
             write(*,*) 'v = ', sim(nozzle)%velocity
         endif
 
@@ -110,15 +109,21 @@ contains
     !sim(nozzle)%jetvecOld = sim(nozzle)%jetvec
 
     if (dt.gt.0.0 .and. sim(nozzle)%precangle .gt. 0.0) then
-       call Timers_start('Simulation_jiggle')
-       call Simulation_jiggle(nozzle,  time, dt)
-       call Timers_stop('Simulation_jiggle')
+       if (sim_useTableJiggle) then
+          call Timers_start('Simulation_jiggleRead')
+          call Simulation_jiggleRead(nozzle, time, dt)
+          call Timers_stop('Simulation_jiggleRead')
+       else
+          call Timers_start('Simulation_jiggle')
+          call Simulation_jiggle(nozzle, time, dt)
+          call Timers_stop('Simulation_jiggle')
+       end if
        sim(nozzle)%posOld = sim(nozzle)%pos
        sim(nozzle)%pos = sim(nozzle)%pos + sim(nozzle)%linVel*dt
        !sim(nozzle)%jetvec = sim(nozzle)%jetvec + cross(sim(nozzle)%angVel, sim(nozzle)%jetvec)*dt
 
        ! Write the jet nozzle vectors to file.
-       if (dr_globalMe  == MASTER_PE) then
+       if (sim_meshMe == MASTER_PE) then
 
           ! create the file from scratch if it is a not a restart simulation,
           ! otherwise append to the end of the file
@@ -131,6 +136,7 @@ contains
              open(funit, file=trim(nozzleVecFName), position='APPEND')
           endif
 
+          ! Header
           if (isFirst .EQ. 1 .AND. (.NOT. dr_restart .or. ioStat .NE. 0)) then
              write (funit, 10)   &
                   '#step      ', &
@@ -143,18 +149,20 @@ contains
                   'nozzleAngVelZ            ', &
                   'randSeed  '
 10           format (2X, 1(a10, :, 1X), 7(a25, :, 1X), 1(a10, :, 1X))
+             isFirst = 0
 
+          ! Restart mark
           else if(isFirst .EQ. 1) then
              write (funit, 11)
 11           format('# simulation restarted')
+             isFirst = 0
           endif
 
-          ! Write the global sums to the file.
+          ! Actual write
           write (funit, 12) dr_nstep, time, sim(nozzle)%jetvec, sim(nozzle)%angVel, sim(nozzle)%randSeed
 12        format (1X, 1(I10, :, 1X), 7(es25.18, :, 1X), 1(I10, :, 1X))
 
           close (funit)          ! Close the file.
-          isFirst = 0
        endif
     endif
 

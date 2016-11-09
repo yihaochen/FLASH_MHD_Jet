@@ -153,4 +153,11 @@ Module Simulation_interface
      end subroutine Simulation_jiggle
   end interface
 
+  interface
+     subroutine Simulation_jiggleRead(nozzle, time, dt)
+       implicit none
+       integer, INTENT(in) :: nozzle
+       real, INTENT(in) :: time, dt
+     end subroutine Simulation_jiggleRead
+  end interface
 end Module Simulation_interface

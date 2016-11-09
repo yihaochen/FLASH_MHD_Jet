@@ -27,24 +27,25 @@ subroutine Simulation_init()
   use Simulation_data
   use Simulation_jetNozzleUpdate, ONLY : sim_jetNozzleUpdate
   use RuntimeParameters_interface, ONLY : RuntimeParameters_get
-  use Driver_data, ONLY : dr_globalMe, dr_simTime, dr_dt, dr_restart
+  use Driver_data, ONLY : dr_simTime, dr_dt, dr_restart
+  use Driver_interface, ONLY : Driver_getMype
   use Grid_data, ONLY : gr_minCellSize
   use IO_interface, ONLY :  IO_getScalar
-  use Particles_data, ONLY : pt_randSeed, pt_meshMe
+  use Particles_data, ONLY : pt_randSeed
   !use Grid_data, ONLY : gr_smallrho
 
   implicit none
 #include "constants.h"
 #include "Flash.h"
-#include "Simulation.h"
 
-  integer :: nozzle=1, clock
+  integer :: nozzle=1, clock, iexist
   real    :: maxPrecession
 
+  call Driver_getMype(MESH_COMM, sim_meshMe)
 
   ! Initialize the random number generator
   call system_clock(count=clock)
-  pt_randSeed = (/clock, pt_meshMe/)
+  pt_randSeed = (/clock, sim_meshMe/)
 
   call RuntimeParameters_get('smlrho', sim_smlrho)
   call RuntimeParameters_get('smallp', sim_smallp)
@@ -105,7 +106,7 @@ subroutine Simulation_init()
 
   if (sim(nozzle)%precession.gt.maxPrecession) then
      sim(nozzle)%precession = maxPrecession
-     if (dr_globalMe==MASTER_PE) then
+     if (sim_meshMe==MASTER_PE) then
         print*, '!!!!!!!!'
         print*, 'Warning! nozzlePrecession is too large.'
         write(*,'(A24,f8.3)') 'nozzlePrecession is now ', maxPrecession
@@ -114,6 +115,16 @@ subroutine Simulation_init()
 
   call RuntimeParameters_get('nozzleNutation', sim(nozzle)%nutation)
   call Runtimeparameters_get('nozzlePrecAngle', sim(nozzle)%precangle)
+  call Runtimeparameters_get('useTableJiggle', sim_useTableJiggle)
+
+  if ((sim_meshMe == MASTER_PE) .and. (sim_useTableJiggle == .true.)) then
+     call RuntimeParameters_get('nozzleVecInput', sim_nozVecInput)
+     inquire(file=sim_nozVecInput, exist=iexist)
+     if (.not.iexist) then
+        call Driver_abortFlash('[Simulation_init] ERROR: opening nozzle vector file')
+     endif
+  endif
+
 
   if (dr_restart) then
      call IO_getScalar('coneVecX', sim(nozzle)%coneVec(1))
@@ -167,7 +178,7 @@ subroutine Simulation_init()
      call RuntimeParameters_get('randomSeed', sim(nozzle)%randSeed(1))
 
      if (sim(nozzle)%zTorInj < sim(nozzle)%length+1.5*sim(nozzle)%zFeather .and.&
-        dr_globalMe==MASTER_PE) then
+        sim_meshMe==MASTER_PE) then
         print*, '!!!!!!!!'
         print*, 'Warning! zTorInj is too small that it overlaps with the nozzle.'
         print*, 'Toroidal field will be smaller than it should be.'
@@ -175,7 +186,7 @@ subroutine Simulation_init()
      endif
   endif
 
-  if (dr_globalMe==MASTER_PE) then
+  if (sim_meshMe==MASTER_PE) then
      write(*,'(a, 2es11.3, f7.2)') '(p, rho, M)=', &
      sim(nozzle)%pressure, sim(nozzle)%density, &
      sim(nozzle)%velocity/sqrt(sim(nozzle)%gamma*sim(nozzle)%pressure/sim(nozzle)%density)

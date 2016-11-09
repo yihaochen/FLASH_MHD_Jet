@@ -2,6 +2,7 @@
 
 Simulation += Simulation_data.o\
 			  Simulation_jiggle.o\
+			  Simulation_jiggleRead.o\
 			  Simulation_jetNozzleUpdate.o
 
 Hydro += hy_uhd_electricNozzle.o\

@@ -78,6 +78,8 @@ PARAMETER nozzlePrecAngle	REAL	0.2			[0.0...]
 PARAMETER nozzleLinVelX		REAL	0.0
 PARAMETER nozzleLinVelY		REAL	0.0
 PARAMETER nozzleLinVelZ		REAL	0.0
+PARAMETER useTableJiggle	BOOLEAN	FALSE
+PARAMETER nozzleVecInput	STRING "nozzleVec_input.dat"
 
 # Refinement Criteria
 PARAMETER derefine_z1		REAL	8.0			[0.0...]
