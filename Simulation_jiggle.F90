@@ -43,13 +43,12 @@ subroutine Simulation_jiggle( nozzle, time, dt )
     real :: vphi, vtheta, dv, sigma, rn, psi, dummyn
     integer :: ierr
     logical, save :: first_call=.true.
-    real :: svr, radius, f, wigglerad
-    real, dimension(3) :: rvec, vr
 
     !! End of data declaration ***********************************************
 
     if (first_call) then
-       !
+       ! Setting up base vectors
+
        ! Note:
        !
        ! sim(nozzle)%jetvec is the jet vector in simulation coordinates
