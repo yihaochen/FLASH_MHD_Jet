@@ -46,19 +46,21 @@ subroutine Simulation_jiggleRead( nozzle, time, dt )
   logical,save :: first_read=.true., eof_reached=.false.
   integer :: dummy
 
-  tableSize=MAX_LINES_READ
-
-
-  if (.not.first_read) then
+  if (first_read) then
+     tableSize=MAX_LINES_READ
+  else
      i0arr = minloc(abs(table_time(:)-time))
      i0 = i0arr(1)
   endif
 
-  do while ((i0.eq.tableSize).or.first_read)
+  !if (dr_globalMe == MASTER_PE) then
+  !   write(*,'(A3,i4,2e11.3)') 'i0:', i0, table_time(i0), table_time(i0+1)
+  !endif
+
+  do while ((i0.ge.tableSize).or.first_read)
   ! --------------------------------------------------------------------------
      ! Read the jet nozzle vectors from file.
      if (dr_globalMe == MASTER_PE) then
-
         i = 1
         open(sim_nozfileunit, file=sim_nozVecInput, status='OLD', iostat=istat)
         ! Skip the first line
@@ -70,11 +72,11 @@ subroutine Simulation_jiggleRead( nozzle, time, dt )
            if (istat < 0) then
               eof_reached = .true.
               tableSize=i-1
-              exit
+              write(*,*) 'eof_reached, tableSize', tableSize
+              exit ! exit line reading
            endif
 
            ! Skip comment lines
-           !write(*,*) line
            if (line(1:1) == '#') then
               cycle
            else
@@ -88,8 +90,7 @@ subroutine Simulation_jiggleRead( nozzle, time, dt )
            endif
         enddo
         close(sim_nozfileunit)
-        write(*,'(A34, 2es11.3)') 'Read nozzle pointings between t = ', table_time(1), table_time(tableSize)
-
+        write(*,'(A34, 2es11.3)') 'Read nozzle vectors between t = ', table_time(1), table_time(tableSize)
      endif
 
      ! Broadcast to other processors
@@ -100,6 +101,12 @@ subroutine Simulation_jiggleRead( nozzle, time, dt )
      first_read = .false.
      i0arr = minloc(abs(table_time(:)-time))
      i0 = i0arr(1)
+     !if (dr_globalMe == MASTER_PE) then
+     !   write(*,*) 'i0=', i0, 'tableSize=', tableSize
+     !endif
+     if (eof_reached.and.(i0.ge.tableSize)) then
+        call Driver_abortFlash('[Simulation_jiggleRead] ERROR: simulation time out of nozzleVecInput scope')
+     endif
   enddo
   ! --------------------------------------------------------------------------
 
@@ -107,10 +114,10 @@ subroutine Simulation_jiggleRead( nozzle, time, dt )
      i0 = i0-1
   endif
 
-  if (dr_globalMe == MASTER_PE) then
-     !write(*,*) 'i0:', i0, time, table_time(i0), table_time(i0+1), 
-     !write(*,*) 'jetvec:', table_jetvec(:,i0), table_jetvec(:i0+1)
-  endif
+  !if (dr_globalMe == MASTER_PE) then
+  !   write(*,*) 'i0:', i0, time, table_time(i0), table_time(i0+1)
+  !   write(*,*) 'jetvec:', table_jetvec(:,i0), table_jetvec(:,i0+1)
+  !endif
 
   jetaxis(:) = table_jetvec(:,i0) + &
   (table_jetvec(:,i0+1)-table_jetvec(:,i0))*(time-table_time(i0))/(table_time(i0+1)-table_time(i0))
