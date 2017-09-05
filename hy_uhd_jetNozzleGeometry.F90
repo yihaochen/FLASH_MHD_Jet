@@ -59,7 +59,7 @@ Subroutine hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length, &
   if (norm.gt.0) then
      phivec(:)=phivec(:)/sqrt(norm)
   else
-     phivec(:)=[jetvec(2),-jetvec(1),0]
+     phivec(:)=[jetvec(2),-jetvec(1),0.0]
   endif
 
 End Subroutine hy_uhd_jetNozzleGeometry
