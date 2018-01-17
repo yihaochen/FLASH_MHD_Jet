@@ -27,6 +27,7 @@ module Simulation_data
 #include "Simulation.h"
 
   TYPE nozzle_struct
+      logical :: on
       real, dimension(3) :: pos, precvec, jetvec, coneVec 
       real, dimension(3) :: posOld, jetvecOld
       real, dimension(3) :: angVel, linVel

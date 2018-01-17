@@ -127,8 +127,7 @@ subroutine Simulation_jiggle( nozzle, time, dt )
     !   ! Initialize jet vector
     !   sim(nozzle)%switch=.true.
 
-    if (time.ge.sim(nozzle)%tOn .and. &
-        time.lt.sim(nozzle)%tOn+sim(nozzle)%duration) then
+    if (sim(nozzle)%On) then
 
        !if (dr_globalMe==MASTER_PE) then
        !   write(*,'(A28, 3f8.4)') '[Simulation_jiggle] jetvec  ', sim(nozzle)%jetvec
