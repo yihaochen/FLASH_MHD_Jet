@@ -92,13 +92,14 @@ PARAMETER lrefine_0			INTEGER	5			[1...]
 PARAMETER randomSeed		INTEGER 6511		[0...]
 
 # Particles for synchrotron tracing
-PARTICLETYPE passive INITMETHOD custom MAPMETHOD quadratic ADVMETHOD custom
+PARTICLETYPE passive INITMETHOD custom MAPMETHOD weighted ADVMETHOD custom
 # Particles for metal tracing
-PARTICLETYPE metal INITMETHOD With_Density MAPMETHOD quadratic ADVMETHOD RungeKutta
+PARTICLETYPE metal INITMETHOD With_Density MAPMETHOD weighted ADVMETHOD RungeKutta
 
 REQUIRES Particles/ParticlesInitialization/WithDensity/CellMassBins
 REQUIRES Particles/ParticlesMain/passive/RungeKutta
-REQUIRES Particles/ParticlesMapping/Quadratic
+#REQUIRES Particles/ParticlesMapping/Quadratic
+REQUIRES Particles/ParticlesMapping/meshWeighting/CIC
 REQUIRES IO/IOParticles
 REQUIRES Grid/GridParticles
 
