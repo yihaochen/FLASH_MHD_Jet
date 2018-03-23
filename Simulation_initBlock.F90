@@ -198,8 +198,10 @@ subroutine Simulation_initBlock(blockID)
           tempBG = sim_Tcore
        endif
        solnData(DENS_VAR,i,j,k) = sim(nozzle)%density*fac + densityBG*(1.0-fac)
-       solnData(TEMP_VAR,i,j,k) = sim(nozzle)%pressure/sim(nozzle)%density/gasConst*sim_mu*fac &
-                                  + tempBG*(1.0-fac)
+       solnData(PRES_VAR,i,j,k) = sim(nozzle)%pressure*fac &
+                                  + tempBG*densityBG*gasConst/sim_mu*(1.0-fac)
+       !solnData(TEMP_VAR,i,j,k) = sim(nozzle)%pressure/sim(nozzle)%density/gasConst*sim_mu*fac &
+       !                           + tempBG*(1.0-fac)
        solnData(JET_SPEC,i,j,k) = max(sim_smallx, fac)
        solnData(ISM_SPEC,i,j,k) = max(sim_smallx, 1.0-fac)
        !solnData(EINT_VAR,i,j,k) = max(sim_smalle, solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
@@ -212,7 +214,7 @@ subroutine Simulation_initBlock(blockID)
    enddo
   enddo
 
-  call Eos_wrapped(MODE_DENS_TEMP, blkLimitsGC, blockID, CENTER)
+  call Eos_wrapped(MODE_DENS_PRES, blkLimitsGC, blockID, CENTER)
   solnData(ENER_VAR,:,:,:) = solnData(EINT_VAR,:,:,:)+&
                         0.5*(solnData(VELX_VAR,:,:,:)**2 +&
                              solnData(VELY_VAR,:,:,:)**2 +&
