@@ -36,15 +36,12 @@ Subroutine hy_uhd_shockDetect( blockID )
 
   use Grid_interface,    ONLY : Grid_getBlkIndexLimits, &
                                 Grid_getBlkPtr,         &
-                                Grid_releaseBlkPtr,     &
-                                Grid_getDeltas
+                                Grid_releaseBlkPtr
   use Hydro_data,        ONLY : hy_cfl, hy_cfl_original,&
                                 hy_RiemannSolver,       &
-                                hy_geometry,            &
                                 hy_fallbackLowerCFL,    &
-                                hy_shockLowerCFL
-  use Driver_data,       ONLY : dr_nStep
-  use Logfile_interface, ONLY : Logfile_open,Logfile_close
+                                hy_shockLowerCFL,       &
+                                hy_tiny
   use Driver_interface,  ONLY : Driver_abortFlash
 
   implicit none
@@ -61,6 +58,8 @@ Subroutine hy_uhd_shockDetect( blockID )
   logical :: SW1, SW2
   logical :: doLowerCFL
   integer :: k2,k3
+  ! number of cells to find maximum density ratio
+  integer :: ncell = 2
 
   integer, dimension(LOW:HIGH,MDIM) :: blkLimits,blkLimitsGC
 
@@ -70,6 +69,18 @@ Subroutine hy_uhd_shockDetect( blockID )
   real, dimension(:,:,:), allocatable :: Vc
   real, dimension(:,:,:,:), pointer   :: U
 
+  real :: smlusq
+  real :: duxx, duyy, duzz
+  real :: factrx, factry, factrz, factrnorm
+
+  real :: rho0x, rho1x
+  real :: rho0y, rho1y
+  real :: rho0z, rho1z
+
+  real :: rhopre, rhopst, compr
+
+  ! small number used for factr[x,y,z] normalization
+  smlusq = hy_tiny*hy_tiny
 
   ! Two parameters that can be adjusted to detect shocks
   ! with different strengths:
@@ -93,14 +104,16 @@ Subroutine hy_uhd_shockDetect( blockID )
   call Grid_getBlkPtr(blockID,U,CENTER)
 
 #ifdef SHOK_VAR
-     U(SHOK_VAR,:,:,:)=0.
+  U(SHOK_VAR,:,:,:) = 0.0
 #else
   if (hy_RiemannSolver == HYBR) then
      call Driver_abortFlash&
           ("[hy_uhd_shockDetect]: SHOK_VAR has not been defined for shock detection")
   endif
 #endif
-
+#ifdef SHKS_VAR
+  U(SHKS_VAR,:,:,:) = 0.0
+#endif
 
   !! Allocate a temporary cell-centered array for sound speed
   allocate(Vc(blkLimits(LOW,IAXIS)- 1:blkLimits(HIGH,IAXIS)+1,  &
@@ -146,6 +159,7 @@ Subroutine hy_uhd_shockDetect( blockID )
            gradPx = 0.5*(U(PRES_VAR,i+1,j,  k  ) - U(PRES_VAR,i-1,j,  k  ))
            gradPy = 0.
            gradPz = 0.
+
 #if NDIM > 1
            gradPy = 0.5*(U(PRES_VAR,i,  j+1,k  ) - U(PRES_VAR,i,  j-1,k  ))
 #if NDIM == 3
@@ -167,6 +181,85 @@ Subroutine hy_uhd_shockDetect( blockID )
               ! applies (a diffusive) HLL solver when SHOK_VAR = 1.
 #ifdef SHOK_VAR
               U(SHOK_VAR,i,j,k) = 1.
+#endif
+
+#ifdef SHKS_VAR
+              if (gradPx > 0.0) then
+                 ! right value > left value
+                 rho1x = maxval(U(DENS_VAR,i+1:i+ncell,j,k))
+                 rho0x = minval(U(DENS_VAR,i-ncell:i-1,j,k))
+              else
+                 rho1x = maxval(U(DENS_VAR,i-ncell:i-1,j,k))
+                 rho0x = minval(U(DENS_VAR,i+1:i+ncell,j,k))
+              endif
+
+              rho0y = 0.0
+              rho1y = 0.0
+              rho0z = 0.0
+              rho1z = 0.0
+#if NDIM > 1
+              gradPy = 0.5*(U(PRES_VAR,i,  j+1,k  ) - U(PRES_VAR,i,  j-1,k  ))
+              if (gradPy > 0.0) then
+                 rho1y = maxval(U(DENS_VAR,i,j+1:j+ncell,k))
+                 rho0y = minval(U(DENS_VAR,i,j-ncell:j-1,k))
+              else
+                 rho1y = maxval(U(DENS_VAR,i,j-ncell:j-1,k))
+                 rho0y = minval(U(DENS_VAR,i,j+1:j+ncell,k))
+              endif
+#if NDIM == 3
+              gradPz = 0.5*(U(PRES_VAR,i,  j,  k+1) - U(PRES_VAR,i,  j,  k-1))
+              if (gradPz > 0.0) then
+                 rho1z = maxval(U(DENS_VAR,i,j,k+1:k+ncell))
+                 rho0z = minval(U(DENS_VAR,i,j,k-ncell:k-1))
+              else
+                 rho1z = maxval(U(DENS_VAR,i,j,k-ncell:k-1))
+                 rho0z = minval(U(DENS_VAR,i,j,k+1:k+ncell))
+              endif
+#endif
+#endif
+              duxx = minval(U(VELX_VAR,i+1:i+ncell,j,k)) - &
+                     maxval(U(VELX_VAR,i-ncell:i-1,j,k))
+              duyy = 0.0
+              duzz = 0.0
+#if NDIM > 1
+              duyy = minval(U(VELY_VAR,i,  j+1:i+ncell,k  )) - &
+                     maxval(U(VELY_VAR,i,  j-ncell:j-1,k  ))
+#if NDIM == 3
+              duzz = minval(U(VELZ_VAR,i,  j,  k+1:k+ncell)) - &
+                     maxval(U(VELZ_VAR,i,  j,  k-ncell:k-1))
+#endif
+#endif
+
+! We will use the factors factr(xyz) to blend data from the longitudinal 
+! and transverse directions in order to estimate shock jumps, orientation, 
+! speeds, etc., below.  This data blending technique generates more algebra
+! here, but it eliminates any tendency to flip-flop near a 45 degree shock 
+! orientation. These blending factors are based upon velocity jumps in 
+! order to sense the direction of any compression, even if that compression
+! is not momentarily associated with a pressure jump (as in the case of a 
+! shock reflecting from a rigid wall).
+
+! blend the pre- and post-shock values
+
+              ! look for compression, if vx(i+1) - vx(i-1) < 0, then we are compressing in x
+              factrx = min(0.0, duxx)*min(0.0, duxx)
+              factry = min(0.0, duyy)*min(0.0, duyy)
+              factrz = min(0.0, duzz)*min(0.0, duzz)
+
+              factrnorm = 1.0 / (factrx + factry + factrz + smlusq)
+
+              factry = factry * factrnorm
+              factrz = factrz * factrnorm
+              factrx = 1.0 - (factry + factrz)
+
+              ! compute the pre-shock and post-shock pressures across the shock front
+              rhopre = factrx*rho0x + factry*rho0y + factrz*rho0z
+              rhopst = factrx*rho1x + factry*rho1y + factrz*rho1z
+
+              compr = rhopst / rhopre
+
+              U(SHKS_VAR,i,j,k) = compr
+
 #endif
 
               if (hy_shockLowerCFL) then

@@ -137,3 +137,6 @@ SPECIES JET
 
 # Gravity
 #PARAMETER useGravity		BOOLEAN TRUE
+
+# Shock
+VARIABLE shks TYPE: GENERIC
