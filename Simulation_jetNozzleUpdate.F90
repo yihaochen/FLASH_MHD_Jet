@@ -48,7 +48,7 @@ contains
 
     ! --------------------------------------------------------------------------
     ! Update the hydro variables of the jet nozzle
-    if (time.gt.sim(nozzle)%tOn .and. time.lt.sim(nozzle)%tOn+sim(nozzle)%duration) then
+    if (time.ge.sim(nozzle)%tOn .and. time.lt.sim(nozzle)%tOn+sim(nozzle)%duration) then
        sim(nozzle)%on = .true.
     else
        sim(nozzle)%on = .false.

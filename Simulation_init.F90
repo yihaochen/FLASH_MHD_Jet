@@ -174,7 +174,8 @@ subroutine Simulation_init()
      call RuntimeParameters_get('nozzleLinVelY', sim(nozzle)%linVel(2))
      call RuntimeParameters_get('nozzleLinVelZ', sim(nozzle)%linVel(3))
      sim(nozzle)%density = -1.0
-     call sim_jetNozzleUpdate(nozzle, dr_simTime, dr_dt)
+     ! Use the jet on time for initialization
+     call sim_jetNozzleUpdate(nozzle, sim(nozzle)%tOn, dr_dt)
      call RuntimeParameters_get('randomSeed', sim(nozzle)%randSeed(1))
 
      if (sim(nozzle)%zTorInj < sim(nozzle)%length+1.5*sim(nozzle)%zFeather .and.&
