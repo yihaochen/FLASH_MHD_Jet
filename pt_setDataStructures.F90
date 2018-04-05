@@ -151,7 +151,7 @@ pt_velPredAttrib(:,:)=1
   pt_newParticleAttrib(GRID_DS_IND,6)=JET_SPEC
 
   ! Additional variables mapped to the particle
-  pt_customNumAttrib=4
+  pt_customNumAttrib=5
   allocate(pt_customAttrib(PART_ATTR_DS_SIZE,pt_customNumAttrib))
   pt_customAttrib(PART_DS_IND,1)=DENS_PART_PROP
   pt_customAttrib(GRID_DS_IND,1)=DENS_VAR
@@ -161,6 +161,8 @@ pt_velPredAttrib(:,:)=1
   pt_customAttrib(GRID_DS_IND,3)=MAGY_VAR
   pt_customAttrib(PART_DS_IND,4)=MAGZ_PART_PROP
   pt_customAttrib(GRID_DS_IND,4)=MAGZ_VAR
+  pt_customAttrib(PART_DS_IND,5)=SHKS_PART_PROP
+  pt_customAttrib(GRID_DS_IND,5)=SHKS_VAR
 ! ychen ->
 
 end subroutine pt_setDataStructures
