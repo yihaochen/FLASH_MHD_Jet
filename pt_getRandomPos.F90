@@ -36,7 +36,7 @@ subroutine pt_getRandomPos(nAdd, pos)
      call RANDOM_NUMBER(z)
      
      ! take square root of r to ensure uniform random distribution on the disk
-     r = sqrt(r)*(sim(nozzle)%radius+sim(nozzle)%rFeatherOut)
+     r = sqrt(r)*sim(nozzle)%radius*0.8
      theta = theta*2.0*PI
      z = z - 0.5
      if (z .lt. 0.0) then
