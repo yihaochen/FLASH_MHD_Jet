@@ -116,11 +116,13 @@ subroutine Heat (blockCount,blockList,dt,time)
            call Particles_addNew(nPtNoz, posNoz, 0.0, addNewSuccess)
            deallocate(posNoz)
         else
-            !write(*,*) '[Heat] no pos', nPtProc, pos
-            call Particles_addNew(0, pos, 0.0,  addNewSuccess)
-            !write(*,*) '[Heat] no pos2'
+           !write(*,*) '[Heat] no pos', nPtProc, pos
+           call Particles_addNew(0, pos, 0.0,  addNewSuccess)
+           !write(*,*) '[Heat] no pos2'
         endif
      else
+        ! On other processors that nPtNoz == 0 we still need to call
+        ! Particles_addNew for MPI routines
         !write(*,*) '[Heat] not masterpe', nPtProc, pos
         call Particles_addNew(0, pos, 0.0, addNewSuccess)
         !write(*,*) '[Heat] not masterpe2'

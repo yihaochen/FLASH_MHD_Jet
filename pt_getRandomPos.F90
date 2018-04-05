@@ -1,4 +1,8 @@
-
+!!
+!! DESCRIPTION
+!!
+!!  Get the random positions at the nozzle cross-section
+!!  for jet particles.
 
 subroutine pt_getRandomPos(nAdd, pos)
 
@@ -13,6 +17,8 @@ subroutine pt_getRandomPos(nAdd, pos)
 #include "Particles.h"
 
   !real, dimension(MDIM), INTENT(IN) :: del
+  ! Ratio of the thikness of the layer to the nozzle length
+  ! at the nozzle cross-section
   real :: del=0.01
   integer, INTENT(IN)   :: nAdd
   real, dimension(nAdd,MDIM), INTENT(OUT) :: pos

@@ -87,6 +87,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
             *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
 
         particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + A*dtNew
+        ! Note that the GAMC is the particle cutoff gamma, not the adiabatic index
         particles(GAMC_PART_PROP,i) = 1.0 / particles(TAU_PART_PROP,i)
         call RANDOM_NUMBER(prob)
         if (prob.lt.particles(JET_PART_PROP,i)) then

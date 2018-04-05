@@ -85,8 +85,11 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   rout = r2 + bf
   rmix = rout + sim(nozzle)%rFeatherMix
 
-  !write(*,*) '[Heat_fillnozzle] nPtProc', nPtProc
+  !
+  ! Shock particles
+  !
   pAdd = dt/sim_ptAddPeriod*cellArea/sim_ptAddArea
+  !write(*,*) '[Heat_fillnozzle] nPtProc', nPtProc
   !write(*,*) '[Heat_fillnozzle] maxval(SHOK)', maxval(solnData(SHOK_VAR,:,:,:))
   !write(*,*) '[Heat_fillnozzle] prob', prob, pAdd
   do k = blkLimits(LOW,KAXIS), blkLimits(HIGH,KAXIS)
@@ -95,20 +98,31 @@ subroutine Heat_fillnozzle (blockID,dt,time)
        cellvec = (/ sim_xCoord(i), sim_yCoord(j), sim_zCoord(k) /)
 
        if (solnData(SHOK_VAR,i,j,k) .gt. sim_smallx) then
+          ! prob is a random number between 0 and 1
+          ! This is to determine whether we add nAdd (usually 0) or nAdd+1 particles
           call RANDOM_NUMBER(prob)
+          ! SHOK_VAR is either 0 or 1
+          ! if SHOK_VAR == 0, nAdd = 0
           nAdd = int(pAdd*solnData(SHOK_VAR,i,j,k))
+
           if (prob .le. pAdd*solnData(SHOK_VAR,i,j,k)-nAdd) then
              nAdd = nAdd+1
           endif
+
+          ! This cell won the lottery, let's give it the shock particle(s)
           if (nAdd .gt. 0) then
              !write(*,*) '[Heat_fillnozzle] Adding', nAdd, 'particles'
              allocate(pos_tmp(nPtProc+nAdd,MDIM))
+             ! Check if there are already particles waiting to be added
+             ! pos contains the positions of to-be-added particles in this proc
              if (nPtProc.gt.0) then
                 pos_tmp(:nPtProc,:) = pos
              endif
              !pos_tmp is copied to posPt and then deallocated.
              call move_alloc(pos_tmp, pos)
+             ! Randomly assign the position(s) of the newly added shock particles
              do iPart = nPtProc+1, nPtProc+nAdd
+                ! rand_xyz is a MDIM vector
                 call RANDOM_NUMBER(rand_xyz)
                 pos(iPart,:) = cellvec + del*(rand_xyz-0.5)
              enddo

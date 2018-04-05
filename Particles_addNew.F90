@@ -99,6 +99,7 @@ subroutine Particles_addNew (count, pos, shock, success)
         particles(TAG_PART_PROP,pt_numLocal+i)  = tagOffset+i
         particles(TADD_PART_PROP,pt_numLocal+i) = dr_simTime
         particles(TAU_PART_PROP,pt_numLocal+i)  = 0.0
+        ! Set den0 < 0.0 for initialization in pt_advanceCustom
         particles(DEN0_PART_PROP,pt_numLocal+i) = -1.0
         particles(TYPE_PART_PROP,pt_numLocal+i) = PASSIVE_PART_TYPE
         if (present(shock)) then
