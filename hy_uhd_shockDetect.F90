@@ -77,7 +77,7 @@ Subroutine hy_uhd_shockDetect( blockID )
   real :: rho0y, rho1y
   real :: rho0z, rho1z
 
-  real :: rhopre, rhopst, compr
+  real :: rhopre, rhopst, gamc, compr
 
   ! small number used for factr[x,y,z] normalization
   smlusq = hy_tiny*hy_tiny
@@ -186,11 +186,11 @@ Subroutine hy_uhd_shockDetect( blockID )
 #ifdef SHKS_VAR
               if (gradPx > 0.0) then
                  ! right value > left value
-                 rho1x = maxval(U(DENS_VAR,i+1:i+ncell,j,k))
-                 rho0x = minval(U(DENS_VAR,i-ncell:i-1,j,k))
+                 rho1x = maxval(U(DENS_VAR,i+1:i+ncell,j-1:j+1,k-1:k+1))
+                 rho0x = minval(U(DENS_VAR,i-ncell:i-1,j-1:j+1,k-1:k-1))
               else
-                 rho1x = maxval(U(DENS_VAR,i-ncell:i-1,j,k))
-                 rho0x = minval(U(DENS_VAR,i+1:i+ncell,j,k))
+                 rho1x = maxval(U(DENS_VAR,i-ncell:i-1,j-1:j+1,k-1:k+1))
+                 rho0x = minval(U(DENS_VAR,i+1:i+ncell,j-1:j+1,k-1:k-1))
               endif
 
               rho0y = 0.0
@@ -200,33 +200,33 @@ Subroutine hy_uhd_shockDetect( blockID )
 #if NDIM > 1
               gradPy = 0.5*(U(PRES_VAR,i,  j+1,k  ) - U(PRES_VAR,i,  j-1,k  ))
               if (gradPy > 0.0) then
-                 rho1y = maxval(U(DENS_VAR,i,j+1:j+ncell,k))
-                 rho0y = minval(U(DENS_VAR,i,j-ncell:j-1,k))
+                 rho1y = maxval(U(DENS_VAR,i-1:i+1,j+1:j+ncell,k-1:k+1))
+                 rho0y = minval(U(DENS_VAR,i-1:i+1,j-ncell:j-1,k-1:k+1))
               else
-                 rho1y = maxval(U(DENS_VAR,i,j-ncell:j-1,k))
-                 rho0y = minval(U(DENS_VAR,i,j+1:j+ncell,k))
+                 rho1y = maxval(U(DENS_VAR,i-1:i+1,j-ncell:j-1,k-1:k+1))
+                 rho0y = minval(U(DENS_VAR,i-1:i+1,j+1:j+ncell,k-1:k+1))
               endif
 #if NDIM == 3
               gradPz = 0.5*(U(PRES_VAR,i,  j,  k+1) - U(PRES_VAR,i,  j,  k-1))
               if (gradPz > 0.0) then
-                 rho1z = maxval(U(DENS_VAR,i,j,k+1:k+ncell))
-                 rho0z = minval(U(DENS_VAR,i,j,k-ncell:k-1))
+                 rho1z = maxval(U(DENS_VAR,i-1:i+1,j-1:j+1,k+1:k+ncell))
+                 rho0z = minval(U(DENS_VAR,i-1:i+1,j-1:j+1,k-ncell:k-1))
               else
-                 rho1z = maxval(U(DENS_VAR,i,j,k-ncell:k-1))
-                 rho0z = minval(U(DENS_VAR,i,j,k+1:k+ncell))
+                 rho1z = maxval(U(DENS_VAR,i-1:i+1,j-1:j+1,k-ncell:k-1))
+                 rho0z = minval(U(DENS_VAR,i-1:i+1,j-1:j+1,k+1:k+ncell))
               endif
 #endif
 #endif
-              duxx = minval(U(VELX_VAR,i+1:i+ncell,j,k)) - &
-                     maxval(U(VELX_VAR,i-ncell:i-1,j,k))
+              duxx = U(VELX_VAR,i+1,j,  k) - &
+                     U(VELX_VAR,i-1,j,  k)
               duyy = 0.0
               duzz = 0.0
 #if NDIM > 1
-              duyy = minval(U(VELY_VAR,i,  j+1:i+ncell,k  )) - &
-                     maxval(U(VELY_VAR,i,  j-ncell:j-1,k  ))
+              duyy = U(VELY_VAR,i,  j+1,k  ) - &
+                     U(VELY_VAR,i,  j-1,k  )
 #if NDIM == 3
-              duzz = minval(U(VELZ_VAR,i,  j,  k+1:k+ncell)) - &
-                     maxval(U(VELZ_VAR,i,  j,  k-ncell:k-1))
+              duzz = U(VELZ_VAR,i,  j,  k+1) - &
+                     U(VELZ_VAR,i,  j,  k-1)
 #endif
 #endif
 
@@ -258,7 +258,10 @@ Subroutine hy_uhd_shockDetect( blockID )
 
               compr = rhopst / rhopre
 
-              U(SHKS_VAR,i,j,k) = compr
+              gamc = U(GAMC_VAR,i,j,k)
+              ! We limit the compression ratio to the theoretical maximum
+              ! (gamma+1)/(gamma-1)
+              U(SHKS_VAR,i,j,k) = min((gamc+1)/(gamc-1), compr)
 
 #endif
 
