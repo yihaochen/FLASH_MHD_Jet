@@ -9,9 +9,10 @@
 !!  
 !! PURPOSE 
 !!  1. Set the maximal refinement level according to jet heights using parameters
-!!  derefine_z1 and derefine_z2 (in unit of the nozzle length). Above each scale 
-!!  the max refinement level will decrease by 1. Maximum refinement level below 
-!!  derefine_z1 is set by the parameter lrefine_0.
+!!     blk_resolution, which indicates the maximum number of blocks should be
+!!     used to resolve one side of the lobes in length. The radial direction
+!!     uses half of the blocks, assuming aspect ratio is roughly 2:1.
+!! 
 !!  2. Force the jet identified by the momentum to have maximum refinement level.
 !!  
 !! ARGUMENTS 
@@ -54,13 +55,13 @@ subroutine gr_markJet(nozzle)
 
   lrefine_0 = min(sim(nozzle)%lrefine_0, lrefine_max)
 
-  blk_resolution = 64
+  ! Maximal number of blocks to resolve one side of the lobes in length
+  blk_resolution = 32
   if((gr_geometry == CARTESIAN)) then
      do b = 1, lnblocks
         if(nodetype(b) == LEAF) then
            blockCenter(:) = coord(:,b)
-           ! block size after refinement
-           blockSize(:) = 0.5*bsize(:,b)
+           blockSize(:) = bsize(:,b)
 
            !call hy_uhd_jetNozzleGeometry(nozzle,blockCenter,radius,length,distance,&
            !                              sig,theta,jetvec,rvec,plnvec,phivec)
@@ -80,6 +81,8 @@ subroutine gr_markJet(nozzle)
            else if ( abs(length)/maxval(blockSize) > blk_resolution/2 ) then
               refine(b) = .false.
            endif
+           ! For radial direction, use only half of the blocks, assuming the
+           ! aspect ratio is roughly 2:1
            if ( radius/maxval(blockSize) > blk_resolution/2 ) then
               if (lrefine(b) > 1 ) then
                  refine(b)   = .false.
@@ -90,32 +93,14 @@ subroutine gr_markJet(nozzle)
            else if ( radius/maxval(blockSize) > blk_resolution/4 ) then
               refine(b) = .false.
            endif
-           ! Decrease the maximum refine level when away from the nozzle
-           !if (abs(length) < sim(nozzle)%derefine_z1*sim(nozzle)%length) then
-              if (lrefine(b) > lrefine_0 ) then
-                 refine(b)   = .false.
-                 derefine(b) = .true.
-              else if (lrefine(b) == lrefine_0) then
-                 refine(b) = .false.
-              endif
-           !endif
-           !if (abs(length) >= sim(nozzle)%derefine_z1*sim(nozzle)%length) then
-           !   if (lrefine(b) >= lrefine_0 ) then
-           !      refine(b)   = .false.
-           !      derefine(b) = .true.
-           !   else if (lrefine(b) == lrefine_0-1) then
-           !      refine(b) = .false.
-           !   endif
-           !endif
-
-           !if (abs(length) >= sim(nozzle)%derefine_z2*sim(nozzle)%length) then
-           !   if (lrefine(b) >= lrefine_0-1 ) then
-           !      refine(b)   = .false.
-           !      derefine(b) = .true.
-           !   else if (lrefine(b) == lrefine_0-2) then
-           !      refine(b) = .false.
-           !   endif
-           !endif
+           ! Set the overall maximal refinement level (lrefine_0)
+           ! The jet is to be refined by different level (lrefine_max)
+           if (lrefine(b) > lrefine_0 ) then
+              refine(b)   = .false.
+              derefine(b) = .true.
+           else if (lrefine(b) == lrefine_0) then
+              refine(b) = .false.
+           endif
            
 
            ! Calculate the maximum jet momentum in the block
@@ -134,6 +119,8 @@ subroutine gr_markJet(nozzle)
            eintmin = minval(solnData(EINT_VAR,:,:,:))
 
            ! Force maximum refine level for the jet using momentum
+           ! Force maximum refinement for abnormally low internal energy region
+           ! to increase stability
            if ((pmax >= sim(nozzle)%refine_jetR*pjet) .or. (eintmin <= gr_smalle)) then
               if (lrefine(b) < lrefine_max) then
                  refine(b) = .true.
