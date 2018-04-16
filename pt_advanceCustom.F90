@@ -66,7 +66,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   integer :: mapType 
   
   integer      :: nozzle=1
-  real         :: rho13, A, prob
+  real         :: rho13, A, prob, dsa_ind
 !!------------------------------------------------------------------------------
   
   !write(*,'(i5, A28, i5)') pt_meshMe, '[pt_advance], pt_numLocal=', pt_numLocal
@@ -76,19 +76,15 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
   mapType=pt_typeInfo(PART_MAPMETHOD,ind)
 
+  ! Particle initialization
   do i = 1, p_count
   ! if the particle is newly added, map the properties first
      if (particles(DEN0_PART_PROP,i) .le. 0.0 ) then
+        ! This will update DEN0 and DENS
         call Grid_mapMeshToParticles(particles(:,i:i),&
              part_props,BLK_PART_PROP, 1,&
              pt_posAttrib,pt_newParticleNumAttrib,pt_newParticleAttrib,mapType)
 
-        A = 4.0/9.0*1.938486E-09*4.0*PI/hy_bref**2&
-            *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
-
-        particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + A*dtNew
-        ! Note that the GAMC is the particle cutoff gamma, not the adiabatic index
-        particles(GAMC_PART_PROP,i) = 1.0 / particles(TAU_PART_PROP,i)
         call RANDOM_NUMBER(prob)
         if (prob.lt.particles(JET_PART_PROP,i)) then
            particles(JET_PART_PROP,i) = 1.0
@@ -164,15 +160,33 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
   ! update the synchrotron lifetime and cutoff gamma
   do i = 1, p_count
-    rho13 = (particles(DENS_PART_PROP,i)/particles(DEN0_PART_PROP,i))**(1.0/3.0)
-    ! e^4/(me^3*c^5) = 2.907728E-9
-    ! if units == "none" (default) -> hy_bref=1.0
-    ! if units == "cgs" -> hy_bref=sqrt(4*pi)
-    A = 4.0/9.0*2.907728E-9*4.0*PI/hy_bref/hy_bref&
-        *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
+    if (particles(SHKS_PART_PROP,i) .gt. 1.0) then
+       ! This particle is in a shock front
+       ! Reset the cooling integration and cutoff gamma
+       particles(TAU1_PART_PROP,i) = 1E-100
+       particles(GAMC_PART_PROP,i) = 1E100
+       particles(DEN0_PART_PROP,i) = particles(DENS_PART_PROP,i)
 
-    particles(TAU_PART_PROP,i) = particles(TAU_PART_PROP,i) + rho13*A*dtNew
-    particles(GAMC_PART_PROP,i) = rho13 / particles(TAU_PART_PROP,i)
+       ! Energy power-law index for diffusive shock acceleration
+       ! SHKS is the compression ratio
+       dsa_ind = (particles(SHKS_PART_PROP,i)+2.0) / (particles(SHKS_PART_PROP,i)-1.0)
+       if (dsa_ind .lt. particles(IND1_PART_PROP,i)) then
+          particles(IND1_PART_PROP,i) = dsa_ind
+       endif
+    else
+       ! Outside of a shock
+       rho13 = (particles(DENS_PART_PROP,i)/particles(DEN0_PART_PROP,i))**(1.0/3.0)
+       ! e^4/(me^3*c^5) = 2.907728E-9
+       ! if units == "none" (default) -> hy_bref=1.0
+       ! if units == "cgs" -> hy_bref=sqrt(4*pi)
+       A = 4.0/9.0*2.907728E-9*4.0*PI/hy_bref/hy_bref&
+           *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
+
+       particles(TAU1_PART_PROP,i) = particles(TAU1_PART_PROP,i) + rho13*A*dtNew
+       particles(GAMC_PART_PROP,i) = rho13 / particles(TAU1_PART_PROP,i)
+
+    endif
+
 
   enddo
 
