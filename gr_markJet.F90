@@ -12,7 +12,7 @@
 !!     blk_resolution, which indicates the maximum number of blocks should be
 !!     used to resolve one side of the lobes in length. The radial direction
 !!     uses half of the blocks, assuming aspect ratio is roughly 2:1.
-!! 
+!!
 !!  2. Force the jet identified by the momentum to have maximum refinement level.
 !!  
 !! ARGUMENTS 
@@ -103,6 +103,7 @@ subroutine gr_markJet(nozzle)
            endif
            
 
+
            ! Calculate the maximum jet momentum in the block
            call Grid_getBlkIndexLimits(b,blkLimits,blkLimitsGC)
            call Grid_getBlkPtr(b, solnDataGC, CENTER)
@@ -134,6 +135,17 @@ subroutine gr_markJet(nozzle)
                  derefine(b) = .false.
               endif
            endif
+
+           ! Maintain minimal refinement level for lower half of the domain
+           if (blockCenter(3) < 0.0) then
+              if (lrefine(b) > 1 ) then
+                 refine(b)   = .false.
+                 derefine(b) = .true.
+              else
+                 refine(b)   = .false.
+              endif
+           endif
+
            call Grid_releaseBlkPtr(b, solnData, CENTER)
 
 
