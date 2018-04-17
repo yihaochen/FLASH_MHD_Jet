@@ -184,7 +184,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
           particles(GAMC_PART_PROP,i) = 1E100
           particles(DEN1_PART_PROP,i) = particles(DENS_PART_PROP,i)
           particles(WHCH_PART_PROP,i) = 1.1
-       else if (dsa_ind .lt. particles(IND2_PART_PROP,i) .and.
+       else if (dsa_ind .lt. particles(IND2_PART_PROP,i) .and.&
                 particles(WHCH_PART_PROP,i) .lt. 1.0) then
           ! This particle is in a shok, but the shock strength is weaker than
           ! the strongest shock it encountered
@@ -199,7 +199,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
           particles(TAU2_PART_PROP,i) = 1E-100
           particles(DEN2_PART_PROP,i) = particles(DENS_PART_PROP,i)
           particles(WHCH_PART_PROP,i) = 2.1
-       else if (dsa_ind .lt. particles(IND3_PART_PROP,i) .and.
+       else if (dsa_ind .lt. particles(IND3_PART_PROP,i) .and.&
                 particles(WHCH_PART_PROP,i) .lt. 1.0) then
           particles(IND3_PART_PROP,i) = dsa_ind
           particles(TAU3_PART_PROP,i) = 1E-100
