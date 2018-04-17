@@ -98,7 +98,7 @@ PARTICLETYPE metal INITMETHOD With_Density MAPMETHOD weighted ADVMETHOD RungeKut
 
 REQUIRES Particles/ParticlesInitialization/WithDensity/CellMassBins
 REQUIRES Particles/ParticlesMain/passive/RungeKutta
-#REQUIRES Particles/ParticlesMapping/Quadratic
+REQUIRES Particles/ParticlesMapping/Quadratic
 REQUIRES Particles/ParticlesMapping/meshWeighting/CIC
 REQUIRES IO/IOParticles
 REQUIRES Grid/GridParticles

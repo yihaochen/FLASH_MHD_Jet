@@ -126,7 +126,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
   call Grid_mapMeshToParticles(particles,&
        part_props, BLK_PART_PROP, p_count,&
-       pt_posAttrib,pt_velNumAttrib,pt_velAttrib,mapType)
+       pt_posAttrib,pt_velNumAttrib,pt_velAttrib,QUADRATIC)
 
   ! Adjust particle positions, using the second point velocities
   do i = 1, p_count
@@ -151,7 +151,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
   call Grid_mapMeshToParticles(particles,&
        part_props, BLK_PART_PROP,p_count,&
-       pt_posAttrib,pt_velNumAttrib,pt_velAttrib,mapType)
+       pt_posAttrib,pt_velNumAttrib,pt_velAttrib,QUADRATIC)
 
   ! Map the custom fields onto the partitcles
   call Grid_mapMeshToParticles(particles,&
