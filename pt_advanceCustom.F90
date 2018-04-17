@@ -161,28 +161,71 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   ! update the synchrotron lifetime and cutoff gamma
   do i = 1, p_count
     if (particles(SHKS_PART_PROP,i) .gt. 1.0) then
-       ! This particle is in a shock front
-       ! Reset the cooling integration and cutoff gamma
-       particles(TAU1_PART_PROP,i) = 1E-100
-       particles(GAMC_PART_PROP,i) = 1E100
-       particles(DEN0_PART_PROP,i) = particles(DENS_PART_PROP,i)
 
        ! Energy power-law index for diffusive shock acceleration
        ! SHKS is the compression ratio
        dsa_ind = (particles(SHKS_PART_PROP,i)+2.0) / (particles(SHKS_PART_PROP,i)-1.0)
        if (dsa_ind .lt. particles(IND1_PART_PROP,i)) then
+          ! This particle is in a shock front that is stronger than it
+          ! encountered before, we reset the cooling integral
+
+          ! This will copy the current cooling history to IND2 or IND3
+          if (particles(WHCH_PART_PROP,i) .gt. 2.0) then
+             particles(IND2_PART_PROP,i) = particles(IND1_PART_PROP,i)
+             particles(TAU2_PART_PROP,i) = particles(TAU1_PART_PROP,i)
+             particles(DEN2_PART_PROP,i) = particles(DEN1_PART_PROP,i)
+          else if (particles(WHCH_PART_PROP,i) .gt. 3.0) then
+             particles(IND3_PART_PROP,i) = particles(IND1_PART_PROP,i)
+             particles(TAU3_PART_PROP,i) = particles(TAU1_PART_PROP,i)
+             particles(DEN3_PART_PROP,i) = particles(DEN1_PART_PROP,i)
+          endif
           particles(IND1_PART_PROP,i) = dsa_ind
+          particles(TAU1_PART_PROP,i) = 1E-100
+          particles(GAMC_PART_PROP,i) = 1E100
+          particles(DEN1_PART_PROP,i) = particles(DENS_PART_PROP,i)
+          particles(WHCH_PART_PROP,i) = 1.1
+       else if (dsa_ind .lt. particles(IND2_PART_PROP,i) .and.
+                particles(WHCH_PART_PROP,i) .lt. 1.0) then
+          ! This particle is in a shok, but the shock strength is weaker than
+          ! the strongest shock it encountered
+
+          ! This will copy the current cooling history to IND3
+          if (particles(WHCH_PART_PROP,i) .gt. 3.0) then
+             particles(IND3_PART_PROP,i) = particles(IND2_PART_PROP,i)
+             particles(TAU3_PART_PROP,i) = particles(TAU2_PART_PROP,i)
+             particles(DEN3_PART_PROP,i) = particles(DEN2_PART_PROP,i)
+          endif
+          particles(IND2_PART_PROP,i) = dsa_ind
+          particles(TAU2_PART_PROP,i) = 1E-100
+          particles(DEN2_PART_PROP,i) = particles(DENS_PART_PROP,i)
+          particles(WHCH_PART_PROP,i) = 2.1
+       else if (dsa_ind .lt. particles(IND3_PART_PROP,i) .and.
+                particles(WHCH_PART_PROP,i) .lt. 1.0) then
+          particles(IND3_PART_PROP,i) = dsa_ind
+          particles(TAU3_PART_PROP,i) = 1E-100
+          particles(DEN3_PART_PROP,i) = particles(DENS_PART_PROP,i)
+          particles(WHCH_PART_PROP,i) = 3.1
        endif
     else
        ! Outside of a shock
-       rho13 = (particles(DENS_PART_PROP,i)/particles(DEN0_PART_PROP,i))**(1.0/3.0)
+       particles(WHCH_PART_PROP,i) = 0.0
        ! e^4/(me^3*c^5) = 2.907728E-9
        ! if units == "none" (default) -> hy_bref=1.0
        ! if units == "cgs" -> hy_bref=sqrt(4*pi)
        A = 4.0/9.0*2.907728E-9*4.0*PI/hy_bref/hy_bref&
            *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
-
-       particles(TAU1_PART_PROP,i) = particles(TAU1_PART_PROP,i) + rho13*A*dtNew
+       if (particles(DEN1_PART_PROP,i) .gt. 0.0) then
+          rho13 = (particles(DENS_PART_PROP,i)/particles(DEN1_PART_PROP,i))**(1.0/3.0)
+          particles(TAU1_PART_PROP,i) = particles(TAU1_PART_PROP,i) + rho13*A*dtNew
+       endif
+       if (particles(DEN2_PART_PROP,i) .gt. 0.0) then
+          rho13 = (particles(DENS_PART_PROP,i)/particles(DEN2_PART_PROP,i))**(1.0/3.0)
+          particles(TAU2_PART_PROP,i) = particles(TAU2_PART_PROP,i) + rho13*A*dtNew
+       endif
+       if (particles(DEN3_PART_PROP,i) .gt. 0.0) then
+          rho13 = (particles(DEN3_PART_PROP,i)/particles(DEN3_PART_PROP,i))**(1.0/3.0)
+          particles(TAU3_PART_PROP,i) = particles(TAU3_PART_PROP,i) + rho13*A*dtNew
+       endif
        particles(GAMC_PART_PROP,i) = rho13 / particles(TAU1_PART_PROP,i)
 
     endif
