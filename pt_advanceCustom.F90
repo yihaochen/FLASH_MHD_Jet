@@ -184,22 +184,21 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
           particles(GAMC_PART_PROP,i) = 1E100
           particles(DEN1_PART_PROP,i) = particles(DENS_PART_PROP,i)
           particles(WHCH_PART_PROP,i) = 1.1
-       else if (dsa_ind .lt. particles(IND2_PART_PROP,i)) then
+       else if (dsa_ind .lt. particles(IND2_PART_PROP,i) .and.&
+                abs(particles(WHCH_PART_PROP,i)-1.1) .gt. 0.1) then
           ! This will copy the current cooling history to IND3
           if (particles(WHCH_PART_PROP,i) .gt. 3.0) then
              particles(IND3_PART_PROP,i) = particles(IND2_PART_PROP,i)
              particles(TAU3_PART_PROP,i) = particles(TAU2_PART_PROP,i)
              particles(DEN3_PART_PROP,i) = particles(DEN2_PART_PROP,i)
-          else if (particles(WHCH_PART_PROP,i) .lt. 1.0 .or.&
-                   particles(WHCH_PART_PROP,i) .gt. 2.0 ) then
-             ! This particle is in a shok, but the shock strength is weaker than
-             ! the strongest shock it encountered
-
-             particles(IND2_PART_PROP,i) = dsa_ind
-             particles(TAU2_PART_PROP,i) = 1E-100
-             particles(DEN2_PART_PROP,i) = particles(DENS_PART_PROP,i)
-             particles(WHCH_PART_PROP,i) = 2.1
           endif
+          ! This particle is in a shok, but the shock strength is weaker than
+          ! the strongest shock it encountered
+
+          particles(IND2_PART_PROP,i) = dsa_ind
+          particles(TAU2_PART_PROP,i) = 1E-100
+          particles(DEN2_PART_PROP,i) = particles(DENS_PART_PROP,i)
+          particles(WHCH_PART_PROP,i) = 2.1
        else if (dsa_ind .lt. particles(IND3_PART_PROP,i)) then
           if (particles(WHCH_PART_PROP,i) .lt. 1.0 .or.&
               particles(WHCH_PART_PROP,i) .gt. 3.0) then
