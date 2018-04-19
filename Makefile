@@ -17,4 +17,5 @@ Heat += Heat_data.o\
 
 Grid += gr_markJet.o
 
-Particles += pt_getRandomPos.o
+Particles += pt_getRandomPos.o\
+			 pt_copyShockVars.o

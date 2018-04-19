@@ -84,6 +84,9 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
         call Grid_mapMeshToParticles(particles(:,i:i),&
              part_props,BLK_PART_PROP, 1,&
              pt_posAttrib,pt_newParticleNumAttrib,pt_newParticleAttrib,mapType)
+        call Grid_mapMeshToParticles(particles(:,i:i),&
+             part_props,BLK_PART_PROP, 1,&
+             pt_posAttrib,pt_velNumAttrib,pt_velAttrib,QUADRATIC)
 
         call RANDOM_NUMBER(prob)
         if (prob.lt.particles(JET_PART_PROP,i)) then
@@ -169,32 +172,33 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
           ! This particle is in a shock front that is stronger than it
           ! encountered before, we reset the cooling integral
 
-          ! This will copy the current cooling history to IND2 or IND3
-          if (particles(WHCH_PART_PROP,i) .gt. 2.0) then
-             particles(IND2_PART_PROP,i) = particles(IND1_PART_PROP,i)
-             particles(TAU2_PART_PROP,i) = particles(TAU1_PART_PROP,i)
-             particles(DEN2_PART_PROP,i) = particles(DEN1_PART_PROP,i)
-          else if (particles(WHCH_PART_PROP,i) .gt. 3.0) then
-             particles(IND3_PART_PROP,i) = particles(IND1_PART_PROP,i)
-             particles(TAU3_PART_PROP,i) = particles(TAU1_PART_PROP,i)
-             particles(DEN3_PART_PROP,i) = particles(DEN1_PART_PROP,i)
+          ! If it is not already in IND1, copy IND1 to IND2 first
+          if (abs(particles(WHCH_PART_PROP,i)-1.1) .gt. 0.1) then
+             if (particles(IND2_PART_PROP,i) .lt. 100.0) then
+                call pt_copyShockVars(particles(:,i), 2, 3)
+             endif
+             ! This will copy the current cooling history to IND2
+             call pt_copyShockVars(particles(:,i), 1, 2)
           endif
           particles(IND1_PART_PROP,i) = dsa_ind
           particles(TAU1_PART_PROP,i) = 1E-100
           particles(GAMC_PART_PROP,i) = 1E100
           particles(DEN1_PART_PROP,i) = particles(DENS_PART_PROP,i)
           particles(WHCH_PART_PROP,i) = 1.1
-       else if (dsa_ind .lt. particles(IND2_PART_PROP,i) .and.&
-                abs(particles(WHCH_PART_PROP,i)-1.1) .gt. 0.1) then
-          ! This will copy the current cooling history to IND3
-          if (particles(WHCH_PART_PROP,i) .gt. 3.0) then
-             particles(IND3_PART_PROP,i) = particles(IND2_PART_PROP,i)
-             particles(TAU3_PART_PROP,i) = particles(TAU2_PART_PROP,i)
-             particles(DEN3_PART_PROP,i) = particles(DEN2_PART_PROP,i)
+       else if ( (dsa_ind .lt. particles(IND2_PART_PROP,i)) .and.&
+                 (abs(particles(WHCH_PART_PROP,i)-1.1) .gt. 0.1) ) then
+          ! Shock is stronger than previously stored IND2 and not in the
+          ! remaining end of IND1
+
+          ! If it is not already in IND2, copy IND2 to IND3 first
+          if (abs(particles(WHCH_PART_PROP,i)-2.1) .gt. 0.1) then
+             if (particles(IND2_PART_PROP,i) .lt. 100.0) then
+                ! This will copy the current cooling history to IND2
+                call pt_copyShockVars(particles(:,i), 2, 3)
+             endif
           endif
           ! This particle is in a shok, but the shock strength is weaker than
           ! the strongest shock it encountered
-
           particles(IND2_PART_PROP,i) = dsa_ind
           particles(TAU2_PART_PROP,i) = 1E-100
           particles(DEN2_PART_PROP,i) = particles(DENS_PART_PROP,i)
@@ -212,27 +216,26 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
     else
        ! Outside of a shock
        particles(WHCH_PART_PROP,i) = 0.0
-       ! e^4/(me^3*c^5) = 2.907728E-9
-       ! if units == "none" (default) -> hy_bref=1.0
-       ! if units == "cgs" -> hy_bref=sqrt(4*pi)
-       A = 4.0/9.0*2.907728E-9*4.0*PI/hy_bref/hy_bref&
-           *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
-       if (particles(DEN1_PART_PROP,i) .gt. 0.0) then
-          rho13 = (particles(DENS_PART_PROP,i)/particles(DEN1_PART_PROP,i))**(1.0/3.0)
-          particles(TAU1_PART_PROP,i) = particles(TAU1_PART_PROP,i) + rho13*A*dtNew
-       endif
-       if (particles(DEN2_PART_PROP,i) .gt. 0.0) then
-          rho13 = (particles(DENS_PART_PROP,i)/particles(DEN2_PART_PROP,i))**(1.0/3.0)
-          particles(TAU2_PART_PROP,i) = particles(TAU2_PART_PROP,i) + rho13*A*dtNew
-       endif
-       if (particles(DEN3_PART_PROP,i) .gt. 0.0) then
-          rho13 = (particles(DEN3_PART_PROP,i)/particles(DEN3_PART_PROP,i))**(1.0/3.0)
-          particles(TAU3_PART_PROP,i) = particles(TAU3_PART_PROP,i) + rho13*A*dtNew
-       endif
-       particles(GAMC_PART_PROP,i) = rho13 / particles(TAU1_PART_PROP,i)
-
     endif
-
+    ! e^4/(me^3*c^5) = 2.907728E-9
+    ! if units == "none" (default) -> hy_bref=1.0
+    ! if units == "cgs" -> hy_bref=sqrt(4*pi)
+    A = 4.0/9.0*2.907728E-9*4.0*PI/hy_bref/hy_bref&
+        *sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
+    rho13 = (particles(DENS_PART_PROP,i)/particles(DEN0_PART_PROP,i))**(1.0/3.0)
+    if ( (particles(DEN1_PART_PROP,i) .gt. 0.0) .and.&
+         (abs(particles(WHCH_PART_PROP,i)-1.1) .gt. 0.1) ) then
+       particles(TAU1_PART_PROP,i) = particles(TAU1_PART_PROP,i) + rho13*A*dtNew
+       particles(GAMC_PART_PROP,i) = rho13 / particles(TAU1_PART_PROP,i)
+    endif
+    if ( (particles(DEN2_PART_PROP,i) .gt. 0.0) .and.&
+         (abs(particles(WHCH_PART_PROP,i)-2.1) .gt. 0.1) ) then
+       particles(TAU2_PART_PROP,i) = particles(TAU2_PART_PROP,i) + rho13*A*dtNew
+    endif
+    if ( (particles(DEN3_PART_PROP,i) .gt. 0.0) .and.&
+         (abs(particles(WHCH_PART_PROP,i)-3.1) .gt. 0.1) ) then
+       particles(TAU3_PART_PROP,i) = particles(TAU3_PART_PROP,i) + rho13*A*dtNew
+    endif
 
   enddo
 
