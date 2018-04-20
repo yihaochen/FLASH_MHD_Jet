@@ -105,7 +105,7 @@ subroutine Particles_addNew (count, pos, shock, success)
         particles(TAU3_PART_PROP,pt_numLocal+i)  = 1E-100
         particles(IND3_PART_PROP,pt_numLocal+i)  = 100.0
         ! Which shock is this particle located
-        particles(WHCH_PART_PROP,pt_numLocal+i)  = 0.0
+        particles(WHCH_PART_PROP,pt_numLocal+i)  = 100.0
         particles(GAMC_PART_PROP,pt_numLocal+i)  = 1E100
         ! Set den0 < 0.0 for initialization in pt_advanceCustom
         particles(DEN0_PART_PROP,pt_numLocal+i) = -1.0
