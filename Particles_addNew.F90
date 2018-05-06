@@ -98,21 +98,18 @@ subroutine Particles_addNew (count, pos, shock, success)
         particles(PROC_PART_PROP,pt_numLocal+i) = pt_meshMe
         particles(TAG_PART_PROP,pt_numLocal+i)  = tagOffset+i
         particles(TADD_PART_PROP,pt_numLocal+i) = dr_simTime
-        particles(TAU1_PART_PROP,pt_numLocal+i)  = 1E-100
-        particles(IND1_PART_PROP,pt_numLocal+i)  = 100.0
-        particles(TAU2_PART_PROP,pt_numLocal+i)  = 1E-100
-        particles(IND2_PART_PROP,pt_numLocal+i)  = 100.0
-        particles(TAU3_PART_PROP,pt_numLocal+i)  = 1E-100
-        particles(IND3_PART_PROP,pt_numLocal+i)  = 100.0
-        ! Which shock is this particle located
-        particles(WHCH_PART_PROP,pt_numLocal+i)  = 100.0
-        particles(GAMC_PART_PROP,pt_numLocal+i)  = 1E100
         ! Set den0 < 0.0 for initialization in pt_advanceCustom
         particles(DEN0_PART_PROP,pt_numLocal+i) = -1.0
-        particles(DEN1_PART_PROP,pt_numLocal+i) = -1.0
-        particles(DEN2_PART_PROP,pt_numLocal+i) = -1.0
-        particles(DEN3_PART_PROP,pt_numLocal+i) = -1.0
         particles(DENS_PART_PROP,pt_numLocal+i) = -1.0
+        call pt_resetShockVars(particles(:,pt_numLocal+i), 1, 100.0, dr_simTime)
+        call pt_resetShockVars(particles(:,pt_numLocal+i), 2, 100.0, dr_simTime)
+        call pt_resetShockVars(particles(:,pt_numLocal+i), 3, 100.0, dr_simTime)
+        particles(TAU0_PART_PROP,pt_numLocal+i) = 1E-100
+        particles(ICT0_PART_PROP,pt_numLocal+i) = 1E-100
+        ! Which shock is this particle located
+        ! Set to a large initial value, i.e. very weak shock
+        particles(WHCH_PART_PROP,pt_numLocal+i)  = 100.0
+        particles(GAMC_PART_PROP,pt_numLocal+i)  = 1E100
         particles(TYPE_PART_PROP,pt_numLocal+i) = PASSIVE_PART_TYPE
         if (present(shock)) then
            particles(SHOK_PART_PROP,pt_numLocal+i) = shock

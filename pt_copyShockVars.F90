@@ -12,7 +12,7 @@ subroutine pt_copyShockVars(particle, orig, dest)
    particle(IND1_PART_PROP+dest-1) = particle(IND1_PART_PROP+orig-1)
    particle(TAU1_PART_PROP+dest-1) = particle(TAU1_PART_PROP+orig-1)
    particle(DEN1_PART_PROP+dest-1) = particle(DEN1_PART_PROP+orig-1)
-   particle(AGE1_PART_PROP+dest-1) = particle(AGE1_PART_PROP+orig-1)
+   particle(TAD1_PART_PROP+dest-1) = particle(TAD1_PART_PROP+orig-1)
    particle(ICT1_PART_PROP+dest-1) = particle(ICT1_PART_PROP+orig-1)
 
 end subroutine pt_copyShockVars

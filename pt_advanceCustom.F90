@@ -39,8 +39,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
        useParticles, pt_typeInfo, &
        pt_gcMaskForAdvance, pt_gcMaskSizeForAdvance, pt_meshMe, &
        pt_posAttrib, pt_velNumAttrib,pt_velAttrib, pt_meshNumProcs,&
-       pt_customNumAttrib, pt_customAttrib, &
-       pt_newParticleNumAttrib, pt_newParticleAttrib
+       pt_customNumAttrib, pt_customAttrib
 
   use Driver_data, ONLY : dr_simTime, dr_initialSimTime, dr_globalMe
   use Hydro_data, ONLY : hy_bref
@@ -83,18 +82,12 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
         ! This will update DEN0 and DENS
         call Grid_mapMeshToParticles(particles(:,i:i),&
              part_props,BLK_PART_PROP, 1,&
-             pt_posAttrib,pt_newParticleNumAttrib,pt_newParticleAttrib,mapType)
+             pt_posAttrib,pt_customNumAttrib,pt_customAttrib,mapType)
+        particles(DEN0_PART_PROP,i) = particles(DENS_PART_PROP,i)
+
         call Grid_mapMeshToParticles(particles(:,i:i),&
              part_props,BLK_PART_PROP, 1,&
              pt_posAttrib,pt_velNumAttrib,pt_velAttrib,QUADRATIC)
-
-        call RANDOM_NUMBER(prob)
-        if (prob.lt.particles(JET_PART_PROP,i)) then
-           particles(JET_PART_PROP,i) = 1.0
-        else
-           particles(JET_PART_PROP,i) = 0.0
-        endif
-
 
      endif
   enddo
@@ -180,7 +173,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
              ! This will copy the current cooling history to IND2
              call pt_copyShockVars(particles(:,i), 1, 2)
           endif
-          call pt_resetShockVars(particles(:,i), 1, dsa_ind)
+          call pt_resetShockVars(particles(:,i), 1, dsa_ind, dr_simTime)
           particles(GAMC_PART_PROP,i) = 1E100
        else if ( (dsa_ind .lt. particles(IND2_PART_PROP,i)) .and.&
                  (particles(WHCH_PART_PROP,i) .gt. 2.0) ) then
@@ -194,10 +187,10 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
           endif
           ! This particle is in a shok, but the shock strength is weaker than
           ! the strongest shock it encountered
-          call pt_resetShockVars(particles(:,i), 2, dsa_ind)
+          call pt_resetShockVars(particles(:,i), 2, dsa_ind, dr_simTime)
        else if ( (dsa_ind .lt. particles(IND3_PART_PROP,i)) .and.&
                  (particles(WHCH_PART_PROP,i) .gt. 3.0) ) then
-          call pt_resetShockVars(particles(:,i), 3, dsa_ind)
+          call pt_resetShockVars(particles(:,i), 3, dsa_ind, dr_simTime)
        endif
     else
        ! Outside of a shock
@@ -215,22 +208,27 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
         sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
     Aic = 32.0*PI/9.0*2.907728E-9*4.19E-13 !*(1+Z)**4
     rho13 = (particles(DENS_PART_PROP,i)/particles(DEN0_PART_PROP,i))**(1.0/3.0)
+    ! Cooling integration for the injection tracer
+    if (particles(DEN0_PART_PROP,i) .gt. 0.0) then
+       particles(TAU0_PART_PROP,i) = particles(TAU0_PART_PROP,i) + rho13*A*dtNew
+       particles(ICT0_PART_PROP,i) = particles(ICT0_PART_PROP,i) + rho13*Aic*dtNew
+    endif
+    ! Cooling integration for the 1st shock tracer
     if ( (particles(DEN1_PART_PROP,i) .gt. 0.0) .and.&
-         (abs(particles(WHCH_PART_PROP,i)-1.1) .gt. 0.1) ) then
-       particles(AGE1_PART_PROP,i) = particles(AGE1_PART_PROP,i) + dtNew
+         (abs(particles(WHCH_PART_PROP,i)-1.0) .gt. 0.1) ) then
        particles(TAU1_PART_PROP,i) = particles(TAU1_PART_PROP,i) + rho13*A*dtNew
        particles(ICT1_PART_PROP,i) = particles(ICT1_PART_PROP,i) + rho13*Aic*dtNew
        particles(GAMC_PART_PROP,i) = rho13 / particles(TAU1_PART_PROP,i)
     endif
+    ! Cooling integration for the 2nd shock tracer
     if ( (particles(DEN2_PART_PROP,i) .gt. 0.0) .and.&
-         (abs(particles(WHCH_PART_PROP,i)-2.1) .gt. 0.1) ) then
-       particles(AGE2_PART_PROP,i) = particles(AGE2_PART_PROP,i) + dtNew
+         (abs(particles(WHCH_PART_PROP,i)-2.0) .gt. 0.1) ) then
        particles(TAU2_PART_PROP,i) = particles(TAU2_PART_PROP,i) + rho13*A*dtNew
        particles(ICT2_PART_PROP,i) = particles(ICT2_PART_PROP,i) + rho13*Aic*dtNew
     endif
+    ! Cooling integration for the 3rd shock tracer
     if ( (particles(DEN3_PART_PROP,i) .gt. 0.0) .and.&
-         (abs(particles(WHCH_PART_PROP,i)-3.1) .gt. 0.1) ) then
-       particles(AGE3_PART_PROP,i) = particles(AGE3_PART_PROP,i) + dtNew
+         (abs(particles(WHCH_PART_PROP,i)-3.0) .gt. 0.1) ) then
        particles(TAU3_PART_PROP,i) = particles(TAU3_PART_PROP,i) + rho13*A*dtNew
        particles(ICT3_PART_PROP,i) = particles(ICT3_PART_PROP,i) + rho13*Aic*dtNew
     endif

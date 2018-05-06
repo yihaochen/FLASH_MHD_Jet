@@ -29,8 +29,7 @@ subroutine pt_setDataStructures()
   use Particles_data, ONLY :  pt_typeInfo, pt_posInitialized, pt_velInitialized, pt_posAttrib,&
        pt_posPredAttrib, pt_velNumAttrib, pt_velAttrib, pt_velPredAttrib, pt_meshMe, particles,&
 ! <- ychen 05-2015
-       pt_customNumAttrib, pt_customAttrib, &
-       pt_newParticleNumAttrib, pt_newParticleAttrib
+       pt_customNumAttrib, pt_customAttrib
 ! ychen ->
 
 
@@ -133,25 +132,9 @@ pt_velPredAttrib(:,:)=1
 #endif
 
 ! <- ychen 05-2015
-  ! Initializations for customized particle attributes
-  ! pt_newParticleAttrib is used to map the variables after new particles are added
-  pt_newParticleNumAttrib=6
-  allocate(pt_newParticleAttrib(PART_ATTR_DS_SIZE,pt_newParticleNumAttrib))
-  pt_newParticleAttrib(PART_DS_IND,1)=DEN0_PART_PROP
-  pt_newParticleAttrib(GRID_DS_IND,1)=DENS_VAR
-  pt_newParticleAttrib(PART_DS_IND,2)=DENS_PART_PROP
-  pt_newParticleAttrib(GRID_DS_IND,2)=DENS_VAR
-  pt_newParticleAttrib(PART_DS_IND,3)=MAGX_PART_PROP
-  pt_newParticleAttrib(GRID_DS_IND,3)=MAGX_VAR
-  pt_newParticleAttrib(PART_DS_IND,4)=MAGY_PART_PROP
-  pt_newParticleAttrib(GRID_DS_IND,4)=MAGY_VAR
-  pt_newParticleAttrib(PART_DS_IND,5)=MAGZ_PART_PROP
-  pt_newParticleAttrib(GRID_DS_IND,5)=MAGZ_VAR
-  pt_newParticleAttrib(PART_DS_IND,6)=JET_PART_PROP
-  pt_newParticleAttrib(GRID_DS_IND,6)=JET_SPEC
 
-  ! Additional variables mapped to the particle
-  pt_customNumAttrib=5
+  ! Initializations for customized particle attributes
+  pt_customNumAttrib=6
   allocate(pt_customAttrib(PART_ATTR_DS_SIZE,pt_customNumAttrib))
   pt_customAttrib(PART_DS_IND,1)=DENS_PART_PROP
   pt_customAttrib(GRID_DS_IND,1)=DENS_VAR
@@ -163,6 +146,8 @@ pt_velPredAttrib(:,:)=1
   pt_customAttrib(GRID_DS_IND,4)=MAGZ_VAR
   pt_customAttrib(PART_DS_IND,5)=SHKS_PART_PROP
   pt_customAttrib(GRID_DS_IND,5)=SHKS_VAR
+  pt_customAttrib(PART_DS_IND,6)=JET_PART_PROP
+  pt_customAttrib(GRID_DS_IND,6)=JET_SPEC
 ! ychen ->
 
 end subroutine pt_setDataStructures
