@@ -44,7 +44,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   use Driver_data, ONLY : dr_simTime, dr_initialSimTime, dr_globalMe
   use Hydro_data, ONLY : hy_bref
   use Grid_interface, ONLY : Grid_mapMeshToParticles
-  use Simulation_data, ONLY : sim_ptAddPeriod, sim
+  use Simulation_data, ONLY : sim_ptAddPeriod, sim, sim_rCore
   
   implicit none
 
@@ -65,7 +65,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   integer :: mapType 
   
   integer      :: nozzle=1
-  real         :: rho13, A, Aic, prob, dsa_ind
+  real         :: rho13, A, Aic, prob, dsa_ind, r2
 !!------------------------------------------------------------------------------
   
   !write(*,'(i5, A28, i5)') pt_meshMe, '[pt_advance], pt_numLocal=', pt_numLocal
@@ -206,31 +206,38 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
     ! if units == "cgs" -> hy_bref=sqrt(4*pi)
     A = 32.0*PI/9.0*2.907728E-9/hy_bref/hy_bref/2.0*&
         sum(particles(MAGX_PART_PROP:MAGZ_PART_PROP,i)*particles(MAGX_PART_PROP:MAGZ_PART_PROP,i))
-    Aic = 32.0*PI/9.0*2.907728E-9*4.19E-13 !*(1+Z)**4
+    ! U_cmb = 4.17E-13 erg/cm^3 *(1+z)^4  using T = 2.725 K
+    Aic = 32.0*PI/9.0*2.907728E-9*4.17E-13
     rho13 = (particles(DENS_PART_PROP,i)/particles(DEN0_PART_PROP,i))**(1.0/3.0)
+    ! Distance square to the jet origin, assuming to be the center of the galaxy
+    r2 = sum( (particles(POSX_PART_PROP:POSZ_PART_PROP,i)-sim(nozzle)%pos)**2 )
     ! Cooling integration for the injection tracer
     if (particles(DEN0_PART_PROP,i) .gt. 0.0) then
+       ! Synchrotron cooling
        particles(TAU0_PART_PROP,i) = particles(TAU0_PART_PROP,i) + rho13*A*dtNew
-       particles(ICT0_PART_PROP,i) = particles(ICT0_PART_PROP,i) + rho13*Aic*dtNew
+       ! Inverse-Compton cooling of stellar light
+       particles(ICT0_PART_PROP,i) = particles(ICT0_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
+       ! Inverse-Compton cooling of CMB
+       particles(CMBT_PART_PROP,i) = particles(ICT0_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
     endif
     ! Cooling integration for the 1st shock tracer
     if ( (particles(DEN1_PART_PROP,i) .gt. 0.0) .and.&
          (abs(particles(WHCH_PART_PROP,i)-1.0) .gt. 0.1) ) then
        particles(TAU1_PART_PROP,i) = particles(TAU1_PART_PROP,i) + rho13*A*dtNew
-       particles(ICT1_PART_PROP,i) = particles(ICT1_PART_PROP,i) + rho13*Aic*dtNew
+       particles(ICT1_PART_PROP,i) = particles(ICT1_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
        particles(GAMC_PART_PROP,i) = rho13 / particles(TAU1_PART_PROP,i)
     endif
     ! Cooling integration for the 2nd shock tracer
     if ( (particles(DEN2_PART_PROP,i) .gt. 0.0) .and.&
          (abs(particles(WHCH_PART_PROP,i)-2.0) .gt. 0.1) ) then
        particles(TAU2_PART_PROP,i) = particles(TAU2_PART_PROP,i) + rho13*A*dtNew
-       particles(ICT2_PART_PROP,i) = particles(ICT2_PART_PROP,i) + rho13*Aic*dtNew
+       particles(ICT2_PART_PROP,i) = particles(ICT2_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
     endif
     ! Cooling integration for the 3rd shock tracer
     if ( (particles(DEN3_PART_PROP,i) .gt. 0.0) .and.&
          (abs(particles(WHCH_PART_PROP,i)-3.0) .gt. 0.1) ) then
        particles(TAU3_PART_PROP,i) = particles(TAU3_PART_PROP,i) + rho13*A*dtNew
-       particles(ICT3_PART_PROP,i) = particles(ICT3_PART_PROP,i) + rho13*Aic*dtNew
+       particles(ICT3_PART_PROP,i) = particles(ICT3_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
     endif
 
   enddo
