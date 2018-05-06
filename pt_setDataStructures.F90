@@ -134,7 +134,7 @@ pt_velPredAttrib(:,:)=1
 ! <- ychen 05-2015
 
   ! Initializations for customized particle attributes
-  pt_customNumAttrib=6
+  pt_customNumAttrib=7
   allocate(pt_customAttrib(PART_ATTR_DS_SIZE,pt_customNumAttrib))
   pt_customAttrib(PART_DS_IND,1)=DENS_PART_PROP
   pt_customAttrib(GRID_DS_IND,1)=DENS_VAR
@@ -148,6 +148,8 @@ pt_velPredAttrib(:,:)=1
   pt_customAttrib(GRID_DS_IND,5)=SHKS_VAR
   pt_customAttrib(PART_DS_IND,6)=JET_PART_PROP
   pt_customAttrib(GRID_DS_IND,6)=JET_SPEC
+  pt_customAttrib(PART_DS_IND,7)=PRES_PART_PROP
+  pt_customAttrib(GRID_DS_IND,7)=PRES_VAR
 ! ychen ->
 
 end subroutine pt_setDataStructures
