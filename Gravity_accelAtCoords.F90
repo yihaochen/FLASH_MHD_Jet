@@ -113,46 +113,57 @@ subroutine Gravity_accelAtCoords (numPoints, iCoords,jCoords,kCoords, accelDir,&
   if (accelDir .eq. IAXIS) then                       ! x-component
      do ii = 1, numPoints
         r=sqrt(xCenter(ii)*xCenter(ii) + yCenter(ii)*yCenter(ii) + zCenter(ii)*zCenter(ii))
-        accel(ii) = gasConst/sim_mu*xCenter(ii)&
-                    ! Density derivative
-                    *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
-                    ! Temperature profile
-                    *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
-                    /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
-                    ! Temperature derivative
-                    +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
-                    /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
-
+        if (r .lt. sim_rCut) then
+           accel(ii) = gasConst/sim_mu*xCenter(ii)&
+                       ! Density derivative
+                       *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                       ! Temperature profile
+                       *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                       /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                       ! Temperature derivative
+                       +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                       /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
+        else
+           accel(ii)=0.
+        endif
      end do
 
   else if (accelDir .eq. JAXIS) then          ! y-component
 
      do ii = 1, numPoints
         r=sqrt(xCenter(ii)*xCenter(ii) + yCenter(ii)*yCenter(ii) + zCenter(ii)*zCenter(ii))
-        accel(ii) = gasConst/sim_mu*yCenter(ii)&
-                    ! Density derivative
-                    *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
-                    ! Temperature profile
-                    *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
-                    /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
-                    ! Temperature derivative
-                    +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
-                    /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
+        if (r .lt. sim_rCut) then
+           accel(ii) = gasConst/sim_mu*yCenter(ii)&
+                       ! Density derivative
+                       *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                       ! Temperature profile
+                       *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                       /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                       ! Temperature derivative
+                       +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                       /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
+        else
+           accel(ii)=0.
+        endif
      end do
 
   else if (accelDir .eq. KAXIS) then          ! z-component
 
      do ii = 1, numPoints
         r=sqrt(xCenter(ii)*xCenter(ii) + yCenter(ii)*yCenter(ii) + zCenter(ii)*zCenter(ii))
-        accel(ii) = gasConst/sim_mu*zCenter(ii)&
-                    ! Density derivative
-                    *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
-                    ! Temperature profile
-                    *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
-                    /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
-                    ! Temperature derivative
-                    +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
-                    /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
+        if (r .lt. sim_rCut) then
+           accel(ii) = gasConst/sim_mu*zCenter(ii)&
+                       ! Density derivative
+                       *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                       ! Temperature profile
+                       *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                       /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                       ! Temperature derivative
+                       +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                       /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
+        else
+           accel(ii)=0.
+        endif
      end do
 
   end if

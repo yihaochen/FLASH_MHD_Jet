@@ -112,21 +112,21 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
 
      do ii = 1, numCells
         r=sqrt(xCenter(ii)*xCenter(ii) + rt)
-        grav(ii) = gasConst/sim_mu*xCenter(ii)&
-                   ! Density derivative
-                   *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
-                   ! Temperature profile
-                   *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
-                   /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
-                   ! Temperature derivative
-                   +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
-                   /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
-        !if (r2.lt.sim_rCut**2) then
+        if (r .lt. sim_rCut) then
+           grav(ii) = gasConst/sim_mu*xCenter(ii)&
+                      ! Density derivative
+                      *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                      ! Temperature profile
+                      *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                      /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                      ! Temperature derivative
+                      +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                      /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
+        else
+           grav(ii) = 0.
+        endif
            !grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoCore/&
            !     (1.0 + r2/sim_rCore**2)*xCenter(ii)/sim_rCore**2
-        !else
-        !   grav(ii) = 0.
-        !endif
      enddo
      
   else if (sweepDir .eq. SWEEP_Y) then          ! y-component
@@ -135,21 +135,21 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
 
      do ii = 1, numCells
         r=sqrt(yCenter(ii)*yCenter(ii) + rt)
-        grav(ii) = gasConst/sim_mu*yCenter(ii)&
-                   ! Density derivative
-                   *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
-                   ! Temperature profile
-                   *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
-                   /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
-                   ! Temperature derivative
-                   +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
-                   /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
-        !if (r2.lt.sim_rCut**2) then
+        if (r .lt. sim_rCut) then
+           grav(ii) = gasConst/sim_mu*yCenter(ii)&
+                      ! Density derivative
+                      *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                      ! Temperature profile
+                      *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                      /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                      ! Temperature derivative
+                      +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                      /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
+        else
+           grav(ii) = 0.
+        endif
            !grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoCore/&
            !     (1.0 + r2/sim_rCore**2)*yCenter(ii)/sim_rCore**2
-        !else
-        !   grav(ii) = 0.
-        !endif
      enddo
      
   else if (sweepDir .eq. SWEEP_Z) then          ! z-component
@@ -158,21 +158,21 @@ subroutine Gravity_accelOneRow (pos, sweepDir, blockID, numCells, grav, &
 
      do ii = 1, numCells
         r=sqrt(zCenter(ii)*zCenter(ii) + rt)
-        grav(ii) = gasConst/sim_mu*zCenter(ii)&
-                   ! Density derivative
-                   *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
-                   ! Temperature profile
-                   *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
-                   /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
-                   ! Temperature derivative
-                   +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
-                   /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
-        !if (r2.lt.sim_rCut**2) then
+        if (r .lt. sim_rCut) then
+           grav(ii) = gasConst/sim_mu*zCenter(ii)&
+                      ! Density derivative
+                      *(-3.*sim_densityBeta/(1.+r*r/sim_rCore**2)/sim_rCore**2&
+                      ! Temperature profile
+                      *sim_Tout*(1.0+(r/sim_rCoreT)**3)&
+                      /(sim_Tout/sim_Tcore+(r/sim_rCoreT)**3)&
+                      ! Temperature derivative
+                      +3.0*r*sim_Tout*(sim_Tout/sim_Tcore-1.0)*(sim_rCoreT)**3&
+                      /(sim_Tout/sim_Tcore*(sim_rCoreT)**3+r**3)**2)
+        else
+           grav(ii)=0.
+        endif
            !grav(ii) = -2.*1.5*sim_densityBeta*sim_pAmbient/sim_rhoCore/&
            !     (1.0 + r2/sim_rCore**2)*zCenter(ii)/sim_rCore**2
-        !else
-        !   grav(ii)=0.
-        !endif
      enddo
 
   endif

@@ -45,7 +45,7 @@ subroutine Simulation_initBlock(blockID)
 
   real :: rho_zone, velx_zone, vely_zone, velz_zone, temp_zone, &
        ener_zone, ekin_zone, eint_zone, gasConst
-  real :: densityBG, tempBG, rhoCut
+  real :: densityBG, tempBG!, rhoCut
   real :: vel, fac
 
 
@@ -136,7 +136,7 @@ subroutine Simulation_initBlock(blockID)
   solnFaceYdata(MAG_FACE_VAR,:,:,:) = 0.0
   solnFaceZdata(MAG_FACE_VAR,:,:,:) = sim_bzAmbient
 
-  rhoCut = sim_rhoCore*(1.0 + (sim_rCut/sim_rCore)**2)**(-1.5*sim_densityBeta)
+  !rhoCut = sim_rhoCore*(1.0 + (sim_rCut/sim_rCore)**2)**(-1.5*sim_densityBeta)
 
   bf = sim(nozzle)%rFeatherOut
   r2 = sim(nozzle)%radius
@@ -188,7 +188,8 @@ subroutine Simulation_initBlock(blockID)
        ! Background
        if (sim_densityProfile =="betacore") then
           ! beta model for the density profile
-          densityBG = sim_rhoCore*(1.0 + (distance/sim_rCore)**2)**(-1.5*sim_densityBeta)
+          densityBG = max(sim_rhoCore*(1.0 + (distance/sim_rCore)**2)**(-1.5*sim_densityBeta),&
+                          sim_rhoFloor)
           ! isothermal two-temperature atmosphere
           tempBG = sim_Tout*(1.0+(distance/sim_rCoreT)**3)&
                        /(sim_Tout/sim_Tcore+(distance/sim_rCoreT)**3)
