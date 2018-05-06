@@ -178,8 +178,8 @@ subroutine Heat_fillnozzle (blockID,dt,time)
 
           !solnData(EINT_VAR,i,j,k) = solnData(PRES_VAR,i,j,k)/solnData(DENS_VAR,i,j,k)&
           !                           /(solnData(GAMC_VAR,i,j,k)-1.0)
-          solnData(JET_SPEC,i,j,k) = max( sim_smallX, facR + mixData(JET_SPEC)*(1.0-facR) )
-          solnData(ISM_SPEC,i,j,k) = max( sim_smallX, mixData(ISM_SPEC)*(1.0-facR) )
+          solnData(JET_SPEC,i,j,k) = max( sim_smallx, facR + mixData(JET_SPEC)*(1.0-facR) )
+          solnData(ISM_SPEC,i,j,k) = max( sim_smallx, mixData(ISM_SPEC)*(1.0-facR) )
 
        endif ! inside the nozzle
 

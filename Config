@@ -27,6 +27,7 @@ PARAMETER sim_densityBeta	REAL	2.0
 PARAMETER sim_rCore			REAL	8.1E22		[0.0...]
 PARAMETER sim_rCoreT		REAL	1.85E23		[0.0...]
 PARAMETER sim_densityProfile STRING "uniform"	["uniform", "betacore"]
+PARAMETER sim_rhoFloor		REAL	1.6E-28		[0.0...]
 
 D	powerJet		Power of the jet
 D	velJet			Velocity of the jet

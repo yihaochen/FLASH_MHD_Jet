@@ -101,8 +101,8 @@ subroutine Simulation_initBlock(blockID)
 
 
 #if NSPECIES > 0
-  solnData(SPECIES_BEGIN,:,:,:) =  1.0-(NSPECIES-1)*sim_smallX
-  solnData(SPECIES_BEGIN+1:SPECIES_END,:,:,:) =     sim_smallX
+  solnData(SPECIES_BEGIN,:,:,:) =  1.0-(NSPECIES-1)*sim_smallx
+  solnData(SPECIES_BEGIN+1:SPECIES_END,:,:,:) =     sim_smallx
 #endif
 
   ! store the variables in the block's unk data

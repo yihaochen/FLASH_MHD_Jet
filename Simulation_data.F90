@@ -54,7 +54,8 @@ module Simulation_data
 
   real,save :: sim_Tcore, sim_Tout, sim_rhoCore, sim_windVel, sim_bzAmbient
   real,save :: sim_densityBeta, sim_rCore, sim_rCoreT, sim_rCut, sim_mu
-  real,save :: sim_gamma, sim_smallp, sim_smallX, sim_smlrho, sim_smalle
+  real,save :: sim_gamma, sim_smallp, sim_smallx, sim_smlrho, sim_smalle
+  real,save :: sim_rhoFloor
   real,save,allocatable,dimension(:) :: sim_xcoord
   real,save,allocatable,dimension(:) :: sim_ycoord
   real,save,allocatable,dimension(:) :: sim_zcoord
