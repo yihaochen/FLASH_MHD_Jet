@@ -218,7 +218,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
        ! Inverse-Compton cooling of stellar light
        particles(ICT0_PART_PROP,i) = particles(ICT0_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
        ! Inverse-Compton cooling of CMB
-       particles(CMBT_PART_PROP,i) = particles(ICT0_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
+       particles(CMBT_PART_PROP,i) = particles(CMBT_PART_PROP,i) + rho13*Aic*dtNew
     endif
     ! Cooling integration for the 1st shock tracer
     if ( (particles(DEN1_PART_PROP,i) .gt. 0.0) .and.&
