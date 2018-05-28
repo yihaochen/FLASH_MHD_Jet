@@ -218,12 +218,13 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
        ! Inverse-Compton cooling of stellar light
        particles(ICT0_PART_PROP,i) = particles(ICT0_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
        ! Inverse-Compton cooling of CMB
-       particles(CMBT_PART_PROP,i) = particles(CMBT_PART_PROP,i) + rho13*Aic*dtNew
+       particles(CMB0_PART_PROP,i) = particles(CMB0_PART_PROP,i) + rho13*Aic*dtNew
     endif
     ! Cooling integration for the 1st shock tracer
     if ( (particles(DEN1_PART_PROP,i) .gt. 0.0) .and.&
          (abs(particles(WHCH_PART_PROP,i)-1.0) .gt. 0.1) ) then
        particles(TAU1_PART_PROP,i) = particles(TAU1_PART_PROP,i) + rho13*A*dtNew
+       particles(CMB1_PART_PROP,i) = particles(CMB1_PART_PROP,i) + rho13*Aic*dtNew
        particles(ICT1_PART_PROP,i) = particles(ICT1_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
        particles(GAMC_PART_PROP,i) = rho13 / particles(TAU1_PART_PROP,i)
     endif
@@ -231,12 +232,14 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
     if ( (particles(DEN2_PART_PROP,i) .gt. 0.0) .and.&
          (abs(particles(WHCH_PART_PROP,i)-2.0) .gt. 0.1) ) then
        particles(TAU2_PART_PROP,i) = particles(TAU2_PART_PROP,i) + rho13*A*dtNew
+       particles(CMB2_PART_PROP,i) = particles(CMB2_PART_PROP,i) + rho13*Aic*dtNew
        particles(ICT2_PART_PROP,i) = particles(ICT2_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
     endif
     ! Cooling integration for the 3rd shock tracer
     if ( (particles(DEN3_PART_PROP,i) .gt. 0.0) .and.&
          (abs(particles(WHCH_PART_PROP,i)-3.0) .gt. 0.1) ) then
        particles(TAU3_PART_PROP,i) = particles(TAU3_PART_PROP,i) + rho13*A*dtNew
+       particles(CMB3_PART_PROP,i) = particles(CMB3_PART_PROP,i) + rho13*Aic*dtNew
        particles(ICT3_PART_PROP,i) = particles(ICT3_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
     endif
 

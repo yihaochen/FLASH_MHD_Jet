@@ -19,6 +19,7 @@ subroutine pt_resetShockVars(particle, shock_ind, dsa_ind, time)
    particle(TAD1_PART_PROP+shock_ind-1) = time
    particle(IND1_PART_PROP+shock_ind-1) = dsa_ind
    particle(TAU1_PART_PROP+shock_ind-1) = 1E-100
+   particle(CMB1_PART_PROP+shock_ind-1) = 1E-100
    particle(ICT1_PART_PROP+shock_ind-1) = 1E-100
    particle(DEN1_PART_PROP+shock_ind-1) = particle(DENS_PART_PROP)
    ! To avoid float point comparison, we add 0.1
