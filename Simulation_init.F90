@@ -115,8 +115,8 @@ subroutine Simulation_init()
   endif
 
   call RuntimeParameters_get('nozzleNutation', sim(nozzle)%nutation)
-  call Runtimeparameters_get('nozzlePrecAngle', sim(nozzle)%precangle)
-  call Runtimeparameters_get('useTableJiggle', sim_useTableJiggle)
+  call RuntimeParameters_get('nozzlePrecAngle', sim(nozzle)%precangle)
+  call RuntimeParameters_get('useTableJiggle', sim_useTableJiggle)
 
   if ((sim_meshMe == MASTER_PE) .and. (sim_useTableJiggle == .true.)) then
      call RuntimeParameters_get('nozzleVecInput', sim_nozVecInput)
@@ -125,6 +125,8 @@ subroutine Simulation_init()
         call Driver_abortFlash('[Simulation_init] ERROR: opening nozzle vector file')
      endif
   endif
+
+  call RuntimeParameters_get('onlyHalf', sim_onlyHalf)
 
 
   if (dr_restart) then

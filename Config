@@ -68,6 +68,8 @@ PARAMETER rFeatherIn		REAL	3.75E20		[0.0...]
 PARAMETER rFeatherOut  		REAL	1.875E20	[0.0...]
 PARAMETER zFeather			REAL	7.5E20		[0.0...]
 PARAMETER initGeometry		STRING	"cylindrical"	["cylindrical", "spherical"]
+# Simulate only half of the domain. To force lowest refinement level at the lower half of the domain.
+PARAMETER onlyHalf		BOOLEAN	TRUE
 
 # Nozzle motion
 #PARAMETER nozzleAngVelX		REAL	0.0

@@ -7,7 +7,7 @@
 subroutine pt_getRandomPos(nAdd, pos)
 
   use Particles_data, ONLY : pt_meshMe
-  use Simulation_data, ONLY : sim, sim_smallx, cross
+  use Simulation_data, ONLY : sim, sim_smallx, cross, sim_onlyHalf
 
   implicit none
 
@@ -38,11 +38,15 @@ subroutine pt_getRandomPos(nAdd, pos)
      ! take square root of r to ensure uniform random distribution on the disk
      r = sqrt(r)*sim(nozzle)%radius*0.8
      theta = theta*2.0*PI
-     z = z - 0.5
-     if (z .lt. 0.0) then
-         z = (-1.0+z*del)*sim(nozzle)%length
+     if (sim_onlyHalf) then
+        z = (1.0+0.5*z*del)*sim(nozzle)%length
      else
-         z = ( 1.0+z*del)*sim(nozzle)%length
+        z = z - 0.5
+        if (z .lt. 0.0) then
+            z = (-1.0+z*del)*sim(nozzle)%length
+        else
+            z = ( 1.0+z*del)*sim(nozzle)%length
+        endif
      endif
 
      pos(i,:) = sim(nozzle)%pos &

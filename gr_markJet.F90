@@ -34,7 +34,7 @@ subroutine gr_markJet(nozzle)
   use Driver_interface, ONLY : Driver_abortFlash
   use Grid_data, ONLY : gr_geometry, gr_smalle
   use Grid_interface, ONLY : Grid_getBlkPtr, Grid_releaseBlkPtr, Grid_getBlkIndexLimits
-  use Simulation_data
+  use Simulation_data, ONLY : sim, sim_onlyHalf
 #include "constants.h"
 #include "Flash.h"
   implicit none
@@ -136,13 +136,15 @@ subroutine gr_markJet(nozzle)
               endif
            endif
 
-           ! Maintain minimal refinement level for lower half of the domain
-           if (blockCenter(3) < 0.0) then
-              if (lrefine(b) > 1 ) then
-                 refine(b)   = .false.
-                 derefine(b) = .true.
-              else
-                 refine(b)   = .false.
+           if (sim_onlyHalf) then
+              ! Maintain minimal refinement level for lower half of the domain
+              if (blockCenter(3) < 0.0) then
+                 if (lrefine(b) > 1 ) then
+                    refine(b)   = .false.
+                    derefine(b) = .true.
+                 else
+                    refine(b)   = .false.
+                 endif
               endif
            endif
 
