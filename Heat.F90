@@ -111,7 +111,7 @@ subroutine Heat (blockCount,blockList,dt,time)
         endif
         if (nPtNoz .gt. 0) then
            allocate(posNoz(nPtNoz,MDIM))
-           call pt_getRandomPos(nPtNoz, posNoz)
+           call pt_getNozzlePos(nPtNoz, posNoz)
 
            call Particles_addNew(nPtNoz, posNoz, 0.0, addNewSuccess)
            deallocate(posNoz)

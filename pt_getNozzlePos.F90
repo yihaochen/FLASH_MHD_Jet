@@ -4,7 +4,7 @@
 !!  Get the random positions at the nozzle cross-section
 !!  for jet particles.
 
-subroutine pt_getRandomPos(nAdd, pos)
+subroutine pt_getNozzlePos(nAdd, pos)
 
   use Particles_data, ONLY : pt_meshMe
   use Simulation_data, ONLY : sim, sim_smallx, cross, sim_onlyHalf
@@ -54,4 +54,4 @@ subroutine pt_getRandomPos(nAdd, pos)
                 + r*(rxvec*cos(theta) + ryvec*sin(theta))
   enddo
 
-end subroutine pt_getRandomPos
+end subroutine pt_getNozzlePos
