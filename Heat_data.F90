@@ -27,7 +27,7 @@ module Heat_data
 #include "Simulation.h"
 
   integer,save :: nPtProc
-  real,allocatable,save,dimension(:,:) ::  pos
+  real,allocatable,save,dimension(:,:) ::  posShok
 
 end module Heat_data
 

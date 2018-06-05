@@ -46,7 +46,7 @@ subroutine Heat (blockCount,blockList,dt,time)
   use Driver_data, ONLY : dr_globalMe, dr_nStep
   use Simulation_data
   use Timers_interface, ONLY : Timers_start, Timers_stop
-  use Heat_data, ONLY : nPtProc, pos
+  use Heat_data, ONLY : nPtProc, posShok
   use Particles_data, ONLY : pt_randSeed
   implicit none
 
@@ -91,9 +91,9 @@ subroutine Heat (blockCount,blockList,dt,time)
      enddo
 
      ! Add shock particles
-     ! nPtProc and pos were updated in Heat_fillnozzle
+     ! nPtProc and posShok were updated in Heat_fillnozzle
      call Timers_start('Particles_addNew')
-     call Particles_addNew(nPtProc, pos, 1.0, addNewSuccess)
+     call Particles_addNew(nPtProc, posShok, 1.0, addNewSuccess)
      call Timers_stop('Particles_addNew')
      !write(*,*) '[Heat2] nPtProc:', nPtProc
      ! Add new particles at the surfaces of the nozzle
@@ -110,21 +110,21 @@ subroutine Heat (blockCount,blockList,dt,time)
            nPtNoz = nPtNoz+1
         endif
         if (nPtNoz .gt. 0) then
-           allocate(posNoz(nPtNoz,MDIM))
+           allocate(posNoz(MDIM,nPtNoz))
            call pt_getNozzlePos(nPtNoz, posNoz)
 
            call Particles_addNew(nPtNoz, posNoz, 0.0, addNewSuccess)
            deallocate(posNoz)
         else
            !write(*,*) '[Heat] no pos', nPtProc, pos
-           call Particles_addNew(0, pos, 0.0,  addNewSuccess)
+           call Particles_addNew(0, pos_tmp, 0.0,  addNewSuccess)
            !write(*,*) '[Heat] no pos2'
         endif
      else
         ! On other processors that nPtNoz == 0 we still need to call
         ! Particles_addNew for MPI routines
         !write(*,*) '[Heat] not masterpe', nPtProc, pos
-        call Particles_addNew(0, pos, 0.0, addNewSuccess)
+        call Particles_addNew(0, pos_tmp, 0.0, addNewSuccess)
         !write(*,*) '[Heat] not masterpe2'
      endif
      call Timers_stop('Particles_addNew_nozzle')
