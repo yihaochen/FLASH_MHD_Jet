@@ -15,6 +15,10 @@ D	mu				Mean molecular weight
 D	windVel			Inflow velocity (parallel to x-axis)
 D   gammaICM		Gamma of the ambient material
 
+# Thresholds of variables
+PARAMETER sim_ptSmljet		REAL	1E-3	[0.0...1.0]
+
+
 # Background Properties
 PARAMETER sim_Tcore			REAL	3.48E7	[0.0...]
 PARAMETER sim_Tout			REAL	7.42E7	[0.0...]

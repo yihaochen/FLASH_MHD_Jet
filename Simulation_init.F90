@@ -96,6 +96,7 @@ subroutine Simulation_init()
   call RuntimeParameters_get('sim_ptInitNum', sim_ptInitNum)
   call RuntimeParameters_get('sim_ptAddPeriod', sim_ptAddPeriod)
   call RuntimeParameters_get('sim_ptAddArea', sim_ptAddArea)
+  call RuntimeParameters_get('sim_ptSmljet', sim_ptSmljet)
   call RuntimeParameters_get('sim_ptMaxRadius', sim_ptMaxRadius)
   call Runtimeparameters_get('nozzlePrecession', sim(nozzle)%precession)
   maxPrecession = 0.1*sim(nozzle)%velocity/(1.0/sim(nozzle)%duration &

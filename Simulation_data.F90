@@ -64,6 +64,7 @@ module Simulation_data
   real,save,allocatable,dimension(:) :: sim_zcoordf
   integer,save :: sim_ptInitNum
   real,save :: sim_ptAddPeriod, sim_ptAddArea, sim_ptMaxRadius
+  real,save :: sim_ptSmljet
   character(len=MAX_STRING_LENGTH),save :: sim_densityProfile
   logical,save :: sim_useTableJiggle, sim_onlyHalf
   integer,save :: sim_nozfileunit=98

@@ -97,7 +97,8 @@ subroutine Heat_fillnozzle (blockID,dt,time)
     do i = blkLimits(LOW,IAXIS), blkLimits(HIGH,IAXIS)
        cellvec = (/ sim_xCoord(i), sim_yCoord(j), sim_zCoord(k) /)
 
-       if (solnData(SHOK_VAR,i,j,k) .gt. sim_smallx) then
+       if ((solnData(SHOK_VAR,i,j,k) .gt. sim_smallx) .and.&
+           (solnData(JET_SPEC,i,j,k) .gt. sim_ptSmljet)) then
           ! prob is a random number between 0 and 1
           ! This is to determine whether we add nAdd (usually 0) or nAdd+1 particles
           call RANDOM_NUMBER(prob)

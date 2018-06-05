@@ -64,6 +64,7 @@ randomSeed = 6511
 smlrho  = 1E-30
 smallp  = 1E-14
 smalle  = 1E13
+smallx	= 1E-99
 dtinit  = 1E7
 dtmin	= 1E5
 dtmax	= 1E12
@@ -84,7 +85,8 @@ geometry = "cartesian"
 useParticles	= .true.
 sim_ptInitNum	= 10
 sim_ptAddPeriod = 1E9
-sim_ptAddVolume	= 1E66
+sim_ptAddArea	= 1E47
+sim_ptSmljet = 1E-4
 pt_maxPerProc	= 10000
 
 
