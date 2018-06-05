@@ -123,11 +123,11 @@ subroutine Heat_fillnozzle (blockID,dt,time)
           ! This cell won the lottery, let's give it the shock particle(s)
           if (nAdd .gt. 0) then
              !write(*,*) '[Heat_fillnozzle] Adding', nAdd, 'particles'
-             allocate(pos_tmp(nPtProc+nAdd,MDIM))
+             allocate(pos_tmp(MDIM,nPtProc+nAdd))
              ! Check if there are already particles waiting to be added
              ! posShok contains the positions of to-be-added particles in this proc
              if (nPtProc.gt.0) then
-                pos_tmp(:nPtProc,:) = posShok
+                pos_tmp(:,:nPtProc) = posShok
              endif
              !pos_tmp is copied to posShok and then deallocated.
              call move_alloc(pos_tmp, posShok)
@@ -135,7 +135,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
              do iPart = nPtProc+1, nPtProc+nAdd
                 ! rand_xyz is a MDIM vector
                 call RANDOM_NUMBER(rand_xyz)
-                posShok(iPart,:) = cellvec + del*(rand_xyz-0.5)
+                posShok(:,iPart) = cellvec + del*(rand_xyz-0.5)
              enddo
              nPtProc = nPtProc+nAdd
              !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Adding a new particle at', posPt(:,1)

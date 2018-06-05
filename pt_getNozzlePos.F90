@@ -21,7 +21,7 @@ subroutine pt_getNozzlePos(nAdd, pos)
   ! at the nozzle cross-section
   real :: del=0.01
   integer, INTENT(IN)   :: nAdd
-  real, dimension(nAdd,MDIM), INTENT(OUT) :: pos
+  real, dimension(MDIM,nAdd), INTENT(OUT) :: pos
   real, dimension(MDIM) :: rxvec, ryvec
   real          :: r, theta, z
   integer       :: i, nozzle=1, ierr
@@ -49,7 +49,7 @@ subroutine pt_getNozzlePos(nAdd, pos)
         endif
      endif
 
-     pos(i,:) = sim(nozzle)%pos &
+     pos(:,i) = sim(nozzle)%pos &
                 + sim(nozzle)%jetvec*z&
                 + r*(rxvec*cos(theta) + ryvec*sin(theta))
   enddo
