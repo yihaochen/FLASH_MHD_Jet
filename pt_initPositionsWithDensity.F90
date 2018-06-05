@@ -55,7 +55,7 @@ subroutine pt_initPositionsWithDensity (blockID,success)
   integer          :: newParticlesThisBlock
   real          :: blockMass
   real          :: dvol
-  real          :: xpos, ypos, zpos, xvel, yvel, zvel, radius
+  real          :: xpos, ypos, zpos, xmin, ymin, zmin
   integer       :: p, b, bb, i, j, k, numParticlesThisBlock, tag
   integer       :: pAdd
   real          :: probAdditionalParticle
@@ -108,6 +108,7 @@ subroutine pt_initPositionsWithDensity (blockID,success)
 
 !  call Grid_getBlkData(blockID, CELL_VOLUME, -1, EXTERIOR, (/1, 1, 1/), cellVol, (/iSize, jSize, kSize/))
 
+
   ! Compute the amount of mass in this block and find the maximum density.
 
   blockMass = 0.
@@ -135,15 +136,22 @@ subroutine pt_initPositionsWithDensity (blockID,success)
   !  Check that this requested number isn't going to blow data allocation
   success=.true.
   if (pt_numLocal + numParticlesThisBlock > pt_maxPerProc) then
-     call Logfile_stamp(numParticlesThisBlock,"This block mass would generate too many additional particles:")
-     call Grid_releaseBlkPtr(blockID,solnData) !cleanup before premature return...
-     deallocate(cellVol)
-     deallocate(zLeftCoord)
-     deallocate(yLeftCoord)
-     deallocate(xLeftCoord)
-     success=.false.
-     pt_numLocal=0
-     return
+     xmin = minval(abs(xLeftCoord))
+     ymin = minval(abs(yLeftCoord))
+     zmin = minval(abs(zLeftCoord))
+     if ((xmin*xmin+ymin*ymin+zmin*zmin) .LE. (sim_ptMaxRadius*sim_ptMaxRadius)) then
+        call Logfile_stamp(numParticlesThisBlock,"This block mass would generate too many additional particles:")
+        call Logfile_stamp(blockMass,"blockMass:")
+        call Logfile_stamp(pt_totalMass,"pt_totalMass:")
+        call Grid_releaseBlkPtr(blockID,solnData) !cleanup before premature return...
+        deallocate(cellVol)
+        deallocate(zLeftCoord)
+        deallocate(yLeftCoord)
+        deallocate(xLeftCoord)
+        success=.false.
+        pt_numLocal=0
+        return
+     end if
   end if
   
   allocate(icell2ijk(MDIM,numCells))
