@@ -157,41 +157,41 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   ! update the synchrotron lifetime and cutoff gamma
   do i = 1, p_count
     if (particles(SHKS_PART_PROP,i) .gt. 1.0) then
+       ! This particle is inside a shock cell
 
        ! Energy power-law index for diffusive shock acceleration
        ! SHKS is the compression ratio
        dsa_ind = (particles(SHKS_PART_PROP,i)+2.0) / (particles(SHKS_PART_PROP,i)-1.0)
+
        if (dsa_ind .lt. particles(IND1_PART_PROP,i)) then
           ! This particle is in a shock front that is stronger than it
-          ! encountered before, we reset the cooling integral
-
-          ! If it is not already in SHOCK1, copy existing shocks first
-          if (particles(WHCH_PART_PROP,i) .gt. 3.0) then
-             call pt_copyShockVars(particles(:,i), 2, 3)
-             call pt_copyShockVars(particles(:,i), 1, 2)
-          else if (particles(WHCH_PART_PROP,i) .gt. 2.0) then
-             ! This will copy the current cooling history to IND2
-             call pt_copyShockVars(particles(:,i), 1, 2)
-          endif
+          ! encountered before,
+          ! We first invalidate the 2nd and 3rd shock tracers,
+          ! and reset the 1st shock:
+          ! record shock strength and time and resent cooling integral
+          call pt_resetShockVars(particles(:,i), 3, 100.0, -1)
+          call pt_resetShockVars(particles(:,i), 2, 100.0, -1)
           call pt_resetShockVars(particles(:,i), 1, dsa_ind, dr_simTime)
           particles(GAMC_PART_PROP,i) = 1E100
        else if ( (dsa_ind .lt. particles(IND2_PART_PROP,i)) .and.&
                  (particles(WHCH_PART_PROP,i) .gt. 2.0) ) then
           ! Shock is stronger than previously stored IND2 and not in the
           ! remaining end of IND1
-
-          ! If it is not already in IND2, copy IND2 to IND3 first
-          if (particles(WHCH_PART_PROP,i) .gt. 3.0) then
-             ! This will copy the current cooling history to IND2
-             call pt_copyShockVars(particles(:,i), 2, 3)
-          endif
-          ! This particle is in a shok, but the shock strength is weaker than
-          ! the strongest shock it encountered
+          call pt_resetShockVars(particles(:,i), 3, 100.0, -1)
           call pt_resetShockVars(particles(:,i), 2, dsa_ind, dr_simTime)
        else if ( (dsa_ind .lt. particles(IND3_PART_PROP,i)) .and.&
                  (particles(WHCH_PART_PROP,i) .gt. 3.0) ) then
           call pt_resetShockVars(particles(:,i), 3, dsa_ind, dr_simTime)
        endif
+       ! Always reset the 4th tracer, but don't touch the WHCH indicator
+       ! The 4th tracer records the last encountered shock
+       particles(TAD4_PART_PROP,i) = dr_simTime
+       particles(IND4_PART_PROP,i) = dsa_ind
+       particles(TAU4_PART_PROP,i) = 1E-100
+       particles(CMB4_PART_PROP,i) = 1E-100
+       particles(ICT4_PART_PROP,i) = 1E-100
+       particles(DEN4_PART_PROP,i) = particles(DENS_PART_PROP, i)
+
     else
        ! Outside of a shock
        particles(WHCH_PART_PROP,i) = 100.0
@@ -215,10 +215,10 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
     if (particles(DEN0_PART_PROP,i) .gt. 0.0) then
        ! Synchrotron cooling
        particles(TAU0_PART_PROP,i) = particles(TAU0_PART_PROP,i) + rho13*A*dtNew
-       ! Inverse-Compton cooling of stellar light
-       particles(ICT0_PART_PROP,i) = particles(ICT0_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
        ! Inverse-Compton cooling of CMB
        particles(CMB0_PART_PROP,i) = particles(CMB0_PART_PROP,i) + rho13*Aic*dtNew
+       ! Inverse-Compton cooling of stellar light
+       particles(ICT0_PART_PROP,i) = particles(ICT0_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
     endif
     ! Cooling integration for the 1st shock tracer
     if ( (particles(DEN1_PART_PROP,i) .gt. 0.0) .and.&
@@ -241,6 +241,12 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
        particles(TAU3_PART_PROP,i) = particles(TAU3_PART_PROP,i) + rho13*A*dtNew
        particles(CMB3_PART_PROP,i) = particles(CMB3_PART_PROP,i) + rho13*Aic*dtNew
        particles(ICT3_PART_PROP,i) = particles(ICT3_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
+    endif
+    ! Cooling integration for the 4th shock tracer
+    if ( (particles(DEN4_PART_PROP,i) .gt. 0.0) ) then
+       particles(TAU4_PART_PROP,i) = particles(TAU4_PART_PROP,i) + rho13*A*dtNew
+       particles(CMB4_PART_PROP,i) = particles(CMB4_PART_PROP,i) + rho13*Aic*dtNew
+       particles(ICT4_PART_PROP,i) = particles(ICT4_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
     endif
 
   enddo

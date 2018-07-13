@@ -104,6 +104,7 @@ subroutine Particles_addNew (count, pos, shock, success)
         call pt_resetShockVars(particles(:,pt_numLocal+i), 1, 100.0, dr_simTime)
         call pt_resetShockVars(particles(:,pt_numLocal+i), 2, 100.0, dr_simTime)
         call pt_resetShockVars(particles(:,pt_numLocal+i), 3, 100.0, dr_simTime)
+        call pt_resetShockVars(particles(:,pt_numLocal+i), 4, 100.0, dr_simTime)
         particles(TAU0_PART_PROP,pt_numLocal+i) = 1E-100
         particles(CMB0_PART_PROP,pt_numLocal+i) = 1E-100
         particles(ICT0_PART_PROP,pt_numLocal+i) = 1E-100
