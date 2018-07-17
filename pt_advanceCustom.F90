@@ -65,7 +65,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   integer :: mapType 
   
   integer      :: nozzle=1
-  real         :: rho13, A, Aic, prob, dsa_ind, r2
+  real         :: rho13, A, Aic, prob, dsa_ind, r2, v_thres=0.2
 !!------------------------------------------------------------------------------
   
   !write(*,'(i5, A28, i5)') pt_meshMe, '[pt_advance], pt_numLocal=', pt_numLocal
@@ -165,11 +165,9 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
        if (dsa_ind .lt. particles(IND1_PART_PROP,i)) then
           ! This particle is in a shock front that is stronger than it
-          ! encountered before,
-          ! We first invalidate the 2nd and 3rd shock tracers,
-          ! and reset the 1st shock:
-          ! record shock strength and time and resent cooling integral
-          call pt_resetShockVars(particles(:,i), 3, 100.0, -1)
+          ! encountered before. We first invalidate the 2nd shock tracers,
+          ! and reset the 1st shock: record shock strength and time and 
+          ! reset cooling integral
           call pt_resetShockVars(particles(:,i), 2, 100.0, -1)
           call pt_resetShockVars(particles(:,i), 1, dsa_ind, dr_simTime)
           particles(GAMC_PART_PROP,i) = 1E100
@@ -177,25 +175,32 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
                  (particles(WHCH_PART_PROP,i) .gt. 2.0) ) then
           ! Shock is stronger than previously stored IND2 and not in the
           ! remaining end of IND1
-          call pt_resetShockVars(particles(:,i), 3, 100.0, -1)
           call pt_resetShockVars(particles(:,i), 2, dsa_ind, dr_simTime)
-       else if ( (dsa_ind .lt. particles(IND3_PART_PROP,i)) .and.&
-                 (particles(WHCH_PART_PROP,i) .gt. 3.0) ) then
-          call pt_resetShockVars(particles(:,i), 3, dsa_ind, dr_simTime)
        endif
-       ! Always reset the 4th tracer, but don't touch the WHCH indicator
-       ! The 4th tracer records the last encountered shock
+       ! The 3rd tracer records the last encountered shock
+       ! Always reset the 3rd tracer, but don't touch the WHCH indicator
+       particles(TAD3_PART_PROP,i) = dr_simTime
+       particles(IND3_PART_PROP,i) = dsa_ind
+       particles(TAU3_PART_PROP,i) = 1E-100
+       particles(CMB3_PART_PROP,i) = 1E-100
+       particles(ICT3_PART_PROP,i) = 1E-100
+       particles(DEN3_PART_PROP,i) = particles(DENS_PART_PROP, i)
+
+    else
+       ! Outside of a shock
+       particles(WHCH_PART_PROP,i) = 100.0
+    endif
+
+    if ( (sqrt(sum(particles(VELX_PART_PROP:VELZ_PART_PROP,i)**2)) .lt. v_thres*sim(nozzle)%velJet) .and.&
+         (particles(DEN4_PART_PROP,i) .lt. 0.0) ) then
        particles(TAD4_PART_PROP,i) = dr_simTime
        particles(IND4_PART_PROP,i) = dsa_ind
        particles(TAU4_PART_PROP,i) = 1E-100
        particles(CMB4_PART_PROP,i) = 1E-100
        particles(ICT4_PART_PROP,i) = 1E-100
        particles(DEN4_PART_PROP,i) = particles(DENS_PART_PROP, i)
-
-    else
-       ! Outside of a shock
-       particles(WHCH_PART_PROP,i) = 100.0
     endif
+
     ! A = 4/3 * sigmaT * c * beta^2 / (me*c^2) * U
     ! sigmaT = 8*pi / 3 * e^4 / (c^4*me^2)
     ! A = 32*pi / 9 * e^4/(me^3*c^5) * U
@@ -235,14 +240,14 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
        particles(CMB2_PART_PROP,i) = particles(CMB2_PART_PROP,i) + rho13*Aic*dtNew
        particles(ICT2_PART_PROP,i) = particles(ICT2_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
     endif
-    ! Cooling integration for the 3rd shock tracer
+    ! Cooling integration for the 3rd shock tracer (last shock)
     if ( (particles(DEN3_PART_PROP,i) .gt. 0.0) .and.&
          (abs(particles(WHCH_PART_PROP,i)-3.0) .gt. 0.1) ) then
        particles(TAU3_PART_PROP,i) = particles(TAU3_PART_PROP,i) + rho13*A*dtNew
        particles(CMB3_PART_PROP,i) = particles(CMB3_PART_PROP,i) + rho13*Aic*dtNew
        particles(ICT3_PART_PROP,i) = particles(ICT3_PART_PROP,i) + rho13*Aic/(1+r2/sim_rCore**2)*dtNew
     endif
-    ! Cooling integration for the 4th shock tracer
+    ! Cooling integration for the 4th shock tracer (velocity drop)
     if ( (particles(DEN4_PART_PROP,i) .gt. 0.0) ) then
        particles(TAU4_PART_PROP,i) = particles(TAU4_PART_PROP,i) + rho13*A*dtNew
        particles(CMB4_PART_PROP,i) = particles(CMB4_PART_PROP,i) + rho13*Aic*dtNew
