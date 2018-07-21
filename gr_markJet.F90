@@ -122,7 +122,7 @@ subroutine gr_markJet(nozzle)
            ! Force maximum refine level for the jet using momentum
            ! Force maximum refinement for abnormally low internal energy region
            ! to increase stability
-           if ((pmax >= sim(nozzle)%refine_jetR*pjet) .or. (eintmin <= gr_smalle)) then
+           if ((pmax >= sim(nozzle)%refine_jetR*pjet) .or. (eintmin <= 10.*gr_smalle)) then
               if (lrefine(b) < lrefine_max) then
                  refine(b) = .true.
                  derefine(b) = .false.
