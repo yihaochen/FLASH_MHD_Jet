@@ -65,7 +65,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   integer :: mapType 
   
   integer      :: nozzle=1
-  real         :: rho13, A, Aic, prob, dsa_ind, r2, v_thres=0.2
+  real         :: rho13, A, Aic, prob, dsa_ind, r2, v_thres=0.5
 !!------------------------------------------------------------------------------
   
   !write(*,'(i5, A28, i5)') pt_meshMe, '[pt_advance], pt_numLocal=', pt_numLocal
@@ -193,6 +193,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
 
     if ( (sqrt(sum(particles(VELX_PART_PROP:VELZ_PART_PROP,i)**2)) .lt. v_thres*sim(nozzle)%velJet) .and.&
          (particles(DEN4_PART_PROP,i) .lt. 0.0) ) then
+       dsa_ind = (particles(SHKS_PART_PROP,i)+2.0) / (particles(SHKS_PART_PROP,i)-1.0+1E99)
        particles(TAD4_PART_PROP,i) = dr_simTime
        particles(IND4_PART_PROP,i) = dsa_ind
        particles(TAU4_PART_PROP,i) = 1E-100
