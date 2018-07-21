@@ -38,7 +38,7 @@ contains
 
     integer, INTENT(in) :: nozzle
     real, INTENT(in) :: time, dt
-    real :: p, g, v, R, L, bf, M, t1, h, x
+    real :: p, g, v, R, L, bf, M, dt_start, dt_end, h, x
 
     integer :: funit = 99, isFirst = 1
     integer :: ioStat
@@ -54,33 +54,38 @@ contains
        sim(nozzle)%on = .false.
     endif
 
+    dt_start = sim(nozzle)%duration/20.0
+    dt_end = sim(nozzle)%duration/100.0
+    g = sim(nozzle)%gamma
+    v = sim(nozzle)%velocity
+    R = sim(nozzle)%radius
+    bf= sim(nozzle)%rFeatherOut
+    L = sim(nozzle)%power
+
+    h = sim(nozzle)%helicity
+    ! Ratio of (enthalpy + toroidal magnetic energy density) to pressure
+    x = g/(g-1.0)+h**2/(1.0+h**2)/sim(nozzle)%beta
+
+
     if (sim(nozzle)%on) then
-       t1 = sim(nozzle)%duration/100.0
        ! Turn on the jet by increasing the mach number from initMach to mach.
-       if (time .lt. sim(nozzle)%tOn+t1) then
-          g = sim(nozzle)%gamma
-          v = sim(nozzle)%velocity
-          R = sim(nozzle)%radius
-          bf= sim(nozzle)%rFeatherOut
-          L = sim(nozzle)%power
-
-          h = sim(nozzle)%helicity
-          ! Ratio of (enthalpy + toroidal magnetic energy density) to pressure
-          x = g/(g-1.0)+h**2/(1.0+h**2)/sim(nozzle)%beta
-
+       if (time .lt. sim(nozzle)%tOn+dt_start) then
           !M = sim(nozzle)%mach
-          M = sim(nozzle)%initMach + (sim(nozzle)%mach-sim(nozzle)%initMach)&
-              *cos(PI*( max(-0.5, min(0.0, 0.5*(time-sim(nozzle)%tOn-t1)/t1))))
-
-          sim(nozzle)%density = 0.5*L/PI/v**3/( R*R*(0.5+x/M**2/g) + R*bf*(0.3125+x/M**2/g) &
-                                + bf*bf*(0.06056+0.29736*x/M**2/g) )
-          sim(nozzle)%pressure = v*v*sim(nozzle)%density/M**2/g
+          !M = sim(nozzle)%initMach + (sim(nozzle)%mach-sim(nozzle)%initMach)&
+          !    *cos(PI*( max(-0.5, min(0.0, 0.5*(time-sim(nozzle)%tOn-t1)/t1))))
+          M = max(sim(nozzle)%initMach, sim(nozzle)%mach*((time-sim(nozzle)%tOn)/dt_start)**0.7)
+       else
+          M = sim(nozzle)%mach
        endif
 
+       sim(nozzle)%density = 0.5*L/PI/v**3/( R*R*(0.5+x/M**2/g) + R*bf*(0.3125+x/M**2/g) &
+                             + bf*bf*(0.06056+0.29736*x/M**2/g) )
+       sim(nozzle)%pressure = v*v*sim(nozzle)%density/M**2/g
+
        ! Turn off the jet by decreasing the velocity
-       if (time .gt. sim(nozzle)%tOn+sim(nozzle)%duration-t1) then
+       if (time .gt. sim(nozzle)%tOn+sim(nozzle)%duration-dt_end) then
            sim(nozzle)%velocity = sim(nozzle)%velJet&
-           *cos(PI*( max(0.0, min(0.5, 0.5*(time-sim(nozzle)%tOn-sim(nozzle)%duration+t1)/t1))))
+           *cos(PI*( max(0.0, min(0.5, 0.5*(time-sim(nozzle)%tOn-sim(nozzle)%duration+dt_end)/dt_end))))
            if (sim_meshMe  == MASTER_PE .and. time .lt. sim(nozzle)%tOn+sim(nozzle)%duration) then
                write(*,*) 'v = ', sim(nozzle)%velocity
            endif
