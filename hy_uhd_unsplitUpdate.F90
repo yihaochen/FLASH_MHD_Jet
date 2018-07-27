@@ -784,7 +784,7 @@
 
 #ifdef DEBUG_HYDRO_POSITIVITY
                 if (U0(HY_DENS)<hy_smalldens) then
-                   print*,'Low DENS',U(DENS_VAR,i,j,k),'->',U0(HY_DENS),',X=',xCenter(i),',i,j=',i,j,&
+                   print*,'Low DENS',U(DENS_VAR,i,j,k),'->',U0(HY_DENS),',X=',xCenter(i),',i,j,k=',i,j,k,&
                             ' in Block',blockID,'@',hy_meshMe
                 end if
 #endif
@@ -1164,6 +1164,9 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
   real, dimension(HY_VARINUM), intent(INOUT) :: Ul
   real, dimension(HY_VARINUM), intent(IN) :: Sgeo,Sphys
   real, dimension(HY_VARINUM), intent(IN) :: FL,FR,GL,GR,HL,HR
+! <- ychen 07-2018
+  real, dimension(HY_VARINUM) :: Uold
+! ychen ->
   real, intent(IN) :: gravX,gravY,gravZ
   real, intent(IN) :: dx,dy,dz,dt
   real, dimension(3) :: momentaOld
@@ -1171,6 +1174,9 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
 
   !! Store old states at n
   densOld = Ul(HY_DENS)
+! <- ychen 07-2018
+  Uold(1:HY_VARINUM) = Ul(HY_DENS:HY_DENS+HY_VARINUM-1)
+! ychen ->
   momentaOld(1:3) = Ul(HY_XMOM:HY_ZMOM)
 
   !! Update conservative variables from n to n+1 step
@@ -1190,6 +1196,14 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
   endif
 
   endif
+
+
+! <- ychen 07-2018
+  if (UL(HY_DENS) .lt. 0.0) then
+     print*,'[hy_uhd_unsplitUpdate] Reversing cell update dens',Ul(HY_DENS),'by',Uold(1)
+     Ul(HY_DENS:HY_DENS+HY_VARINUM-1) = Uold(1:HY_VARINUM)
+  endif
+! ychen ->
 
 
   !! Include geometric and physical source terms
