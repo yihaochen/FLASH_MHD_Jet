@@ -120,9 +120,7 @@ subroutine gr_markJet(nozzle)
            eintmin = minval(solnData(EINT_VAR,:,:,:))
 
            ! Force maximum refine level for the jet using momentum
-           ! Force maximum refinement for abnormally low internal energy region
-           ! to increase stability
-           if ((pmax >= sim(nozzle)%refine_jetR*pjet) .or. (eintmin <= 10.*gr_smalle)) then
+           if (pmax >= sim(nozzle)%refine_jetR*pjet) then
               if (lrefine(b) < lrefine_max) then
                  refine(b) = .true.
                  derefine(b) = .false.
@@ -145,6 +143,18 @@ subroutine gr_markJet(nozzle)
                  else
                     refine(b)   = .false.
                  endif
+              endif
+           endif
+           ! Force maximum refinement for abnormally low internal energy region
+           ! to increase stability
+           if (eintmin <= 10.*gr_smalle) then
+              if (lrefine(b) < lrefine_max) then
+                 write(*,'(a,3es11.3)') '[gr_markJet] eint too low, force refinement. blk center =', &
+                        blockCenter(:)
+                 refine(b) = .true.
+                 derefine(b) = .false.
+              else if (lrefine(b) == lrefine_max) then
+                 derefine(b) = .false.
               endif
            endif
 
