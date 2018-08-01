@@ -185,6 +185,10 @@
     real, dimension(blkLimits(LOW,IAXIS):blkLimits(HIGH,IAXIS),&
                     blkLimits(LOW,JAXIS):blkLimits(HIGH,JAXIS),  &
                     blkLimits(LOW,KAXIS):blkLimits(HIGH,KAXIS) ) :: cellVolumes
+! <- ychen 07-2018
+    integer :: ib, jb, kb, bad_count
+! ychen ->
+
 
 #if defined(FLASH_USM_MHD) && defined(FLASH_UHD_3T) 
     real, dimension(3, dataSize(IAXIS),dataSize(JAXIS),dataSize(KAXIS)) :: Jp, Jm
@@ -256,6 +260,12 @@
     jmax  = 1
     kmin  = 1
     kmax  = 1
+! <- ychen 07-2018
+    ib = 0
+    jb = 0
+    kb = 0
+    bad_count = 0
+! ychen ->
 
     dx = del(DIR_X)
     dy = 1.
@@ -782,6 +792,23 @@
                       HR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1),&
                       gravX(i,j,k),gravY(i,j,k),gravZ(i,j,k),dxv,dyv,dz,dt,Sgeo,Sphys)
 
+! <- ychen 07-2018
+                if ((U0(HY_DENS)<hy_smalldens) .or. (U0(HY_ENER)/U0(DENS_VAR)<hy_smallE)) then
+                   ib = i
+                   jb = j
+                   kb = k
+                   bad_count = bad_count+1
+                   if (U0(HY_DENS)<hy_smalldens) then
+                      print*,'Low DENS',U(DENS_VAR,i,j,k),'->',U0(HY_DENS),',i,j,k=',i,j,k,&
+                               ' in Block',blockID,'@',hy_meshMe
+                      print*,'U0', U0
+                   endif
+                   if (U0(HY_ENER)/U0(DENS_VAR)<hy_smallE) then
+                      print*,'Low ENER',U(ENER_VAR,i,j,k),'->',U0(HY_ENER)/U0(DENS_VAR),',i,j,k=',i,j,k,&
+                               ' in Block',blockID,'@',hy_meshMe
+                   endif
+                endif
+! ychen ->
 #ifdef DEBUG_HYDRO_POSITIVITY
                 if (U0(HY_DENS)<hy_smalldens) then
                    print*,'Low DENS',U(DENS_VAR,i,j,k),'->',U0(HY_DENS),',X=',xCenter(i),',i,j,k=',i,j,k,&
@@ -803,7 +830,7 @@
                             ' in Block',blockID,'@',hy_meshMe
                 end if
 #endif
-                U(ENER_VAR,i,j,k) = U0(HY_ENER)                                      !total plasma energy
+                U(ENER_VAR,i,j,k) = U0(HY_ENER)/U(DENS_VAR,i,j,k) !total plasma energy, now in mass-specific form
                 !! We will update velocity fields after species & mass scalar update
 
 #if (NSPECIES+NMASS_SCALARS) > 0
@@ -859,8 +886,6 @@
                 !!      it still uses velocity fields for mass scalar and species update
                 U(VELX_VAR:VELZ_VAR,i,j,k) = U0(HY_XMOM:HY_ZMOM)/U(DENS_VAR,i,j,k)        !velocities
 
-                U(ENER_VAR,i,j,k) = U0(HY_ENER)/U(DENS_VAR,i,j,k) !total plasma energy, now in mass-specific form
-
                 if (hy_useAuxEintEqn) then
                    IntEner = IntEner / U(DENS_VAR,i,j,k)
 #ifdef EINT_VAR
@@ -905,6 +930,59 @@
           enddo !end of i loop
        enddo !end of j loop
     enddo !end of k loop
+
+! <- ychen 07-2018
+   ! If any cell in this block is bad, we replace the value of the cell
+   ! by the average of its adjacent cells
+   if (bad_count .gt. 0) then
+       print*, 'Performing averaging, bad_count=', bad_count
+       print*, 'Old dens', U(DENS_VAR,ib,jb,kb)
+       print*, 'Old velx', U(VELX_VAR,ib,jb,kb)
+       print*, 'Old vely', U(VELY_VAR,ib,jb,kb)
+       print*, 'Old velz', U(VELZ_VAR,ib,jb,kb)
+       print*, 'Old ener', U(ENER_VAR,ib,jb,kb)
+       print*, 'DENS arr'
+       print*, U(DENS_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
+       print*, 'ENER arr'
+       print*, U(ENER_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
+       print*, 'VELX arr'
+       print*, U(VELX_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
+       print*, 'VELY arr'
+       print*, U(VELY_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
+       print*, 'VELZ arr'
+       print*, U(VELZ_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
+       U(DENS_VAR,ib,jb,kb) =&
+            (U(DENS_VAR,ib-1,jb,kb) +&
+             U(DENS_VAR,ib+1,jb,kb) +&
+             U(DENS_VAR,ib,jb-1,kb) +&
+             U(DENS_VAR,ib,jb+1,kb) +&
+             U(DENS_VAR,ib,jb,kb-1) +&
+             U(DENS_VAR,ib,jb,kb+1))/6.0
+       U(ENER_VAR,ib,jb,kb) =&
+            (U(ENER_VAR,ib-1,jb,kb)*U(DENS_VAR,ib-1,jb,kb) +&
+             U(ENER_VAR,ib+1,jb,kb)*U(DENS_VAR,ib+1,jb,kb) +&
+             U(ENER_VAR,ib,jb-1,kb)*U(DENS_VAR,ib,jb-1,kb) +&
+             U(ENER_VAR,ib,jb+1,kb)*U(DENS_VAR,ib,jb+1,kb) +&
+             U(ENER_VAR,ib,jb,kb-1)*U(DENS_VAR,ib,jb,kb-1) +&
+             U(ENER_VAR,ib,jb,kb+1)*U(DENS_VAR,ib,jb,kb+1))&
+             /6.0/U(DENS_VAR,ib,jb,kb)
+       U(VELX_VAR:VELZ_VAR,ib,jb,kb) =&
+            (U(VELX_VAR:VELZ_VAR,ib-1,jb,kb)*U(DENS_VAR,ib-1,jb,kb) +&
+             U(VELX_VAR:VELZ_VAR,ib+1,jb,kb)*U(DENS_VAR,ib+1,jb,kb) +&
+             U(VELX_VAR:VELZ_VAR,ib,jb-1,kb)*U(DENS_VAR,ib,jb-1,kb) +&
+             U(VELX_VAR:VELZ_VAR,ib,jb+1,kb)*U(DENS_VAR,ib,jb+1,kb) +&
+             U(VELX_VAR:VELZ_VAR,ib,jb,kb-1)*U(DENS_VAR,ib,jb,kb-1) +&
+             U(VELX_VAR:VELZ_VAR,ib,jb,kb+1)*U(DENS_VAR,ib,jb,kb+1))&
+             /6.0/U(DENS_VAR,ib,jb,kb)
+       print*, 'New dens', U(DENS_VAR,ib,jb,kb)
+       print*, 'New velx', U(VELX_VAR,ib,jb,kb)
+       print*, 'New vely', U(VELY_VAR,ib,jb,kb)
+       print*, 'New velz', U(VELZ_VAR,ib,jb,kb)
+       print*, 'New ener', U(ENER_VAR,ib,jb,kb)
+
+   endif
+
+! ychen ->
 
     !! ---------------------------------------------------------------
 #if defined(FLASH_USM_MHD) || defined(FLASH_UGLM_MHD)
@@ -1159,13 +1237,13 @@
 Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
                                       gravX, gravY, gravZ,&
                                       dx,dy,dz,dt,Sgeo,Sphys)
-  use Hydro_data, ONLY : hy_useGravity
+  use Hydro_data, ONLY : hy_useGravity, hy_smalldens
   implicit none
   real, dimension(HY_VARINUM), intent(INOUT) :: Ul
   real, dimension(HY_VARINUM), intent(IN) :: Sgeo,Sphys
   real, dimension(HY_VARINUM), intent(IN) :: FL,FR,GL,GR,HL,HR
 ! <- ychen 07-2018
-  real, dimension(HY_VARINUM) :: Uold
+  !real, dimension(HY_VARINUM) :: Uold
 ! ychen ->
   real, intent(IN) :: gravX,gravY,gravZ
   real, intent(IN) :: dx,dy,dz,dt
@@ -1175,7 +1253,7 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
   !! Store old states at n
   densOld = Ul(HY_DENS)
 ! <- ychen 07-2018
-  Uold(1:HY_VARINUM) = Ul(HY_DENS:HY_DENS+HY_VARINUM-1)
+  !Uold(1:HY_VARINUM) = Ul(HY_DENS:HY_DENS+HY_VARINUM-1)
 ! ychen ->
   momentaOld(1:3) = Ul(HY_XMOM:HY_ZMOM)
 
@@ -1199,10 +1277,34 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
 
 
 ! <- ychen 07-2018
-  if (UL(HY_DENS) .lt. 0.0) then
-     print*,'[hy_uhd_unsplitUpdate] Reversing cell update dens',Ul(HY_DENS),'by',Uold(1)
-     Ul(HY_DENS:HY_DENS+HY_VARINUM-1) = Uold(1:HY_VARINUM)
+  if (Ul(HY_DENS) .lt. hy_smalldens) then
+  !   print*,'[hy_uhd_unsplitUpdate] Reversing cell update dens',Ul(HY_DENS),'by',Uold(HY_DENS)
+  !   print*,'[hy_uhd_unsplitUpdate] Reversing cell update ener',Ul(HY_ENER),'by',Uold(HY_ENER)
+  !   !Ul(HY_DENS:HY_DENS+HY_VARINUM-1) = Uold(1:HY_VARINUM)
+  !   Ul(HY_DENS) = Uold(HY_DENS)
+  !   Ul(HY_ENER) = Uold(HY_ENER)
+     print*, '[updateConservedVariable] negative dens', Ul(HY_DENS)
+     print*, '[updateConservedVariable] old dens', densOld
+     print*, 'FR:'
+     print*,  FR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)
+     print*, '-FL:'
+     print*,  -FL(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)
+     print*, 'GR:'
+     print*,  GR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)
+     print*, '-GL:'
+     print*,  -GL(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)
+     print*, 'HR:'
+     print*,  HR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)
+     print*, '-HL:'
+     print*,  -HL(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)
   endif
+  !if ((Ul(HY_ENER) .lt. 1E-2*Uold(HY_ENER)) .or. (Ul(HY_ENER) .gt. 1E2*Uold(HY_ENER))) then
+  !   print*,'[hy_uhd_unsplitUpdate] Reversing cell update ener',Ul(HY_ENER),'by',Uold(HY_ENER)
+  !   print*,'[hy_uhd_unsplitUpdate] Reversing cell update dens',Ul(HY_DENS),'by',Uold(HY_DENS)
+  !   !Ul(HY_DENS:HY_DENS+HY_VARINUM-1) = Uold(1:HY_VARINUM)
+  !   Ul(HY_DENS) = Uold(HY_DENS)
+  !   Ul(HY_ENER) = Uold(HY_ENER)
+  !endif
 ! ychen ->
 
 
