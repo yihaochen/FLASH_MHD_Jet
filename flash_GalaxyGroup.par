@@ -1,0 +1,201 @@
+#	Logfile
+
+run_comment		= "FLASH4 MHD Jet in a galaxy group - Intermediate Power"
+
+#	Parameters for initial model
+#	Galaxy group temperature and density.
+
+sim_Tcore		= 1.16E7		# 1 keV
+sim_Tout		= 1.16E7		# 1 keV
+sim_rCoreT		= 3.0857E22		# 10 kpc
+sim_rhoCore		= 2.07E-26		# g/cm3 = N particles/cm^3 * 1.67E-24 * mu 
+								#		= N electron/cm^3 * 1.67E-24 * mu_e (mu_e = 1.24)
+sim_rhofloor	= 3.34E-31		# ~ 0.2 protrons/m^3 - Background density will be limited to be above this value
+sim_mu			= 0.60			# mean molecular weight
+sim_windVel     = 0.0
+sim_gammaICM	= 1.666666
+sim_bzAmbient	= 0.0 #1.8623E-6
+sim_densityProfile = "betacore"
+sim_densityBeta = 0.7			# for the beta-model density profile
+sim_rCore		= 3.0857E22		# 10 kpc
+
+useGravity = .true.
+
+#	Jet properties
+sim_powerJet	= 6.3E43
+sim_velJet		= 6.0E9			# = 0.2 c
+sim_machJet		= 7.0
+sim_initMachJet	= 7.0
+sim_outflowRatio= 0.001
+sim_gammaJet	= 1.333333
+sim_betaJet		= 1.0
+sim_helicityJet = 1.0
+sim_timeMHDon	= 1.0E11
+sim_tOn			= 1.0E10
+sim_duration	= 1.894E15		# 3.1E13 ~ 1 Myr
+
+#	Nozzle Geometry
+nozzleRadius = 1.0E21	# 3.1E21 cm ~ 1 kpc
+nozzleHalfL  = 5.0E20
+nozzlePosX   = 0.0
+nozzlePosY   = 0.0
+nozzlePosZ   = 0.0
+nozzleVecX	 = 0.0
+nozzleVecY	 = 0.0
+nozzleVecZ	 = 1.0
+coneVecX	 = 0.0
+coneVecY	 = 0.0
+coneVecZ	 = 1.0
+
+zTorInj		 = 1.5E21
+rFeatherIn	 = 2.5E20
+rFeatherOut  = 2.5E20
+zFeather	 = 5.0E20
+
+initGeometry = "spherical"
+
+#	Nozzle motion
+nozzlePrecAngle  = 0.3
+nozzlePrecession = 0
+nozzleNutation   = 0
+nozzleLinVelX = 0.0
+nozzleLinVelY = 0.0
+nozzleLinVelZ = 0.0
+useTableJiggle = .true.
+nozzleVecInput = "nozzleVec_input.dat"
+
+
+#	Refinement Critiria
+refine_jetR  = 0.1
+derefine_jetR= 0.01
+
+randomSeed = 6511
+
+smlrho  = 1E-32
+smallp  = 1E-14
+smalle  = 1E14
+smallx  = 1E-10
+dtinit  = 1E8
+dtmin	= 1E8
+dr_dtMinContinue	= 1E7
+dtmax	= 1E12
+#gr_sanitizeDataMode = 3
+gr_sanitizeVerbosity = 4
+eintSwitch			 = 1.e-4
+energyfix			 = .true.
+
+
+#	Computational volume parameters
+
+#		Grid geometry
+
+geometry = "cartesian"
+
+
+#	Particles parameters
+useParticles	= .true.
+sim_ptAddPeriod = 1E8
+sim_ptAddArea   = 1E45
+sim_ptSmljet	= 1E-4
+pt_maxPerProc	= 1E6
+pt_numParticlesWanted = 1E6
+sim_ptMaxRadius = 3.1E23
+
+
+#		Size of computational volume
+
+Nblockx		= 1
+Nblocky		= 1
+Nblockz		= 2
+xmin		= -1.024E24		# 3.1E21 cm ~ 1 kpc
+xmax		=  1.024E24
+ymin		= -1.024E24
+ymax		=  1.024E24
+zmin		= -2.048E24
+zmax		=  2.048E24
+
+#		Boundary conditions
+
+xl_boundary_type = "hydrostatic-f2+nvdiode"
+xr_boundary_type = "hydrostatic-f2+nvdiode"
+
+yl_boundary_type = "hydrostatic-f2+nvdiode"
+yr_boundary_type = "hydrostatic-f2+nvdiode"
+
+zl_boundary_type = "hydrostatic-f2+nvdiode"
+zr_boundary_type = "hydrostatic-f2+nvdiode"
+
+
+#	Simulation (grid, time, I/O) parameters
+cfl				= 0.4
+
+tmax            = 3.16E14
+nend            = 250000
+#nend			= 25145
+
+
+lrefine_max			= 12
+lrefine_0			= 11
+onlyHalf			= .true.
+#gr_lrefineMaxByTime = .true.
+#gr_lrefmaxTime_1    = 6.623E14  #21 Myr
+#gr_lrefmaxTimeValue_1 = 11
+#gr_lrefmaxTime_2    = 6.939E14  #22 Myr
+#gr_lrefmaxTimeValue_2 = 10
+refine_var_1		= "pres"
+refine_cutoff_1		= 0.8
+derefine_cutoff_1	= 0.2
+refine_var_2		= "temp"
+refine_cutoff_2		= 0.8
+derefine_cutoff_2	= 0.2
+#refine_var_3		= "magp"
+#refine_cutoff_3		= 0.9
+#derefine_cutoff_3	= 0.7
+basenm				= "GalaxyGroup_"
+
+restart						= .false.
+checkpointFileIntervalTime  = 1.57788E13
+#checkpointFileIntervalStep  = 1
+checkpointFileNumber        = 0
+wall_clock_time_limit		= 172750
+wall_clock_checkpoint		= 172800	# 172800 seconds = 48 hours
+
+plotFileIntervalTime		= 1.57788E12
+particleFileIntervalTime	= 1.57788E12
+plotFileNumber              = 0
+particleFileNumber			= 0
+
+
+plot_var_1 = "dens"
+plot_var_2 = "pres"
+plot_var_3 = "temp"
+plot_var_4 = "jet"
+plot_var_5 = "velx"
+plot_var_6 = "vely"
+plot_var_7 = "velz"
+plot_var_8 = "magx"
+plot_var_9 = "magy"
+plot_var_10 = "magz"
+plot_var_11 = "shok"
+plot_var_12 = "shks"
+plot_var_13 = "eint"
+
+
+## -------------------------------------------------------------##
+##  SWITCHES SPECIFIC TO THE UNSPLIT HYDRO SOLVER               ##
+#	I. INTERPOLATION SCHEME:
+order		= 3		     # Interpolation order
+slopeLimiter    = "mc"   # Slope limiters (minmod, mc, vanLeer, hybrid, limited)
+LimitedSlopeBeta= 1.     # Slope parameter for the "limited" slope by Toro
+charLimiting	= .true. # Characteristic limiting vs. Primitive limiting
+
+
+#	II. RIEMANN SOLVERS:
+RiemannSolver	= "Hybrid"       # LLF, HLL, HLLC, hybrid, Marquina, Roe
+
+
+#	III. STRONG SHOCK HANDELING SCHEME:
+shockDetect	= .true.     # Shock Detect for numerical stability
+shocklowerCFL= .false.     # Lower CFL when shock is detected
+## -------------------------------------------------------------##
+ForceHydroLimit = .false. # Force pure hydro mode
