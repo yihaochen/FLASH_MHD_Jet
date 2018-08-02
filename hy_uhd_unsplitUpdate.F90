@@ -793,7 +793,7 @@
                       gravX(i,j,k),gravY(i,j,k),gravZ(i,j,k),dxv,dyv,dz,dt,Sgeo,Sphys)
 
 ! <- ychen 07-2018
-                if ((U0(HY_DENS)<hy_smalldens) .or. (U0(HY_ENER)/U0(DENS_VAR)<hy_smallE)) then
+                if ((U0(HY_DENS)<hy_smalldens) .or. (U0(HY_ENER)/abs(U0(DENS_VAR))<hy_smallE)) then
                    ib = i
                    jb = j
                    kb = k
@@ -803,7 +803,7 @@
                                ' in Block',blockID,'@',hy_meshMe
                       print*,'U0', U0
                    endif
-                   if (U0(HY_ENER)/U0(DENS_VAR)<hy_smallE) then
+                   if (U0(HY_ENER)/abs(U0(DENS_VAR))<hy_smallE) then
                       print*,'Low ENER',U(ENER_VAR,i,j,k),'->',U0(HY_ENER)/U0(DENS_VAR),',i,j,k=',i,j,k,&
                                ' in Block',blockID,'@',hy_meshMe
                    endif
@@ -936,11 +936,6 @@
    ! by the average of its adjacent cells
    if (bad_count .gt. 0) then
        print*, 'Performing averaging, bad_count=', bad_count
-       print*, 'Old dens', U(DENS_VAR,ib,jb,kb)
-       print*, 'Old velx', U(VELX_VAR,ib,jb,kb)
-       print*, 'Old vely', U(VELY_VAR,ib,jb,kb)
-       print*, 'Old velz', U(VELZ_VAR,ib,jb,kb)
-       print*, 'Old ener', U(ENER_VAR,ib,jb,kb)
        print*, 'DENS arr'
        print*, U(DENS_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
        print*, 'ENER arr'
@@ -951,6 +946,11 @@
        print*, U(VELY_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
        print*, 'VELZ arr'
        print*, U(VELZ_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
+       print*, 'Old dens', U(DENS_VAR,ib,jb,kb)
+       print*, 'Old velx', U(VELX_VAR,ib,jb,kb)
+       print*, 'Old vely', U(VELY_VAR,ib,jb,kb)
+       print*, 'Old velz', U(VELZ_VAR,ib,jb,kb)
+       print*, 'Old ener', U(ENER_VAR,ib,jb,kb)
        U(DENS_VAR,ib,jb,kb) =&
             (U(DENS_VAR,ib-1,jb,kb) +&
              U(DENS_VAR,ib+1,jb,kb) +&
@@ -1277,13 +1277,14 @@ Subroutine updateConservedVariable(Ul,FL,FR,GL,GR,HL,HR,  &
 
 
 ! <- ychen 07-2018
-  if (Ul(HY_DENS) .lt. hy_smalldens) then
+  if ((Ul(HY_DENS) .lt. hy_smalldens) .or. (Ul(HY_ENER) .lt. 0.0)) then
   !   print*,'[hy_uhd_unsplitUpdate] Reversing cell update dens',Ul(HY_DENS),'by',Uold(HY_DENS)
   !   print*,'[hy_uhd_unsplitUpdate] Reversing cell update ener',Ul(HY_ENER),'by',Uold(HY_ENER)
   !   !Ul(HY_DENS:HY_DENS+HY_VARINUM-1) = Uold(1:HY_VARINUM)
   !   Ul(HY_DENS) = Uold(HY_DENS)
   !   Ul(HY_ENER) = Uold(HY_ENER)
      print*, '[updateConservedVariable] negative dens', Ul(HY_DENS)
+     print*, '                          or ener', Ul(HY_ENER)
      print*, '[updateConservedVariable] old dens', densOld
      print*, 'FR:'
      print*,  FR(HY_DENS_FLUX:HY_DENS_FLUX+HY_VARINUM-1)
