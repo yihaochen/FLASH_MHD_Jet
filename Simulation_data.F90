@@ -66,7 +66,8 @@ module Simulation_data
   real,save :: sim_ptAddPeriod, sim_ptAddArea, sim_ptMaxRadius
   real,save :: sim_ptSmljet
   character(len=MAX_STRING_LENGTH),save :: sim_densityProfile
-  logical,save :: sim_useTableJiggle, sim_onlyHalf
+  logical,save :: sim_useTableJiggle
+  integer,save :: sim_lowerRefHalf
   integer,save :: sim_nozfileunit=98
   character(len=MAX_STRING_LENGTH),save :: sim_nozVecInput
   integer,save :: sim_meshMe

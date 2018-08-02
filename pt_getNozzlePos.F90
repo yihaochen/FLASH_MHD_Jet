@@ -7,7 +7,8 @@
 subroutine pt_getNozzlePos(nAdd, pos)
 
   use Particles_data, ONLY : pt_meshMe
-  use Simulation_data, ONLY : sim, sim_smallx, cross, sim_onlyHalf
+  use Simulation_data, ONLY : sim, sim_smallx, cross, sim_lowerRefHalf
+  use Driver_data, ONLY : dr_dt
 
   implicit none
 
@@ -16,37 +17,40 @@ subroutine pt_getNozzlePos(nAdd, pos)
 #include "Flash_mpi.h"
 #include "Particles.h"
 
-  !real, dimension(MDIM), INTENT(IN) :: del
-  ! Ratio of the thikness of the layer to the nozzle length
-  ! at the nozzle cross-section
-  real :: del=0.01
   integer, INTENT(IN)   :: nAdd
   real, dimension(MDIM,nAdd), INTENT(OUT) :: pos
   real, dimension(MDIM) :: rxvec, ryvec
-  real          :: r, theta, z
+  ! The thikness of the layer for adding particles at the nozzle cross-section
+  real          :: del
+  real          :: r, theta, z, fac
   integer       :: i, nozzle=1, ierr
 
   rxvec = cross(sim(nozzle)%jetvec, (/ 0.0, sim_smallx, 1.0 /))
   rxvec = rxvec / sqrt(sum(rxvec(:)*rxvec(:)))
   ryvec = cross(sim(nozzle)%jetvec, rxvec)
 
+  del = sim(nozzle)%velocity*dr_dt
+
   do i = 1, nAdd
      call RANDOM_NUMBER(r)
-     call RANDOM_NUMBER(theta)
-     call RANDOM_NUMBER(z)
-     
-     ! take square root of r to ensure uniform random distribution on the disk
      r = sqrt(r)*sim(nozzle)%radius*0.8
+
+     call RANDOM_NUMBER(theta)
+     ! take square root of r to ensure uniform random distribution on the disk
      theta = theta*2.0*PI
-     if (sim_onlyHalf) then
-        z = (1.0+0.5*z*del)*sim(nozzle)%length
+
+     call RANDOM_NUMBER(z)
+     ! z is a random number between 0 and 1
+     ! We want lower half of the domain have (2**sim_lowerRefHalf)**3 times fewer
+     ! particles to allow similar # of particles / block
+
+     fac = (2**sim_lowerRefHalf)**MDIM
+     z = z - 1.0/(fac + 1.0)
+
+     if (z .lt. 0.0) then
+         z = -sim(nozzle)%length + z*(fac+1.0)*del
      else
-        z = z - 0.5
-        if (z .lt. 0.0) then
-            z = (-1.0+z*del)*sim(nozzle)%length
-        else
-            z = ( 1.0+z*del)*sim(nozzle)%length
-        endif
+         z = sim(nozzle)%length + z*(fac+1.0)/fac*del
      endif
 
      pos(:,i) = sim(nozzle)%pos &

@@ -34,7 +34,7 @@ subroutine gr_markJet(nozzle)
   use Driver_interface, ONLY : Driver_abortFlash
   use Grid_data, ONLY : gr_geometry, gr_smalle
   use Grid_interface, ONLY : Grid_getBlkPtr, Grid_releaseBlkPtr, Grid_getBlkIndexLimits
-  use Simulation_data, ONLY : sim, sim_onlyHalf
+  use Simulation_data, ONLY : sim, sim_lowerRefHalf
 #include "constants.h"
 #include "Flash.h"
   implicit none
@@ -46,7 +46,7 @@ subroutine gr_markJet(nozzle)
 ! Local data
 
   real, dimension(MDIM) :: blockCenter, blockSize
-  integer               :: b, lrefine_0, blk_resolution
+  integer               :: b, lrefine_0, blk_resolution, ref_adj
   integer,dimension(2,MDIM) :: blkLimits,blkLimitsGC
 
   real :: radius, length, sig, distance, theta, vel, fac, pmax, pjet, eintmin
@@ -57,9 +57,9 @@ subroutine gr_markJet(nozzle)
 
   ! Maximal number of blocks to resolve one side of the lobes in length
   blk_resolution = 32
-  if((gr_geometry == CARTESIAN)) then
+  if ((gr_geometry == CARTESIAN)) then
      do b = 1, lnblocks
-        if(nodetype(b) == LEAF) then
+        if (nodetype(b) == LEAF) then
            blockCenter(:) = coord(:,b)
            blockSize(:) = bsize(:,b)
 
@@ -93,12 +93,20 @@ subroutine gr_markJet(nozzle)
            else if ( radius/maxval(blockSize) > blk_resolution/4 ) then
               refine(b) = .false.
            endif
+
+           ! Refinement level adjustment according to z position
+           ! Lower half of the domain will have ref_adj levels fewer refinement
+           if (blockCenter(KAXIS) < 0.0) then
+               ref_adj = sim_lowerRefHalf
+           else
+               ref_adj = 0
+           endif
            ! Set the overall maximal refinement level (lrefine_0)
            ! The jet is to be refined by different level (lrefine_max)
-           if (lrefine(b) > lrefine_0 ) then
+           if (lrefine(b) > lrefine_0 - ref_adj) then
               refine(b)   = .false.
               derefine(b) = .true.
-           else if (lrefine(b) == lrefine_0) then
+           else if (lrefine(b) == lrefine_0 - ref_adj) then
               refine(b) = .false.
            endif
            
@@ -121,30 +129,19 @@ subroutine gr_markJet(nozzle)
 
            ! Force maximum refine level for the jet using momentum
            if (pmax >= sim(nozzle)%refine_jetR*pjet) then
-              if (lrefine(b) < lrefine_max) then
+              if (lrefine(b) < lrefine_max - ref_adj) then
                  refine(b) = .true.
                  derefine(b) = .false.
-              else if (lrefine(b) == lrefine_max) then
+              else if (lrefine(b) == lrefine_max - ref_adj) then
                  derefine(b) = .false.
               endif
            endif
            if (pmax >= sim(nozzle)%derefine_jetR*pjet) then
-              if (lrefine(b) == lrefine_max) then
+              if (lrefine(b) == lrefine_max - ref_adj) then
                  derefine(b) = .false.
               endif
            endif
 
-           if (sim_onlyHalf) then
-              ! Maintain minimal refinement level for lower half of the domain
-              if (blockCenter(3) < 0.0) then
-                 if (lrefine(b) > 1 ) then
-                    refine(b)   = .false.
-                    derefine(b) = .true.
-                 else
-                    refine(b)   = .false.
-                 endif
-              endif
-           endif
            ! Force maximum refinement for abnormally low internal energy region
            ! to increase stability
            if (eintmin <= 10.*gr_smalle) then
@@ -160,7 +157,6 @@ subroutine gr_markJet(nozzle)
 
            call Grid_releaseBlkPtr(b, solnData, CENTER)
 
-
            
            ! End of leaf-node block loop
         endif
@@ -168,6 +164,6 @@ subroutine gr_markJet(nozzle)
   else
      call Driver_abortFlash("MarkRefine: geometry other than Cartesian is not yet supported in Jet Simulation")
      !-------------------------------------------------------------------------------
-  end if
+  endif
   return
 end subroutine gr_markJet

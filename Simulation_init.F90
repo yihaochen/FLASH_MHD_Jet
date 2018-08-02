@@ -127,7 +127,7 @@ subroutine Simulation_init()
      endif
   endif
 
-  call RuntimeParameters_get('onlyHalf', sim_onlyHalf)
+  call RuntimeParameters_get('lowerRefHalf', sim_lowerRefHalf)
 
 
   if (dr_restart) then

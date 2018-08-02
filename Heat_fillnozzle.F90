@@ -62,7 +62,6 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   real         :: prob, pAdd, cellArea
   real,dimension(MDIM) :: rand_xyz
   real,allocatable,dimension(:,:) ::  pos_tmp
-  logical      :: addShockPt
 
   call Grid_getBlkIndexLimits(blockID,blkLimits,blkLimitsGC)
   sizeX = blkLimitsGC(HIGH,IAXIS) - blkLimitsGC(LOW,IAXIS) + 1
@@ -89,6 +88,11 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   ! Shock particles
   !
   pAdd = dt/sim_ptAddPeriod*cellArea/sim_ptAddArea
+  ! Suppress the number of shock particles by factor of
+  ! (2**sim_lowerRefHalf)**MDIM at lower half of the domain
+  if (sim_zCoord(sizeZ/2) .lt. 0.0) then
+      pAdd = pAdd/(2**sim_lowerRefHalf)**MDIM
+  endif
   !write(*,*) '[Heat_fillnozzle] nPtProc', nPtProc
   !write(*,*) '[Heat_fillnozzle] maxval(SHOK)', maxval(solnData(SHOK_VAR,:,:,:))
   !write(*,*) '[Heat_fillnozzle] prob', prob, pAdd
@@ -96,55 +100,45 @@ subroutine Heat_fillnozzle (blockID,dt,time)
    do j = blkLimits(LOW,JAXIS), blkLimits(HIGH,JAXIS)
     do i = blkLimits(LOW,IAXIS), blkLimits(HIGH,IAXIS)
        cellvec = (/ sim_xCoord(i), sim_yCoord(j), sim_zCoord(k) /)
-       if (solnData(SHOK_VAR,i,j,k) .gt. sim_smallx) then
-           addShockPt = .true.
-       else
-           addShockPt = .false.
+
+       ! prob is a random number between 0 and 1
+       ! This is to determine whether we add nAdd (usually 0) or nAdd+1 particles
+       call RANDOM_NUMBER(prob)
+       ! SHOK_VAR is either 0 or 1
+       ! if SHOK_VAR == 0, nAdd = 0
+       nAdd = int(pAdd*solnData(SHOK_VAR,i,j,k))
+
+       if (prob .le. pAdd*solnData(SHOK_VAR,i,j,k)-nAdd) then
+          nAdd = nAdd+1
        endif
        if (solnData(JET_SPEC,i,j,k) .lt. sim_ptSmljet) then
-           addShockPt = .false.
-       endif
-       if (sim_onlyHalf .and. (sim_zCoord(k) < 0.0)) then
-           addShockPt = .false.
+          nAdd = 0
        endif
 
-       if (addShockPt) then
-          ! prob is a random number between 0 and 1
-          ! This is to determine whether we add nAdd (usually 0) or nAdd+1 particles
-          call RANDOM_NUMBER(prob)
-          ! SHOK_VAR is either 0 or 1
-          ! if SHOK_VAR == 0, nAdd = 0
-          nAdd = int(pAdd*solnData(SHOK_VAR,i,j,k))
-
-          if (prob .le. pAdd*solnData(SHOK_VAR,i,j,k)-nAdd) then
-             nAdd = nAdd+1
+       ! This cell won the lottery, let's give it the shock particle(s)
+       if (nAdd .gt. 0) then
+          !write(*,*) '[Heat_fillnozzle] Adding', nAdd, 'particles'
+          allocate(pos_tmp(MDIM,nPtProc+nAdd))
+          ! Check if there are already particles waiting to be added
+          ! posShok contains the positions of to-be-added particles in this proc
+          if (nPtProc.gt.0) then
+             pos_tmp(:,:nPtProc) = posShok
           endif
-
-          ! This cell won the lottery, let's give it the shock particle(s)
-          if (nAdd .gt. 0) then
-             !write(*,*) '[Heat_fillnozzle] Adding', nAdd, 'particles'
-             allocate(pos_tmp(MDIM,nPtProc+nAdd))
-             ! Check if there are already particles waiting to be added
-             ! posShok contains the positions of to-be-added particles in this proc
-             if (nPtProc.gt.0) then
-                pos_tmp(:,:nPtProc) = posShok
-             endif
-             !pos_tmp is copied to posShok and then deallocated.
-             call move_alloc(pos_tmp, posShok)
-             ! Randomly assign the position(s) of the newly added shock particles
-             do iPart = nPtProc+1, nPtProc+nAdd
-                ! rand_xyz is a MDIM vector
-                call RANDOM_NUMBER(rand_xyz)
-                posShok(:,iPart) = cellvec + del*(rand_xyz-0.5)
-             enddo
-             nPtProc = nPtProc+nAdd
-             !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Adding a new particle at', posPt(:,1)
-             !call Particles_addNew(nAdd, posPt, addNewSuccess)
-             !if (addNewsuccess) then
-             !   write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Added a new particle at', posPt(:,1)
-             !endif
-             !deallocate(posPt)
-          endif
+          !pos_tmp is copied to posShok and then deallocated.
+          call move_alloc(pos_tmp, posShok)
+          ! Randomly assign the position(s) of the newly added shock particles
+          do iPart = nPtProc+1, nPtProc+nAdd
+             ! rand_xyz is a MDIM vector
+             call RANDOM_NUMBER(rand_xyz)
+             posShok(:,iPart) = cellvec + del*(rand_xyz-0.5)
+          enddo
+          nPtProc = nPtProc+nAdd
+          !write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Adding a new particle at', posPt(:,1)
+          !call Particles_addNew(nAdd, posPt, addNewSuccess)
+          !if (addNewsuccess) then
+          !   write(*,'(i5, A25, 3es11.3)') pt_meshMe, 'Added a new particle at', posPt(:,1)
+          !endif
+          !deallocate(posPt)
        endif
 
        call hy_uhd_jetNozzleGeometry(nozzle,cellvec,radius,length,distance,&

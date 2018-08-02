@@ -136,7 +136,7 @@ nend            = 250000
 
 lrefine_max			= 12
 lrefine_0			= 11
-onlyHalf			= .true.
+lowerRefHalf		= 1
 #gr_lrefineMaxByTime = .true.
 #gr_lrefmaxTime_1    = 6.623E14  #21 Myr
 #gr_lrefmaxTimeValue_1 = 11
