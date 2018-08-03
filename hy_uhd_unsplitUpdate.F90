@@ -186,7 +186,8 @@
                     blkLimits(LOW,JAXIS):blkLimits(HIGH,JAXIS),  &
                     blkLimits(LOW,KAXIS):blkLimits(HIGH,KAXIS) ) :: cellVolumes
 ! <- ychen 07-2018
-    integer :: ib, jb, kb, bad_count
+    integer :: bad_count, ncell
+    integer, dimension(dataSize(IAXIS),dataSize(JAXIS),dataSize(KAXIS)) :: cell_mask
 ! ychen ->
 
 
@@ -261,10 +262,8 @@
     kmin  = 1
     kmax  = 1
 ! <- ychen 07-2018
-    ib = 0
-    jb = 0
-    kb = 0
     bad_count = 0
+    cell_mask(:,:,:) = 1
 ! ychen ->
 
     dx = del(DIR_X)
@@ -794,9 +793,7 @@
 
 ! <- ychen 07-2018
                 if ((U0(HY_DENS)<hy_smalldens) .or. (U0(HY_ENER)/abs(U0(DENS_VAR))<hy_smallE)) then
-                   ib = i
-                   jb = j
-                   kb = k
+                   cell_mask(i,j,k) = 0
                    bad_count = bad_count+1
                    if (U0(HY_DENS)<hy_smalldens) then
                       print*,'Low DENS',U(DENS_VAR,i,j,k),'->',U0(HY_DENS),',i,j,k=',i,j,k,&
@@ -935,51 +932,59 @@
    ! If any cell in this block is bad, we replace the value of the cell
    ! by the average of its adjacent cells
    if (bad_count .gt. 0) then
-       print*, 'Performing averaging, bad_count=', bad_count
-       print*, 'DENS arr'
-       print*, U(DENS_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
-       print*, 'ENER arr'
-       print*, U(ENER_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
-       print*, 'VELX arr'
-       print*, U(VELX_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
-       print*, 'VELY arr'
-       print*, U(VELY_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
-       print*, 'VELZ arr'
-       print*, U(VELZ_VAR,ib-1:ib+1,jb-1:jb+1,kb-1:kb+1)
-       print*, 'Old dens', U(DENS_VAR,ib,jb,kb)
-       print*, 'Old velx', U(VELX_VAR,ib,jb,kb)
-       print*, 'Old vely', U(VELY_VAR,ib,jb,kb)
-       print*, 'Old velz', U(VELZ_VAR,ib,jb,kb)
-       print*, 'Old ener', U(ENER_VAR,ib,jb,kb)
-       U(DENS_VAR,ib,jb,kb) =&
-            (U(DENS_VAR,ib-1,jb,kb) +&
-             U(DENS_VAR,ib+1,jb,kb) +&
-             U(DENS_VAR,ib,jb-1,kb) +&
-             U(DENS_VAR,ib,jb+1,kb) +&
-             U(DENS_VAR,ib,jb,kb-1) +&
-             U(DENS_VAR,ib,jb,kb+1))/6.0
-       U(ENER_VAR,ib,jb,kb) =&
-            (U(ENER_VAR,ib-1,jb,kb)*U(DENS_VAR,ib-1,jb,kb) +&
-             U(ENER_VAR,ib+1,jb,kb)*U(DENS_VAR,ib+1,jb,kb) +&
-             U(ENER_VAR,ib,jb-1,kb)*U(DENS_VAR,ib,jb-1,kb) +&
-             U(ENER_VAR,ib,jb+1,kb)*U(DENS_VAR,ib,jb+1,kb) +&
-             U(ENER_VAR,ib,jb,kb-1)*U(DENS_VAR,ib,jb,kb-1) +&
-             U(ENER_VAR,ib,jb,kb+1)*U(DENS_VAR,ib,jb,kb+1))&
-             /6.0/U(DENS_VAR,ib,jb,kb)
-       U(VELX_VAR:VELZ_VAR,ib,jb,kb) =&
-            (U(VELX_VAR:VELZ_VAR,ib-1,jb,kb)*U(DENS_VAR,ib-1,jb,kb) +&
-             U(VELX_VAR:VELZ_VAR,ib+1,jb,kb)*U(DENS_VAR,ib+1,jb,kb) +&
-             U(VELX_VAR:VELZ_VAR,ib,jb-1,kb)*U(DENS_VAR,ib,jb-1,kb) +&
-             U(VELX_VAR:VELZ_VAR,ib,jb+1,kb)*U(DENS_VAR,ib,jb+1,kb) +&
-             U(VELX_VAR:VELZ_VAR,ib,jb,kb-1)*U(DENS_VAR,ib,jb,kb-1) +&
-             U(VELX_VAR:VELZ_VAR,ib,jb,kb+1)*U(DENS_VAR,ib,jb,kb+1))&
-             /6.0/U(DENS_VAR,ib,jb,kb)
-       print*, 'New dens', U(DENS_VAR,ib,jb,kb)
-       print*, 'New velx', U(VELX_VAR,ib,jb,kb)
-       print*, 'New vely', U(VELY_VAR,ib,jb,kb)
-       print*, 'New velz', U(VELZ_VAR,ib,jb,kb)
-       print*, 'New ener', U(ENER_VAR,ib,jb,kb)
-
+    print*, 'Performing averaging, bad_count=', bad_count
+    do k=kmin,kmax
+     do j=jmin,jmax
+      do i=imin,imax
+       if (cell_mask(i,j,k) == 0) then
+          print*, 'DENS arr'
+          print*, U(DENS_VAR,i-1:i+1,j-1:j+1,k-1:k+1)
+          print*, 'ENER arr'
+          print*, U(ENER_VAR,i-1:i+1,j-1:j+1,k-1:k+1)
+          print*, 'VELX arr'
+          print*, U(VELX_VAR,i-1:i+1,j-1:j+1,k-1:k+1)
+          print*, 'VELY arr'
+          print*, U(VELY_VAR,i-1:i+1,j-1:j+1,k-1:k+1)
+          print*, 'VELZ arr'
+          print*, U(VELZ_VAR,i-1:i+1,j-1:j+1,k-1:k+1)
+          print*, cell_mask(i-1:i+1,j-1:j+1,k-1:k+1)
+          print*, 'Old dens', U(DENS_VAR,i,j,k)
+          print*, 'Old velx', U(VELX_VAR,i,j,k)
+          print*, 'Old vely', U(VELY_VAR,i,j,k)
+          print*, 'Old velz', U(VELZ_VAR,i,j,k)
+          print*, 'Old ener', U(ENER_VAR,i,j,k)
+          ncell = (SUM(cell_mask(i-1:i+1,j,k))+&
+                   SUM(cell_mask(i,j-1:j+1,k))+&
+                   SUM(cell_mask(i,j,k-1:k+1)))
+          print*, 'ncell = ', ncell
+          U(DENS_VAR,i,j,k) =&
+              (SUM(U(DENS_VAR,i-1:i+1,j,k)*cell_mask(i-1:i+1,j,k))+&
+               SUM(U(DENS_VAR,i,j-1:j+1,k)*cell_mask(i,j-1:j+1,k))+&
+               SUM(U(DENS_VAR,i,j,k-1:k+1)*cell_mask(i,j,k-1:k+1)))/ncell
+          U(ENER_VAR,i,j,k) =&
+              (SUM(U(ENER_VAR,i-1:i+1,j,k)*U(DENS_VAR,i-1:i+1,j,k)&
+                   *cell_mask(i-1:i+1,j,k))+&
+               SUM(U(ENER_VAR,i,j-1:j+1,k)*U(DENS_VAR,i,j-1:j+1,k)&
+                   *cell_mask(i,j-1:j+1,k))+&
+               SUM(U(ENER_VAR,i,j,k-1:k+1)*U(DENS_VAR,i,j,k-1:k+1)&
+                   *cell_mask(i,j,k-1:k+1)))/ncell/U(DENS_VAR,i,j,k)
+          U(VELX_VAR:VELZ_VAR,i,j,k) =&
+              (MATMUL(U(VELX_VAR:VELZ_VAR,i-1:i+1,j,k),&
+                      U(DENS_VAR,i-1:i+1,j,k)*cell_mask(i-1:i+1,j,k))+&
+               MATMUL(U(VELX_VAR:VELZ_VAR,i,j-1:j+1,k),&
+                      U(DENS_VAR,i,j-1:j+1,k)*cell_mask(i,j-1:j+1,k))+&
+               MATMUL(U(VELX_VAR:VELZ_VAR,i,j,k-1:k+1),&
+                      U(DENS_VAR,i,j,k-1:k+1)*cell_mask(i,j,k-1:k+1)))&
+               /ncell/U(DENS_VAR,i,j,k)
+          print*, 'New dens', U(DENS_VAR,i,j,k)
+          print*, 'New velx', U(VELX_VAR,i,j,k)
+          print*, 'New vely', U(VELY_VAR,i,j,k)
+          print*, 'New velz', U(VELZ_VAR,i,j,k)
+          print*, 'New ener', U(ENER_VAR,i,j,k)
+       endif
+      enddo !end of i loop
+     enddo !end of j loop
+    enddo !end of k loop
    endif
 
 ! ychen ->
