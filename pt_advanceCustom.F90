@@ -2,11 +2,11 @@
 !!
 !! NAME
 !!
-!!  pt_advanceCharged
+!!  pt_advanceCustom
 !!
 !! SYNOPSIS
 !!
-!!  call pt_advanceCharged(real(in)   :: dtOld,
+!!  call pt_advanceCustom(real(in)   :: dtOld,
 !!                        real(in)    :: dtNew,
 !!                        real(inout) :: particles(:,p_count),
 !!                        integer(in) :: p_count)
