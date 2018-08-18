@@ -166,7 +166,6 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
   integer :: ix,iy,iz
   real, dimension(MDIM) :: del
   logical :: gcMask(hy_gcMaskSize)
-  logical :: halfTimeAdvance
 
 #ifdef FIXEDBLOCKSIZE
   real :: flx(NFLUXES,&
@@ -296,7 +295,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
            U(VOLZ_VAR,:,:,:) = U(VELZ_VAR,:,:,:)
 #endif
 #ifdef CFL_VAR
-           where (1.2*U(CFL_VAR,:,:,:) < hy_cfl_original .AND. U(CFL_VAR,:,:,:) .GE. 2.5)
+           where (1.2*U(CFL_VAR,:,:,:) < hy_cfl_original)
               !! Slow recover (of factor of 1.2) to the original CFL once it gets to
               !! reduced to a smaller one in the presence of strong shocks.
               !! This variable CFL takes place in the following three cases using:
@@ -304,7 +303,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
               !! (2) use_hybridOrder = .true., or
               !! (3) BDRY_VAR is defined and used for stationary objects.
               U(CFL_VAR,:,:,:) = 1.2*U(CFL_VAR,:,:,:)
-           elsewhere (U(CFL_VAR,:,:,:) .GE. 2.5)
+           elsewhere
               U(CFL_VAR,:,:,:) = hy_cfl_original
            end where
 #endif
@@ -415,6 +414,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
 #endif
 
   call Timers_stop("Head")
+
 
   do i=1,blockCount             !LOOP 1
 
@@ -553,7 +553,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
      fly = 0.
      flz = 0.
      if ((.not. hy_forceHydroLimit) .and. hy_order > 1) then
-        call hy_memGetBlkPtr(blockID,scrch_Ptr,SCRATCH_CTR)
+        nullify(scrch_Ptr)
         !! Intermediate Godunov fluxes
         call Timers_start("getFaceFlux")
         call hy_uhd_getFaceFlux(blockID,blkLimits,blkLimitsGC,datasize,del,flx,fly,flz,&
@@ -561,10 +561,8 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
                                 hy_SpcR,hy_SpcL,&
                                 lastCall=.FALSE.)
         call Timers_stop("getFaceFlux")
-        call hy_memReleaseBlkPtr(blockID,scrch_Ptr,SCRATCH_CTR)
         if (hy_killdivb) then
            !! DivB=0 calls
-           halfTimeAdvance = .true.
            !! Calculate Godunov fluxes one more time to calculate electric fields
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
         endif
@@ -616,9 +614,8 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         call Grid_getDeltas(blockID,del)
         call Grid_getBlkIndexLimits(blockID,blkLimits,blkLimitsGC)
 
-        halfTimeAdvance = .true.
         !! Evolve face-centered magnetic fields n+1/2 time step
-        call hy_uhd_staggeredDivb(blockID,0.5*dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
+        call hy_uhd_staggeredDivb(blockID,0.5*dt,del,blkLimits,blkLimitsGC,halfTimeAdvance=.true.)
      enddo
 
      !! Fill guardcells for only the face-centered field variable that are
@@ -659,7 +656,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
      call hy_memGetBlkPtr(blockID,scrchFaceXPtr,SCRATCH_FACEX)
      if (NDIM > 1) call hy_memGetBlkPtr(blockID,scrchFaceYPtr,SCRATCH_FACEY)
      if (NDIM > 2) call hy_memGetBlkPtr(blockID,scrchFaceZPtr,SCRATCH_FACEZ)
-     
+
 #ifndef FIXEDBLOCKSIZE
      allocate(flx(NFLUXES,dataSize(IAXIS),dataSize(JAXIS),dataSize(KAXIS)))
      allocate(fly(NFLUXES,dataSize(IAXIS),dataSize(JAXIS),dataSize(KAXIS)))
@@ -687,7 +684,6 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
 
 
      if (.not. hy_forceHydroLimit .and. hy_updateHydroFluxes .and. hy_order > 1) then
-     !if (hy_updateHydroFluxes .and. hy_order > 1) then
         !! *********************************************************************
         !! Calculate Riemann (interface) states with divergence-free fields at n+1/2
         !! Note: gravX(:,:,:) - gravity at n
@@ -777,14 +773,13 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         !! ************************************************************************
         !! Update face-centered magnetic fields from n to n+1 time step
         if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
-           halfTimeAdvance = .false.
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
 ! <- ychen 09-2014
            if (sim(nozzle)%on) then
               call hy_uhd_electricNozzle(blockID,blkLimits,blkLimitsGC)
            endif
 ! ychen ->
-           call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
+           call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance=.false.)
         endif ! End of if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
 #endif
 
@@ -843,7 +838,6 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         !! ************************************************************************
         !! Update face-centered magnetic fields from n to n+1 time step
         if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
-           halfTimeAdvance = .false.
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
 ! <- ychen 09-2014
   !write(*,*) "*************** electricNozzle1 ***************"
@@ -871,7 +865,6 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         !! ************************************************************************
         !! Update face-centered magnetic fields from n to n+1 time step
         if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
-           halfTimeAdvance = .false.
            call hy_uhd_getElectricFields(blockID,blkLimits,blkLimitsGC,del,flx,fly,flz)
         endif ! End of if ((.not. hy_forceHydroLimit) .and. hy_killdivb .and. hy_order > 1) then
 #endif
@@ -1082,8 +1075,7 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
         !! *********************************************************************
         !! Update face-centered magnetic fields from n to n+1 time step
         if (.not. hy_forceHydroLimit .and. hy_killdivb) then
-           halfTimeAdvance = .false.
-           call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance)
+           call hy_uhd_staggeredDivb(blockID,dt,del,blkLimits,blkLimitsGC,halfTimeAdvance=.false.)
         endif
 #endif
 
@@ -1305,15 +1297,14 @@ Subroutine hy_uhd_unsplit ( blockCount, blockList, dt, dtOld )
 #endif
 
 #ifdef DIVV_VAR
-
-              U(DIVV_VAR,ix,iy,iz) = (U(VELX_VAR,ix+1,iy,iz)-U(VELX_VAR,ix-1,iy,iz))/del(DIR_X)
+              U(DIVV_VAR,ix,iy,iz) = 0.5*(U(VELX_VAR,ix+1,iy,iz)-U(VELX_VAR,ix-1,iy,iz))/del(DIR_X)
               if (NDIM > 1) then
-                 U(DIVV_VAR,ix,iy,iz) = U(DIVV_VAR,ix,iy,iz) + &
-                                   +(U(VELY_VAR,ix,iy+1,iz)-U(VELY_VAR,ix,iy-1,iz))/del(DIR_Y)
-              if (NDIM == 3) then
-                 U(DIVV_VAR,ix,iy,iz) = U(DIVV_VAR,ix,iy,iz) + &
-                                   +(U(VELZ_VAR,ix,iy,iz+1)-U(VELZ_VAR,ix,iy,iz-1))/del(DIR_Z)
-              endif
+                 U(DIVV_VAR,ix,iy,iz) = U(DIVV_VAR,ix,iy,iz) &
+                                   +0.5*(U(VELY_VAR,ix,iy+1,iz)-U(VELY_VAR,ix,iy-1,iz))/del(DIR_Y)
+                 if (NDIM == 3) then
+                    U(DIVV_VAR,ix,iy,iz) = U(DIVV_VAR,ix,iy,iz) &
+                                   +0.5*(U(VELZ_VAR,ix,iy,iz+1)-U(VELZ_VAR,ix,iy,iz-1))/del(DIR_Z)
+                 endif
               endif
 #endif
            enddo

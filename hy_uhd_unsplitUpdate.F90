@@ -78,8 +78,8 @@
 
     use Hydro_data,           ONLY : hy_smalldens,hy_order,hy_irenorm,hy_numXN, &
                                      hy_meshMe, &
-                                     hy_geometry, hy_gcMaskSize, &
-                                     hy_gcMask, hy_eswitch, hy_useAuxEintEqn, &
+                                     hy_geometry, &
+                                     hy_eswitch, hy_useAuxEintEqn, &
                                      hy_fullSpecMsFluxHandling, &
                                      hy_conserveAngMom, hy_smallE, hy_irenorm
     use Hydro_data,           ONLY : fP => hy_fPresInMomFlux
@@ -172,7 +172,6 @@
     real, dimension(0) :: yCenter
 #endif
 
-    logical :: gcMask(hy_gcMaskSize)
     real, dimension(HY_VARINUM) :: Sgeo, Sphys
     real, dimension(blkLimits(LOW,IAXIS):blkLimits(HIGH,IAXIS)+1,&
                     blkLimits(LOW,JAXIS):blkLimits(HIGH,JAXIS),  &
@@ -204,7 +203,7 @@
     integer :: VEL_PHI, MOM_PHI, MOM_PHI_FLUX, MAG_PHI,  MAG_PHI_FLUX
     integer :: VEL_ZI, MOM_ZI, MOM_ZI_FLUX, MAG_ZI,  MAG_ZI_FLUX
     integer :: VEL_THT, MOM_THT, MOM_THT_FLUX, velPhiVar
-    real    :: leftFac, rghtFac, dPdr, rvol, alpha, cs, eta
+    real    :: leftFac, rghtFac, alpha, cs, eta
     real    :: ekin, eint, newEint
     real    :: abar, zbar
     real    :: Qohm
