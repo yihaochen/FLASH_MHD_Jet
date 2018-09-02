@@ -42,6 +42,7 @@ subroutine gr_ptHandleExcess(particles,propCount,localNum,maxPerProc)
   use Grid_interface, ONLY : Grid_getListOfBlocks,Grid_getBlkPtr,Grid_releaseBlkPtr,&
        Grid_getBlkIndexLimits
   use Driver_interface, ONLY : Driver_abortFlash
+  use IO_interface, ONLY : IO_writeCheckpoint
   implicit none
 
 #include "Flash.h"
@@ -156,6 +157,7 @@ subroutine gr_ptHandleExcess(particles,propCount,localNum,maxPerProc)
         print*,'started with ',localNumIn,' now have ',i-1,'.'
      end select
   else
+     call IO_writeCheckpoint()
      call Driver_abortFlash("The number of particles exceeded maximum allowed")
   end if
   return
