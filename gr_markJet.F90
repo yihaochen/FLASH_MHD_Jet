@@ -145,12 +145,12 @@ subroutine gr_markJet(nozzle)
            ! Force maximum refinement for abnormally low internal energy region
            ! to increase stability
            if (eintmin <= 10.*gr_smalle) then
-              if (lrefine(b) < lrefine_max) then
+              if (lrefine(b) < lrefine_max - ref_adj) then
                  write(*,'(a,3es11.3)') '[gr_markJet] eint too low, force refinement. blk center =', &
                         blockCenter(:)
                  refine(b) = .true.
                  derefine(b) = .false.
-              else if (lrefine(b) == lrefine_max) then
+              else if (lrefine(b) == lrefine_max - ref_adj) then
                  derefine(b) = .false.
               endif
            endif
