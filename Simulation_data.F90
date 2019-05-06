@@ -62,7 +62,7 @@ module Simulation_data
   real,save,allocatable,dimension(:) :: sim_xcoordf
   real,save,allocatable,dimension(:) :: sim_ycoordf
   real,save,allocatable,dimension(:) :: sim_zcoordf
-  integer,save :: sim_ptInitNum
+  integer,save :: sim_ptInitNum, sim_ptRemoveDigit
   real,save :: sim_ptAddPeriod, sim_ptAddArea, sim_ptMaxRadius
   real,save :: sim_ptSmljet
   character(len=MAX_STRING_LENGTH),save :: sim_densityProfile

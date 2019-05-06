@@ -43,6 +43,7 @@ subroutine gr_ptHandleExcess(particles,propCount,localNum,maxPerProc)
        Grid_getBlkIndexLimits
   use Driver_interface, ONLY : Driver_abortFlash
   use IO_interface, ONLY : IO_writeCheckpoint
+  use Simulation_data, ONLY : sim_ptRemoveDigit
   implicit none
 
 #include "Flash.h"
@@ -54,7 +55,7 @@ subroutine gr_ptHandleExcess(particles,propCount,localNum,maxPerProc)
   real,dimension(propCount,maxPerProc),intent(INOUT) :: particles
   real,dimension(MAXBLOCKS) :: rho
   integer,dimension(MAXBLOCKS) :: blkList
-  integer :: i,j,k,prop,blockID,blkCount,maxRhoBlock
+  integer :: i,j,k,prop,blockID,blkCount,maxRhoBlock, ptype
   integer,dimension(MDIM) :: ind
   real :: maxRho, minRho, tol
   integer,dimension(LOW:HIGH,MDIM)::blkLimits,blkLimitsGC
@@ -155,9 +156,35 @@ subroutine gr_ptHandleExcess(particles,propCount,localNum,maxPerProc)
            localNum=i-1
         end do
         print*,'started with ',localNumIn,' now have ',i-1,'.'
+
+     case(3) !! remove particles with certain digit in their tag number
+        localNumIn = localNum;  i = localNum+1
+        numReduced = 0
+        digit = sim_ptRemoveDigit-1
+        do while ((localNum > maxPerProc .OR. numReduced < gr_ptNumToReduce) &
+                  .AND. (localNum > 0))
+           digit=mod(digit+1,10)
+           print*,'Removing some particles with tag ending in digit',digit
+           k=localNum
+           i=1
+           do j=1,localNum
+              prop = int(particles(gr_ptTag,i))
+              ptype = int(particles(TYPE_PART_PROP,i))
+              if(mod(prop,10)==digit .and. ptype==1) then
+                 particles(1:propCount,i)=particles(1:propCount,k)
+                 k=k-1
+                 numReduced=numReduced+1
+              else
+                 i=i+1
+              end if
+           end do
+           localNum=i-1
+        end do
+        print*,'Number of particles is now', localNum,', removed', numReduced
+
      end select
   else
-     call IO_writeCheckpoint()
+     !call IO_writeCheckpoint()
      call Driver_abortFlash("The number of particles exceeded maximum allowed")
   end if
   return

@@ -160,6 +160,7 @@ PARTICLEMAP TO SHKS FROM VARIABLE shks
 
 
 PARAMETER sim_ptInitNum		INTEGER	10			[0...]
+PARAMETER sim_ptRemoveDigit	INTEGER	2			[0...9]
 PARAMETER sim_ptAddPeriod	REAL	1E9			[0.0...]
 PARAMETER sim_ptAddArea		REAL	1E44		[0.0...]
 PARAMETER sim_ptMaxRadius	REAL	3.1E23		[0.0...]
