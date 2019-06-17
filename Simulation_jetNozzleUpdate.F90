@@ -57,7 +57,8 @@ contains
     dt_start = sim(nozzle)%duration/20.0
     dt_end = sim(nozzle)%duration/100.0
     g = sim(nozzle)%gamma
-    v = sim(nozzle)%velocity
+    ! Target velocity of the jet
+    v = sim(nozzle)%velJet
     R = sim(nozzle)%radius
     bf= sim(nozzle)%rFeatherOut
     L = sim(nozzle)%power
@@ -68,6 +69,7 @@ contains
 
 
     if (sim(nozzle)%on) then
+       sim(nozzle)%velocity = sim(nozzle)%velJet
        ! Turn on the jet by increasing the mach number from initMach to mach.
        if (time .lt. sim(nozzle)%tOn+dt_start) then
           !M = sim(nozzle)%mach
@@ -78,6 +80,8 @@ contains
           M = sim(nozzle)%mach
        endif
 
+       ! The density and pressure are calculated using the target velocity,
+       ! so that they will remain constant during jet turning off time.
        sim(nozzle)%density = 0.5*L/PI/v**3/( R*R*(0.5+x/M**2/g) + R*bf*(0.3125+x/M**2/g) &
                              + bf*bf*(0.06056+0.29736*x/M**2/g) )
        sim(nozzle)%pressure = v*v*sim(nozzle)%density/M**2/g
@@ -87,7 +91,7 @@ contains
            sim(nozzle)%velocity = sim(nozzle)%velJet&
            *cos(PI*( max(0.0, min(0.5, 0.5*(time-sim(nozzle)%tOn-sim(nozzle)%duration+dt_end)/dt_end))))
            if (sim_meshMe  == MASTER_PE .and. time .lt. sim(nozzle)%tOn+sim(nozzle)%duration) then
-               write(*,*) 'v = ', sim(nozzle)%velocity
+               write(*,*) '[Jet turning off] current v = ', sim(nozzle)%velocity
            endif
        endif
        !endif
