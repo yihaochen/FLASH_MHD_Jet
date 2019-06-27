@@ -98,6 +98,9 @@ PARAMETER lrefine_0			INTEGER	5			[1...]
 # Random number generator seed for the jiggle routine
 PARAMETER randomSeed		INTEGER 6511		[0...]
 
+# Reset the time to write checkpoint, plot, and particle files?
+PARAMETER resetOutputTime	BOOLEAN FALSE
+
 # Particles for synchrotron tracing
 PARTICLETYPE passive INITMETHOD custom MAPMETHOD weighted ADVMETHOD custom
 # Particles for metal tracing

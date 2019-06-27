@@ -32,6 +32,10 @@ subroutine Simulation_init()
   use Grid_data, ONLY : gr_minCellSize
   use IO_interface, ONLY :  IO_getScalar
   use Particles_data, ONLY : pt_randSeed
+  use IO_data, ONLY: io_nextCheckpointTime, io_checkpointFileIntervalTime,\
+                     io_nextPlotFileTime, io_plotFileIntervalTime
+  use IOParticles_data, ONLY: io_nextParticleFileTime, io_particleFileIntervalTime
+
   !use Grid_data, ONLY : gr_smallrho
 
   implicit none
@@ -40,6 +44,7 @@ subroutine Simulation_init()
 
   integer :: nozzle=1, clock, iexist
   real    :: maxPrecession
+  logical :: resetOutputTime
 
   call Driver_getMype(MESH_COMM, sim_meshMe)
 
@@ -155,6 +160,14 @@ subroutine Simulation_init()
      call IO_getScalar('nozzleBz', sim(nozzle)%bz)
      call IO_getScalar('nozzleBphi', sim(nozzle)%bphi)
      call IO_getScalar('randomSeed', sim(nozzle)%randSeed(1))
+
+     call RuntimeParameters_get('resetOutputTime', resetOutputTime)
+
+     if (resetOutputTime) then
+        io_nextCheckpointTime = dr_simTime + io_checkpointFileIntervalTime
+        io_nextPlotFileTime = dr_simTime + io_plotFileIntervalTime
+        io_nextParticleFileTime = dr_simTime + io_particleFileIntervalTime
+     endif
 
 
   else
