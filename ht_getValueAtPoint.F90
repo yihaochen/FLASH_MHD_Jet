@@ -63,19 +63,19 @@ subroutine ht_getValueAtPoint (blockID, pointvec, del, varData)
   k0 = karr(1)
 
   if (sim_xCoord(i0)-pointvec(1) > 0) then
-      i0 = i0-1
+      i0 = max(i0-1,GRID_ILO_GC)
   endif
   if (sim_yCoord(j0)-pointvec(2) > 0) then
-      j0 = j0-1
+      j0 = max(j0-1,GRID_JLO_GC)
   endif
   if (sim_zCoord(k0)-pointvec(3) > 0) then
-      k0 = k0-1
+      k0 = max(k0-1,GRID_KLO_GC)
   endif
   !write (*,'(a, 3es11.3)') 'pnt = ', pointvec
   !write (*,'(a, 3es11.3)') 'xyz0= ', sim_xCoord(i0), sim_yCoord(j0), sim_zCoord(k0)
-  i1 = i0+1
-  j1 = j0+1
-  k1 = k0+1
+  i1 = min(i0+1,GRID_IHI_GC)
+  j1 = min(j0+1,GRID_JHI_GC)
+  k1 = min(k0+1,GRID_KHI_GC)
   !write (*,'(a, 3es11.3)') 'xyz1= ', sim_xCoord(i1), sim_yCoord(j1), sim_zCoord(k1)
   xd = (pointvec(1) - sim_xCoord(i0)) / (del(1))
   yd = (pointvec(2) - sim_yCoord(j0)) / (del(2))

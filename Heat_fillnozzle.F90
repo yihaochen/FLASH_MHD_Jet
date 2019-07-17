@@ -51,7 +51,7 @@ subroutine Heat_fillnozzle (blockID,dt,time)
   logical :: gcell = .true.
   real :: Br, Bz, Bphi
   real, pointer, dimension(:,:,:,:) :: solnData
-  real, dimension(NPROP_VARS) :: mixData
+  real, dimension(NUNK_VARS) :: mixData
 
   integer :: nozzle=1
   real, dimension(3) :: cellvec, del, mixvec
