@@ -28,6 +28,7 @@ subroutine Simulation_initBlock(blockID)
     Grid_getBlkPtr, Grid_releaseBlkPtr, Grid_getCellCoords
   use PhysicalConstants_interface, ONLY:  PhysicalConstants_get
   use Logfile_interface, ONLY : Logfile_stamp
+  use Eos_interface, ONLY : Eos_wrapped
   use Simulation_data
   use Driver_data, ONLY : dr_simTime, dr_dtInit
   use Hydro_data, ONLY : hy_bref

@@ -160,4 +160,14 @@ Module Simulation_interface
        real, INTENT(in) :: time, dt
      end subroutine Simulation_jiggleRead
   end interface
+
+  interface
+     subroutine Particles_addNew (count, pos, shock, success)
+       integer, INTENT(in) :: count
+       real, optional, dimension(MDIM,count), intent(IN):: pos
+       real, optional, intent(IN):: shock
+       logical, intent(OUT) :: success
+     end subroutine Particles_addNew
+  end interface
+
 end Module Simulation_interface

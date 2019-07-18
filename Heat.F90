@@ -48,6 +48,7 @@ subroutine Heat (blockCount,blockList,dt,time)
   use Timers_interface, ONLY : Timers_start, Timers_stop
   use Heat_data, ONLY : nPtProc, posShok
   use Particles_data, ONLY : pt_randSeed
+  use Simulation_interface, ONLY : Particles_addNew
   implicit none
 
 #include "constants.h"

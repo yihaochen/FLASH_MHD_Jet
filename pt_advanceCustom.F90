@@ -65,7 +65,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
   integer :: mapType 
   
   integer      :: nozzle=1
-  real         :: rho13, A, Aic, prob, dsa_ind, r2, v_thres=0.5
+  real         :: rho13, A, Aic, dsa_ind, r2, v_thres=0.5
 !!------------------------------------------------------------------------------
   
   !write(*,'(i5, A28, i5)') pt_meshMe, '[pt_advance], pt_numLocal=', pt_numLocal
@@ -168,7 +168,7 @@ subroutine pt_advanceCustom(dtOld,dtNew, particles,p_count, ind)
           ! encountered before. We first invalidate the 2nd shock tracers,
           ! and reset the 1st shock: record shock strength and time and 
           ! reset cooling integral
-          call pt_resetShockVars(particles(:,i), 2, 100.0, -1)
+          call pt_resetShockVars(particles(:,i), 2, 100.0, -1.0)
           call pt_resetShockVars(particles(:,i), 1, dsa_ind, dr_simTime)
           particles(GAMC_PART_PROP,i) = 1E100
        else if ( (dsa_ind .lt. particles(IND2_PART_PROP,i)) .and.&
